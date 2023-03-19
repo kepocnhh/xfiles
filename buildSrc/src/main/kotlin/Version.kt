@@ -6,6 +6,7 @@ object Version {
         const val compileSdk = 33
         const val minSdk = 24
         const val targetSdk = compileSdk
+        const val compose = "1.3.1"
     }
 
     object Application {

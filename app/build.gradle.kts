@@ -31,6 +31,10 @@ android {
             manifestPlaceholders["buildType"] = name
         }
     }
+
+    buildFeatures.compose = true
+
+    composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
 }
 
 androidComponents.onVariants { variant ->
@@ -48,5 +52,7 @@ androidComponents.onVariants { variant ->
 }
 
 dependencies {
+    implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
 }
