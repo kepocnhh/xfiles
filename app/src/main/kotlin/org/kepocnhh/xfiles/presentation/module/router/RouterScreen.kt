@@ -7,8 +7,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.FileScreen
-import org.kepocnhh.xfiles.NoFileScreen
 import org.kepocnhh.xfiles.implementation.module.router.RouterViewModel
 
 @Composable
@@ -23,19 +21,11 @@ internal fun RouterScreen() {
         when (state) {
             false -> {
                 logger.d("no file")
-                NoFileScreen(
-                    onCreate = {
-                        viewModel.requestFile()
-                    }
-                )
+                TODO()
             }
             true -> {
                 logger.d("file exists")
-                FileScreen(
-                    onDelete = {
-                        viewModel.requestFile()
-                    }
-                )
+                TODO()
             }
             null -> {
                 logger.d("request file...")
