@@ -55,7 +55,7 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
         classDirectories.setFrom(
-            fileTree("$buildDir/tmp/kotlin-classes/" + variant.name) {
+            fileTree(File(buildDir, "tmp/kotlin-classes/" + variant.name)) {
                 include("**/${appId.replace('.', '/')}/implementation/module/**/*")
             }
         )
@@ -120,5 +120,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
     implementation("androidx.security:security-crypto:1.0.0")
+//    testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
 }
