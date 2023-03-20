@@ -54,5 +54,7 @@ androidComponents.onVariants { variant ->
 dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
 }
