@@ -13,21 +13,17 @@ import org.kepocnhh.xfiles.presentation.util.androidx.compose.padding
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(inState: Bundle?) {
         super.onCreate(inState)
-        window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
-            view.setOnApplyWindowInsetsListener(null)
-            setContent {
-                App.Theme {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(App.Theme.colors.background)
-                            .padding(App.Theme.dimensions.insets),
-                    ) {
-                        RouterScreen()
-                    }
+        setContent {
+            App.Theme.Composition {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(App.Theme.colors.background)
+                        .padding(App.Theme.dimensions.insets),
+                ) {
+                    RouterScreen()
                 }
             }
-            windowInsets
         }
     }
 }

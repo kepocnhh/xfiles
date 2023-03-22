@@ -19,7 +19,6 @@ import org.kepocnhh.xfiles.implementation.provider.encrypted.FinalEncryptedFileP
 import org.kepocnhh.xfiles.implementation.provider.logger.FinalLoggerFactory
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.Insets
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.toInsets
 import java.io.File
 
@@ -28,9 +27,6 @@ internal class App : Application() {
         private val _loggerFactory: LoggerFactory = FinalLoggerFactory()
 
         private var _viewModelFactory: ViewModelProvider.Factory? = null
-
-        private val localColors = staticCompositionLocalOf<Colors> { Colors.Dark }
-        private val localDimensions = staticCompositionLocalOf { Dimensions(Insets.empty()) }
 
         @Composable
         inline fun <reified T : ViewModel> viewModel(): T {
@@ -43,18 +39,12 @@ internal class App : Application() {
                 _loggerFactory.newLogger(tag)
             }
         }
-
-        @Composable
-        fun Theme(content: @Composable () -> Unit) {
-            CompositionLocalProvider(
-                localColors provides Colors.Dark,
-                localDimensions provides Dimensions(LocalView.current.rootWindowInsets.toInsets()),
-                content = content,
-            )
-        }
     }
 
     object Theme {
+        private val localColors = staticCompositionLocalOf<Colors> { error("no colors") }
+        private val localDimensions = staticCompositionLocalOf<Dimensions> { error("no dimensions") }
+
         val colors: Colors
             @Composable
             @ReadOnlyComposable
@@ -64,6 +54,15 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = localDimensions.current
+
+        @Composable
+        fun Composition(content: @Composable () -> Unit) {
+            CompositionLocalProvider(
+                localColors provides Colors.Dark,
+                localDimensions provides Dimensions(LocalView.current.rootWindowInsets.toInsets()),
+                content = content,
+            )
+        }
     }
 
     override fun onCreate() {

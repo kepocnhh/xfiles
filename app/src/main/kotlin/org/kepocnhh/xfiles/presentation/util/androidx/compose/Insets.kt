@@ -54,5 +54,10 @@ internal fun WindowInsets.toInsets(density: Density = LocalDensity.current) : In
 }
 
 internal fun Modifier.padding(insets: Insets): Modifier {
-    return padding(start = insets.start, top = insets.top, end = insets.end, bottom = insets.bottom)
+    return padding(
+        bottom = insets.bottom,
+        end = insets.end,
+        start = insets.start,
+        top = insets.top,
+    )
 }
