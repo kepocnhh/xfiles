@@ -6,6 +6,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,6 +18,9 @@ import org.kepocnhh.xfiles.foundation.provider.logger.LoggerFactory
 import org.kepocnhh.xfiles.implementation.provider.encrypted.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.implementation.provider.logger.FinalLoggerFactory
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.Insets
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.toInsets
 import java.io.File
 
 internal class App : Application() {
@@ -26,6 +30,7 @@ internal class App : Application() {
         private var _viewModelFactory: ViewModelProvider.Factory? = null
 
         private val localColors = staticCompositionLocalOf<Colors> { Colors.Dark }
+        private val localDimensions = staticCompositionLocalOf { Dimensions(Insets.empty()) }
 
         @Composable
         inline fun <reified T : ViewModel> viewModel(): T {
@@ -43,6 +48,7 @@ internal class App : Application() {
         fun Theme(content: @Composable () -> Unit) {
             CompositionLocalProvider(
                 localColors provides Colors.Dark,
+                localDimensions provides Dimensions(LocalView.current.rootWindowInsets.toInsets()),
                 content = content,
             )
         }
@@ -53,6 +59,11 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = localColors.current
+
+        val dimensions: Dimensions
+            @Composable
+            @ReadOnlyComposable
+            get() = localDimensions.current
     }
 
     override fun onCreate() {

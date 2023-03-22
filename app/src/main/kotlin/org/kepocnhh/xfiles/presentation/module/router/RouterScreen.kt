@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.presentation.module.router
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.Text
@@ -16,7 +18,7 @@ import org.kepocnhh.xfiles.implementation.module.router.RouterViewModel
 
 @Composable
 internal fun RouterScreen() {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Blue)) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center
