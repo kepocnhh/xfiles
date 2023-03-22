@@ -78,7 +78,16 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
 fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
     val capitalize = variant.name.capitalize()
     val configs = setOf(
+        "comments",
         "common",
+        "complexity",
+        "coroutines",
+        "empty-blocks",
+        "exceptions",
+        "naming",
+        "performance",
+        "potential-bugs",
+        "style",
     ).map { config ->
         File(rootDir, "buildSrc/src/main/resources/detekt/config/$config.yml").also {
             check(it.exists() && !it.isDirectory)
@@ -90,13 +99,14 @@ fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
             setSource(files("src/$source/kotlin"))
             config.setFrom(configs)
             reports {
-                xml.required.set(false)
-                sarif.required.set(false)
-                txt.required.set(false)
                 html {
                     required.set(true)
                     outputLocation.set(File(buildDir, "reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
                 }
+                md.required.set(false)
+                sarif.required.set(false)
+                txt.required.set(false)
+                xml.required.set(false)
             }
             val postfix = when (source) {
                 "main" -> ""
