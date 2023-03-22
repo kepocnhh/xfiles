@@ -37,7 +37,8 @@ internal fun Button(
 @Composable
 internal fun Text(
     text: String,
-    textAlign: TextAlign,
+    color: Color,
+    align: TextAlign,
 ) {
     BasicText(
         modifier = Modifier
@@ -46,8 +47,8 @@ internal fun Text(
             .wrapContentHeight(Alignment.CenterVertically),
         style = TextStyle(
             fontSize = 14.sp,
-            color = Color.White,
-            textAlign = textAlign,
+            color = color,
+            textAlign = align,
         ),
         text = text,
     )
