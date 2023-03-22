@@ -10,9 +10,7 @@ internal class FinalLoggerFactory : LoggerFactory {
     }
 }
 
-private class AndroidLogger(
-    private val tag: String
-) : Logger {
+private class AndroidLogger(private val tag: String) : Logger {
     override fun d(message: String) {
         Log.d(tag, message)
     }

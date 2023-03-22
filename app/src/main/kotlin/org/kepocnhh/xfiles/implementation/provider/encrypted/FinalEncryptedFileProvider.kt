@@ -8,13 +8,13 @@ import java.io.File
 
 internal class FinalEncryptedFileProvider(
     context: Context,
-    private val file: File
+    private val file: File,
 ) : EncryptedFileProvider {
     private val encrypted = EncryptedFile.Builder(
         file,
         context,
         MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-        EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
+        EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB,
     ).build()
 
     override fun exists(): Boolean {

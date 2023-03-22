@@ -54,11 +54,10 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        classDirectories.setFrom(
-            fileTree(File(buildDir, "tmp/kotlin-classes/" + variant.name)) {
-                include("**/${appId.replace('.', '/')}/implementation/module/**/*")
-            }
-        )
+        val dirs = fileTree(File(buildDir, "tmp/kotlin-classes/" + variant.name)) {
+            include("**/${appId.replace('.', '/')}/implementation/module/**/*")
+        }
+        classDirectories.setFrom(dirs)
         executionData(taskUnitTest)
     }
     task<JacocoCoverageVerification>("test${capitalize}CoverageVerification") {
@@ -101,7 +100,7 @@ androidComponents.onVariants { variant ->
                 }
                 val applicationId by variant.applicationId
                 val expected = setOf(
-                    "$applicationId.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+                    "$applicationId.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
                 )
                 check(actual.sorted() == expected.sorted()) {
                     "Actual is:\n$actual\nbut expected is:\n$expected"

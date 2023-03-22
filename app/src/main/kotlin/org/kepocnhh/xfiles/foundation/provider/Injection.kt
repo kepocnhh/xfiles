@@ -5,5 +5,5 @@ import org.kepocnhh.xfiles.foundation.provider.encrypted.EncryptedFileProvider
 
 internal data class Injection(
     val contexts: Contexts,
-    val file: EncryptedFileProvider
+    val file: EncryptedFileProvider,
 )

@@ -8,10 +8,10 @@ import org.kepocnhh.xfiles.implementation.provider.encrypted.MockEncryptedFilePr
 
 internal fun mockInjection(
     contexts: Contexts = mockContexts(),
-    file: EncryptedFileProvider = MockEncryptedFileProvider()
+    file: EncryptedFileProvider = MockEncryptedFileProvider(),
 ): Injection {
     return Injection(
         contexts = contexts,
-        file = file
+        file = file,
     )
 }

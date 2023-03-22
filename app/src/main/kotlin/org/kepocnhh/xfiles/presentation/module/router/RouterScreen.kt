@@ -11,10 +11,7 @@ import org.kepocnhh.xfiles.implementation.module.router.RouterViewModel
 
 @Composable
 internal fun RouterScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         val logger = App.newLogger(tag = "[Router]")
         val viewModel = App.viewModel<RouterViewModel>()
         val state by viewModel.state.collectAsState()

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 internal fun Button(
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     BasicText(
         modifier = Modifier
@@ -28,16 +28,16 @@ internal fun Button(
         style = TextStyle(
             fontSize = 14.sp,
             color = Color.White,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         ),
-        text = text
+        text = text,
     )
 }
 
 @Composable
 internal fun Text(
     text: String,
-    textAlign: TextAlign
+    textAlign: TextAlign,
 ) {
     BasicText(
         modifier = Modifier
@@ -47,8 +47,8 @@ internal fun Text(
         style = TextStyle(
             fontSize = 14.sp,
             color = Color.White,
-            textAlign = textAlign
+            textAlign = textAlign,
         ),
-        text = text
+        text = text,
     )
 }

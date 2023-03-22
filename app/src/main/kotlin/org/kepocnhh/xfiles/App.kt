@@ -39,12 +39,12 @@ internal class App : Application() {
         val injection = Injection(
             contexts = Contexts(
                 main = Dispatchers.Main,
-                io = Dispatchers.IO
+                io = Dispatchers.IO,
             ),
             file = FinalEncryptedFileProvider(
                 context = this,
-                file = File(cacheDir, BuildConfig.APPLICATION_ID)
-            )
+                file = File(cacheDir, BuildConfig.APPLICATION_ID),
+            ),
         )
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {

@@ -4,5 +4,5 @@ import kotlin.coroutines.CoroutineContext
 
 internal data class Contexts(
     val main: CoroutineContext,
-    val io: CoroutineContext
+    val io: CoroutineContext,
 )
