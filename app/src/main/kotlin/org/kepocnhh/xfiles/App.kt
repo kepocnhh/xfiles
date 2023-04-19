@@ -58,7 +58,7 @@ internal class App : Application() {
         @Composable
         fun Composition(content: @Composable () -> Unit) {
             CompositionLocalProvider(
-                localColors provides Colors.Dark,
+                localColors provides Colors.Light,
                 localDimensions provides Dimensions(LocalView.current.rootWindowInsets.toInsets()),
                 content = content,
             )
@@ -67,7 +67,9 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        File(cacheDir, BuildConfig.APPLICATION_ID).delete()
         val injection = Injection(
+            loggers = _loggerFactory,
             contexts = Contexts(
                 main = Dispatchers.Main,
                 io = Dispatchers.IO,

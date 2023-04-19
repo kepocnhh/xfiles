@@ -15,6 +15,12 @@ internal sealed class Colors(
         text = white,
     )
 
+    object Light : Colors(
+        background = white,
+        primary = Color(0xff3174d8),
+        text = black,
+    )
+
     companion object {
         val black = Color(0xff000000)
         val white = Color(0xffffffff)

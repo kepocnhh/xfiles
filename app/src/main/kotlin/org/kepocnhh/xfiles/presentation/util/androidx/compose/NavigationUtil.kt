@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.catchClicks
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.onClick
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun ToScreen(content: @Composable () -> Unit) {
@@ -63,6 +65,7 @@ internal fun ToScreen(content: @Composable () -> Unit) {
 
 @Composable
 internal fun ToScreen(
+    backState: MutableState<Boolean>,
     onBack: () -> Unit,
     content: @Composable () -> Unit,
 ) {
@@ -70,10 +73,10 @@ internal fun ToScreen(
     val targetWidth = initialWidth // todo orientation
     val actualValue = rememberSaveable { mutableStateOf(1f) }
     val animatable = remember { Animatable(initialValue = actualValue.value) }
-    val delay = 250.milliseconds // todo
-    var back by remember { mutableStateOf(false) }
-    val targetValue = if (back) 1f else 0f
-    LaunchedEffect(back) {
+    val delay = 1.seconds // todo
+//    val delay = 250.milliseconds // todo
+    val targetValue = if (backState.value) 1f else 0f
+    LaunchedEffect(backState.value) {
         animatable.animateTo(
             targetValue = targetValue,
             animationSpec = tween(
@@ -82,11 +85,11 @@ internal fun ToScreen(
             ),
         )
     }
-    if (back) {
+    if (backState.value) {
         if (animatable.value == targetValue) onBack()
     }
     BackHandler {
-        back = true
+        backState.value = true
     }
     Box(modifier = Modifier.fillMaxSize()) {
         actualValue.value = animatable.value
@@ -96,7 +99,7 @@ internal fun ToScreen(
                 .fillMaxSize()
                 .background(Colors.black.copy(alpha = alpha))
                 .onClick {
-                    if (!back) back = true
+                    if (!backState.value) backState.value = true
                 },
         )
         Box(

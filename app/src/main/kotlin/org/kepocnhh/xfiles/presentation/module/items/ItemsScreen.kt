@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.presentation.module.nofile
+package org.kepocnhh.xfiles.presentation.module.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,31 +18,23 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.implementation.module.nofile.NoFileVewModel
+import org.kepocnhh.xfiles.implementation.module.items.ItemsViewModel
 
 @Composable
-internal fun NoFileScreen(onCreate: () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(App.Theme.colors.background)) {
-        val logger = App.newLogger(tag = "[NoFile]")
-        val viewModel = App.viewModel<NoFileVewModel>()
-        val exists by viewModel.broadcast.collectAsState(false)
-        logger.debug("file exists $exists")
-        if (exists) {
-            onCreate()
+internal fun ItemsScreen(onDelete: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(App.Theme.colors.background)) {
+        val logger = App.newLogger(tag = "[Items]")
+        val viewModel = App.viewModel<ItemsViewModel>()
+        val exists by viewModel.broadcast.collectAsState(true)
+        if (!exists) {
+            onDelete()
         }
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)) {
+        Column(Modifier.fillMaxWidth().align(Alignment.Center)) {
             BasicText(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .height(56.dp)
                     .wrapContentHeight(),
-                text = "no file",
+                text = "items",
                 style = TextStyle(
                     textAlign = TextAlign.Center,
                     color = App.Theme.colors.text,
@@ -53,10 +45,10 @@ internal fun NoFileScreen(onCreate: () -> Unit) {
                     .fillMaxWidth()
                     .height(56.dp)
                     .clickable {
-                        viewModel.newFile()
+                        viewModel.deleteFile()
                     }
                     .wrapContentHeight(),
-                text = "+",
+                text = "-",
                 style = TextStyle(
                     textAlign = TextAlign.Center,
                     color = App.Theme.colors.primary,
