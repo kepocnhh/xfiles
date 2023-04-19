@@ -5,11 +5,13 @@ import android.view.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.unit.px
 
+@Immutable
 internal data class Insets(
     val bottom: Dp,
     val end: Dp,
