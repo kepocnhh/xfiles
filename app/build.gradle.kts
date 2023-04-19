@@ -160,8 +160,6 @@ androidComponents.onVariants { variant ->
 }
 
 dependencies {
-    debugImplementation("androidx.compose.ui:ui-tooling:${Version.Android.compose}")
-    debugImplementation("androidx.compose.ui:ui-tooling-preview:${Version.Android.compose}")
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
