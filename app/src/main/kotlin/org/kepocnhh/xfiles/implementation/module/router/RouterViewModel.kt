@@ -12,10 +12,9 @@ internal class RouterViewModel(private val injection: Injection) : AbstractViewM
 
     fun requestFile() {
         injection.launch {
-            val result = withContext(injection.contexts.io) {
+            _state.value = withContext(injection.contexts.io) {
                 injection.file.exists()
             }
-            _state.value = result
         }
     }
 }

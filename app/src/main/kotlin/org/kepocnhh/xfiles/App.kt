@@ -24,7 +24,7 @@ import java.io.File
 
 internal class App : Application() {
     companion object {
-        private val _loggerFactory: LoggerFactory = FinalLoggerFactory()
+        private val _loggerFactory: LoggerFactory = FinalLoggerFactory
 
         private var _viewModelFactory: ViewModelProvider.Factory? = null
 

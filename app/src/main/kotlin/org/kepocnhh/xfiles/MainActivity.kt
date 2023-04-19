@@ -1,6 +1,7 @@
 package org.kepocnhh.xfiles
 
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -18,9 +19,11 @@ internal class MainActivity : AppCompatActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(App.Theme.colors.background)
-                        .padding(App.Theme.dimensions.insets),
+                        .background(App.Theme.colors.background),
                 ) {
+                    BackHandler {
+                        finish()
+                    }
                     RouterScreen()
                 }
             }

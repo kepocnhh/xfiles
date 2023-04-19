@@ -5,5 +5,5 @@ internal interface LoggerFactory {
 }
 
 internal interface Logger {
-    fun d(message: String)
+    fun debug(message: String)
 }
