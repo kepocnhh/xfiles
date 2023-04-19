@@ -18,7 +18,9 @@ import org.kepocnhh.xfiles.implementation.module.router.RouterViewModel
 
 @Composable
 internal fun RouterScreen() {
-    Box(modifier = Modifier.fillMaxSize().background(Color.Blue)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.Blue)) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center

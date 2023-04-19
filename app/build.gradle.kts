@@ -160,12 +160,13 @@ androidComponents.onVariants { variant ->
 }
 
 dependencies {
+    debugImplementation("androidx.compose.ui:ui-tooling:${Version.Android.compose}")
+    debugImplementation("androidx.compose.ui:ui-tooling-preview:${Version.Android.compose}")
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
     implementation("androidx.security:security-crypto:1.0.0")
-//    testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
 }
