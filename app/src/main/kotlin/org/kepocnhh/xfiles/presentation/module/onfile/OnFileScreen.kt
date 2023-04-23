@@ -3,7 +3,6 @@ package org.kepocnhh.xfiles.presentation.module.onfile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,25 +14,26 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.implementation.module.onfile.OnFileViewModel
 
 @Composable
 internal fun OnFileScreen(onDelete: () -> Unit) {
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
-            .background(App.Theme.colors.background)) {
+            .background(App.Theme.colors.background),
+    ) {
         val logger = App.newLogger(tag = "[Items]")
         val viewModel = App.viewModel<OnFileViewModel>()
-        logger.debug("view model: ${viewModel.hashCode()}")
         val broadcast by viewModel.broadcast.collectAsState(null)
-        logger.debug("broadcast: $broadcast")
         when (broadcast) {
             OnFileViewModel.Broadcast.Delete -> {
                 onDelete()
@@ -42,8 +42,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                 // noop
             }
         }
-        val items = viewModel.state.collectAsState().value
-        when (items) {
+        when (val items = viewModel.state.collectAsState().value) {
             null -> {
                 viewModel.requestItems()
             }
@@ -60,13 +59,17 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                             color = App.Theme.colors.text,
                         ),
                     )
+                } else {
+                    // todo
                 }
             }
         }
+        var newItem by remember { mutableStateOf(false) }
         Box(
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = App.Theme.dimensions.insets.bottom)) {
+                .padding(bottom = App.Theme.dimensions.insets.bottom),
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -78,7 +81,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                         .fillMaxHeight()
                         .weight(1f)
                         .clickable {
-                            // todo
+                            newItem = true
                         }
                         .wrapContentHeight(),
                     text = "new item",
@@ -102,6 +105,9 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                     ),
                 )
             }
+        }
+        if (newItem) {
+            NewItemScreen()
         }
     }
 }
