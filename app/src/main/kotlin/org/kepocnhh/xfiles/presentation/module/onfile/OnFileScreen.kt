@@ -70,7 +70,10 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                             .padding(top = App.Theme.dimensions.insets.top)
                     ) {
                         val keys = items.keys.toList()
-                        items(keys.size) { index ->
+                        items(
+                            count = keys.size,
+                            key = { index -> keys[index] }
+                        ) { index ->
                             val key = keys[index]
                             BasicText(
                                 modifier = Modifier.fillMaxWidth(),
