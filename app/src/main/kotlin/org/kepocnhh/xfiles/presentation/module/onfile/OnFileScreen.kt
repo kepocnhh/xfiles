@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.implementation.module.onfile.OnFileViewModel
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.clicks
 
 @Composable
 internal fun OnFileScreen(onDelete: () -> Unit) {
@@ -61,7 +65,39 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                         ),
                     )
                 } else {
-                    // todo
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(top = App.Theme.dimensions.insets.top)
+                    ) {
+                        val keys = items.keys.toList()
+                        items(keys.size) { index ->
+                            val key = keys[index]
+                            BasicText(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = key,
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = App.Theme.colors.text,
+                                ),
+                            )
+                            BasicText(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(App.Theme.dimensions.sizes.xxl)
+                                    .clicks(
+                                        onLongClick = {
+                                            viewModel.deleteItem(key)
+                                        }
+                                    )
+                                    .wrapContentHeight(),
+                                text = checkNotNull(items[key]),
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    color = App.Theme.colors.text,
+                                ),
+                            )
+                        }
+                    }
                 }
             }
         }

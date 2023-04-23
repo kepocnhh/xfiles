@@ -31,16 +31,27 @@ internal class OnFileViewModel(private val injection: Injection) : AbstractViewM
         }
     }
 
+    private fun JSONObject.toMap(): Map<String, String> {
+        return keys().asSequence().map { key ->
+            key to getString(key)
+        }.toMap()
+    }
+
+    fun deleteItem(key: String) {
+        injection.launch {
+            _state.value = withContext(injection.contexts.io) {
+                val json = JSONObject(injection.file.readText())
+                json.remove(key)
+                injection.file.writeText(json.toString())
+                JSONObject(injection.file.readText()).toMap()
+            }
+        }
+    }
+
     fun requestItems() {
         injection.launch {
             _state.value = withContext(injection.contexts.io) {
-                val text = injection.file.readText()
-                logger.debug("text: $text")
-                JSONObject(text).let { json ->
-                    json.keys().asSequence().map { key ->
-                        key to json.getString(key)
-                    }
-                }.toMap()
+                JSONObject(injection.file.readText()).toMap()
             }
         }
     }

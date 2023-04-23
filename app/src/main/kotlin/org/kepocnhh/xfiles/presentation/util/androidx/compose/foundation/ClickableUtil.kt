@@ -55,7 +55,7 @@ internal fun Modifier.clicks(
 }
 
 internal fun Modifier.clicks(
-    onClick: () -> Unit,
+    onClick: () -> Unit = {},
     onLongClick: () -> Unit,
 ): Modifier {
     return composed {
