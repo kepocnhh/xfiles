@@ -16,12 +16,12 @@ internal class FinalEncryptedFileProvider(
         }
     }
 
-//    private val encrypted = EncryptedFile.Builder(
-//        file,
-//        context,
-//        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-//        EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB,
-//    ).build()
+    private val encrypted = EncryptedFile.Builder(
+        file,
+        context,
+        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+        EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB,
+    ).build()
 
     override fun exists(): Boolean {
         return file.exists()
@@ -31,14 +31,18 @@ internal class FinalEncryptedFileProvider(
         check(file.delete())
     }
 
+    override fun createNewFile() {
+        writeText("")
+    }
+
     override fun writeText(text: String) {
-        encrypted().openFileOutput().use {
+        encrypted.openFileOutput().use {
             it.writer().write(text)
         }
     }
 
     override fun readText(): String {
-        return encrypted().openFileInput().use {
+        return encrypted.openFileInput().use {
             it.reader().readText()
         }
     }

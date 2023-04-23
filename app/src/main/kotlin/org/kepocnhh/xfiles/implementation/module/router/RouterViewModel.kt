@@ -7,14 +7,17 @@ import org.kepocnhh.xfiles.foundation.provider.Injection
 import org.kepocnhh.xfiles.implementation.util.androidx.lifecycle.AbstractViewModel
 
 internal class RouterViewModel(private val injection: Injection) : AbstractViewModel() {
-    private val _state = MutableStateFlow<Boolean?>(null)
+    data class State(val exists: Boolean)
+
+    private val _state = MutableStateFlow<State?>(null)
     val state = _state.asStateFlow()
 
-    fun requestFile() {
+    fun requestState() {
         injection.launch {
-            _state.value = withContext(injection.contexts.io) {
+            val exists = withContext(injection.contexts.io) {
                 injection.file.exists()
             }
+            _state.value = State(exists = exists)
         }
     }
 }

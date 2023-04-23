@@ -9,17 +9,20 @@ import org.kepocnhh.xfiles.foundation.provider.Injection
 import org.kepocnhh.xfiles.implementation.util.androidx.lifecycle.AbstractViewModel
 
 internal class NoFileVewModel(private val injection: Injection) : AbstractViewModel() {
-    private val logger = injection.loggers.newLogger("[NoFile|VM]")
-    private val _broadcast = MutableSharedFlow<Boolean>()
+    sealed interface Broadcast {
+        object Create : Broadcast
+    }
+
+    private val _broadcast = MutableSharedFlow<Broadcast?>()
     val broadcast = _broadcast.asSharedFlow()
 
     fun newFile() {
         injection.launch {
-            val exists = withContext(injection.contexts.io) {
-                injection.file.writeText("")
+            withContext(injection.contexts.io) {
+                injection.file.createNewFile()
                 injection.file.exists()
             }
-            _broadcast.emit(exists)
+            _broadcast.emit(Broadcast.Create)
         }
     }
 }

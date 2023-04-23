@@ -23,20 +23,28 @@ import org.kepocnhh.xfiles.implementation.module.nofile.NoFileVewModel
 @Composable
 internal fun NoFileScreen(onCreate: () -> Unit) {
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
-            .background(App.Theme.colors.background)) {
+            .background(App.Theme.colors.background),
+    ) {
         val logger = App.newLogger(tag = "[NoFile]")
         val viewModel = App.viewModel<NoFileVewModel>()
-        val exists by viewModel.broadcast.collectAsState(false)
-        logger.debug("file exists $exists")
-        if (exists) {
-            onCreate()
+        logger.debug("view model: ${viewModel.hashCode()}")
+        val broadcast by viewModel.broadcast.collectAsState(null)
+        logger.debug("broadcast: $broadcast")
+        when (broadcast) {
+            NoFileVewModel.Broadcast.Create -> {
+                onCreate()
+            }
+            null -> {
+                // noop
+            }
         }
         Column(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.Center)) {
+                .align(Alignment.Center),
+        ) {
             BasicText(
                 modifier = Modifier
                     .fillMaxWidth()

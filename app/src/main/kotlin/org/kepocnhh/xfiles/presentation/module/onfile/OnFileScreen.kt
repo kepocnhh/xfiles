@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.presentation.module.items
+package org.kepocnhh.xfiles.presentation.module.onfile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,16 +18,23 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.implementation.module.items.ItemsViewModel
+import org.kepocnhh.xfiles.implementation.module.onfile.OnFileViewModel
 
 @Composable
-internal fun ItemsScreen(onDelete: () -> Unit) {
+internal fun OnFileScreen(onDelete: () -> Unit) {
     Box(Modifier.fillMaxSize().background(App.Theme.colors.background)) {
         val logger = App.newLogger(tag = "[Items]")
-        val viewModel = App.viewModel<ItemsViewModel>()
-        val exists by viewModel.broadcast.collectAsState(true)
-        if (!exists) {
-            onDelete()
+        val viewModel = App.viewModel<OnFileViewModel>()
+        logger.debug("view model: ${viewModel.hashCode()}")
+        val broadcast by viewModel.broadcast.collectAsState(null)
+        logger.debug("broadcast: $broadcast")
+        when (broadcast) {
+            OnFileViewModel.Broadcast.Delete -> {
+                onDelete()
+            }
+            null -> {
+                // noop
+            }
         }
         Column(Modifier.fillMaxWidth().align(Alignment.Center)) {
             BasicText(

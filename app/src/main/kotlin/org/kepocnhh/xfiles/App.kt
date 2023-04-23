@@ -25,12 +25,17 @@ import java.io.File
 internal class App : Application() {
     companion object {
         private val _loggerFactory: LoggerFactory = FinalLoggerFactory
+        private val logger by lazy {
+            _loggerFactory.newLogger("[Application]")
+        }
 
         private var _viewModelFactory: ViewModelProvider.Factory? = null
 
         @Composable
         inline fun <reified T : ViewModel> viewModel(): T {
-            return viewModel(factory = checkNotNull(_viewModelFactory))
+            val key = remember { System.currentTimeMillis().toString() }
+            logger.debug("vm: ${T::class.java.simpleName} key: $key")
+            return viewModel(key = key, factory = checkNotNull(_viewModelFactory))
         }
 
         @Composable
