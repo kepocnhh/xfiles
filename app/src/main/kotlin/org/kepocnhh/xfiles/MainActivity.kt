@@ -14,6 +14,7 @@ import org.kepocnhh.xfiles.presentation.util.androidx.compose.padding
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(inState: Bundle?) {
         super.onCreate(inState)
+        println("[Main|${hashCode()}]: on create...")
         setContent {
             App.Theme.Composition {
                 Box(

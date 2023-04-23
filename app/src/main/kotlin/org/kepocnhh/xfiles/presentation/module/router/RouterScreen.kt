@@ -13,9 +13,7 @@ import org.kepocnhh.xfiles.presentation.module.onfile.OnFileScreen
 @Composable
 internal fun RouterScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
-        val logger = App.newLogger(tag = "[Router]")
         val viewModel = App.viewModel<RouterViewModel>()
-        logger.debug("view model: ${viewModel.hashCode()}")
         when (val state = viewModel.state.collectAsState().value) {
             null -> {
                 viewModel.requestState()
