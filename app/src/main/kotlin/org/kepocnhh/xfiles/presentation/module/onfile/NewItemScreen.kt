@@ -1,6 +1,8 @@
 package org.kepocnhh.xfiles.presentation.module.onfile
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,16 +14,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.implementation.module.onfile.NewItemViewModel
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.ButtonsRow
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.clicks
+import org.kepocnhh.xfiles.showToast
 
 @Composable
 private fun KeyboardRow(buttons: Set<Char>, onClick: (Char) -> Unit) {
@@ -76,13 +85,40 @@ private fun Keyboard(onClick: (Char) -> Unit) {
     }
 }
 
+private enum class State {
+    KEY,
+    VALUE,
+}
+
 @Composable
-internal fun NewItemScreen() {
+internal fun NewItemScreen(
+    onBack: () -> Unit,
+    onNewItem: () -> Unit,
+) {
+    BackHandler {
+        onBack()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
+        val context = LocalContext.current
+        val viewModel = App.viewModel<NewItemViewModel>()
+        val broadcast by viewModel.broadcast.collectAsState(null)
+        when (broadcast) {
+            NewItemViewModel.Broadcast.Error -> {
+                context.showToast("Error!")
+            }
+            NewItemViewModel.Broadcast.Success -> {
+                onNewItem()
+            }
+            null -> {
+                // noop
+            }
+        }
+        var state by remember { mutableStateOf(State.KEY) }
+        var key by remember { mutableStateOf("") }
         var value by remember { mutableStateOf("") }
         Column(
             Modifier
@@ -93,22 +129,93 @@ internal fun NewItemScreen() {
                     .fillMaxWidth()
                     .weight(1f),
             ) {
-                BasicText(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(App.Theme.dimensions.sizes.xxl)
-                        .wrapContentHeight()
                         .align(Alignment.Center),
-                    text = value,
-                    style = TextStyle(
-                        textAlign = TextAlign.Center,
-                        color = App.Theme.colors.text,
-                    ),
-                )
+                ) {
+                    BasicText(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "key:",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            color = App.Theme.colors.text,
+                        ),
+                    )
+                    BasicText(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(App.Theme.dimensions.sizes.xxl)
+                            .clickable {
+                                state = State.KEY
+                            }
+                            .wrapContentHeight(),
+                        text = key,
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            color = App.Theme.colors.text,
+                        ),
+                    )
+                    BasicText(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "value:",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            color = App.Theme.colors.text,
+                        ),
+                    )
+                    BasicText(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(App.Theme.dimensions.sizes.xxl)
+                            .clickable {
+                                state = State.VALUE
+                            }
+                            .wrapContentHeight(),
+                        text = value,
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            color = App.Theme.colors.text,
+                        ),
+                    )
+                }
             }
             Keyboard(
                 onClick = {
-                    value += it
+                    when (state) {
+                        State.KEY -> {
+                            key += it
+                        }
+                        State.VALUE -> {
+                            value += it
+                        }
+                    }
+                }
+            )
+            ButtonsRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(App.Theme.dimensions.sizes.xxl),
+                names = setOf("x", "<", "v"),
+                onClick = { index ->
+                    when (index) {
+                        0 -> onBack()
+                        1 -> {
+                            when (state) {
+                                State.KEY -> {
+                                    if (key.isNotEmpty()) {
+                                        key = key.substring(0, key.lastIndex)
+                                    }
+                                }
+                                State.VALUE -> {
+                                    if (value.isNotEmpty()) {
+                                        value = value.substring(0, value.lastIndex)
+                                    }
+                                }
+                            }
+                        }
+                        2 -> viewModel.add(key, value)
+                    }
                 }
             )
         }

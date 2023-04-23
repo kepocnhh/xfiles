@@ -32,8 +32,9 @@ internal class FinalEncryptedFileProvider(
     }
 
     override fun writeText(text: String) {
+        file.delete() // todo ?
         encrypted.openFileOutput().use {
-//            it.writer().write(text) // do not work
+//            it.writer().write(text) // it does not work
             it.write(text.toByteArray())
         }
     }

@@ -49,7 +49,8 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
             else -> {
                 if (items.isEmpty()) {
                     BasicText(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .height(App.Theme.dimensions.sizes.xxl)
                             .wrapContentHeight()
                             .align(Alignment.Center),
@@ -107,7 +108,15 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
             }
         }
         if (newItem) {
-            NewItemScreen()
+            NewItemScreen(
+                onBack = {
+                    newItem = false
+                },
+                onNewItem = {
+                    newItem = false
+                    viewModel.requestItems()
+                },
+            )
         }
     }
 }
