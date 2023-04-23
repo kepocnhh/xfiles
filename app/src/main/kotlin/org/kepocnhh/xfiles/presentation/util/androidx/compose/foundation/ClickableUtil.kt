@@ -2,7 +2,6 @@ package org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,21 +11,66 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
 
-internal val NoneMutableInteractionSource = MutableInteractionSource()
-
-internal fun Modifier.onClick(
-    interactionSource: MutableInteractionSource = NoneMutableInteractionSource,
-    onClick: () -> Unit
+internal fun Modifier.onLongClick(
+    interactionSource: MutableInteractionSource,
+    indication: Indication,
+    block: () -> Unit,
 ): Modifier {
-    return clickable(
-        interactionSource = interactionSource,
-        indication = null,
-        onClick = onClick
-    )
+    return indication(interactionSource = interactionSource, indication = indication)
+        .pointerInput(null) {
+            detectTapGestures(
+                onPress = {
+                    val press = PressInteraction.Press(it)
+                    interactionSource.emit(press)
+                    tryAwaitRelease()
+                    interactionSource.emit(PressInteraction.Release(press))
+                },
+                onLongPress = {
+                    block()
+                },
+            )
+        }
 }
 
-internal fun Modifier.catchClicks(): Modifier {
-    return onClick(onClick = {})
+internal fun Modifier.onLongClick(block: () -> Unit): Modifier {
+    return composed {
+        Modifier.onLongClick(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = LocalIndication.current,
+            block = block,
+        )
+    }
+}
+
+internal fun Modifier.onClick(
+    interactionSource: MutableInteractionSource,
+    indication: Indication,
+    block: () -> Unit,
+): Modifier {
+    return indication(interactionSource = interactionSource, indication = indication)
+        .pointerInput(null) {
+            detectTapGestures(
+                onPress = {
+                    val press = PressInteraction.Press(it)
+                    interactionSource.emit(press)
+                    tryAwaitRelease()
+                    interactionSource.emit(PressInteraction.Release(press))
+                },
+                onTap = {
+                    block()
+                },
+            )
+        }
+}
+
+internal fun Modifier.onClick(block: () -> Unit): Modifier {
+    return composed {
+        Modifier.onClick(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = LocalIndication.current,
+            block = block,
+        )
+    }
 }
 
 internal fun Modifier.clicks(

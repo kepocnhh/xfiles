@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.implementation.module.onfile.OnFileViewModel
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.clicks
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.onClick
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.onLongClick
 
 @Composable
 internal fun OnFileScreen(onDelete: () -> Unit) {
@@ -46,12 +48,12 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                 // noop
             }
         }
-        when (val items = viewModel.state.collectAsState().value) {
+        when (val names = viewModel.state.collectAsState().value) {
             null -> {
                 viewModel.requestItems()
             }
             else -> {
-                if (items.isEmpty()) {
+                if (names.isEmpty()) {
                     BasicText(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -66,39 +68,61 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                     )
                 } else {
                     LazyColumn(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(top = App.Theme.dimensions.insets.top)
                     ) {
-                        val keys = items.keys.toList()
+                        val keys = names.toList()
                         items(
                             count = keys.size,
-                            key = { index -> keys[index] }
+                            key = keys::get
                         ) { index ->
                             val key = keys[index]
-                            BasicText(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = key,
-                                style = TextStyle(
-                                    fontSize = 14.sp,
-                                    color = App.Theme.colors.text,
-                                ),
-                            )
-                            BasicText(
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(App.Theme.dimensions.sizes.xxl)
-                                    .clicks(
-                                        onLongClick = {
-                                            viewModel.deleteItem(key)
+                            ) {
+                                BasicText(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .clicks(
+                                            onClick = {
+                                                // todo show
+                                            },
+                                            onLongClick = {
+                                                viewModel.deleteItem(key) // todo dialog?
+                                            },
+                                        )
+                                        .padding(
+                                            start = App.Theme.dimensions.sizes.s,
+                                        )
+                                        .wrapContentHeight()
+                                        .weight(1f),
+                                    text = key,
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        color = App.Theme.colors.text,
+                                    ),
+                                )
+                                BasicText(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .onClick {
+                                            // todo copy
                                         }
-                                    )
-                                    .wrapContentHeight(),
-                                text = checkNotNull(items[key]),
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                    color = App.Theme.colors.text,
-                                ),
-                            )
+                                        .padding(
+                                            start = App.Theme.dimensions.sizes.s,
+                                            end = App.Theme.dimensions.sizes.s,
+                                        )
+                                        .wrapContentHeight(),
+                                    text = "copy",
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        color = App.Theme.colors.primary,
+                                    ),
+                                )
+                            }
                         }
                     }
                 }
@@ -135,7 +159,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                         .fillMaxHeight()
                         .weight(1f)
                         .clickable {
-                            viewModel.deleteFile()
+                            viewModel.deleteFile() // todo dialog?
                         }
                         .wrapContentHeight(),
                     text = "delete",

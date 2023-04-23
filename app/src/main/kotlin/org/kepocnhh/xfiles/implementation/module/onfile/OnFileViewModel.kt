@@ -17,7 +17,7 @@ internal class OnFileViewModel(private val injection: Injection) : AbstractViewM
     private val _broadcast = MutableSharedFlow<Broadcast?>()
     val broadcast = _broadcast.asSharedFlow()
 
-    private val _state = MutableStateFlow<Map<String, String>?>(null)
+    private val _state = MutableStateFlow<Set<String>?>(null)
     val state = _state.asStateFlow()
 
     private val logger = injection.loggers.newLogger("[OnFile|VM]")
@@ -43,7 +43,7 @@ internal class OnFileViewModel(private val injection: Injection) : AbstractViewM
                 val json = JSONObject(injection.file.readText())
                 json.remove(key)
                 injection.file.writeText(json.toString())
-                JSONObject(injection.file.readText()).toMap()
+                JSONObject(injection.file.readText()).keys().asSequence().toSet()
             }
         }
     }
@@ -51,7 +51,7 @@ internal class OnFileViewModel(private val injection: Injection) : AbstractViewM
     fun requestItems() {
         injection.launch {
             _state.value = withContext(injection.contexts.io) {
-                JSONObject(injection.file.readText()).toMap()
+                JSONObject(injection.file.readText()).keys().asSequence().toSet()
             }
         }
     }
