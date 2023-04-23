@@ -1,6 +1,7 @@
 package org.kepocnhh.xfiles
 
 import android.app.Application
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -22,6 +23,8 @@ import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Sizes
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.toInsets
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.window.DialogStyle
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.window.LocalDialogStyle
 import java.io.File
 
 internal class App : Application() {
@@ -60,8 +63,23 @@ internal class App : Application() {
 
         @Composable
         fun Composition(content: @Composable () -> Unit) {
+            val colors = Colors.Light
+//            val dialogStyle = DialogStyle(
+//                background = colors.background,
+//                paddings = PaddingValues(),
+//                minWidth = 128.dp,
+//                corners = 16.dp,
+//                button = DialogStyle.Button(
+//                    paddings = PaddingValues(),
+//                    corners = 16.dp,
+//                ),
+//                message = DialogStyle.Message(
+//                    paddings = PaddingValues(),
+//                )
+//            )
             CompositionLocalProvider(
-                localColors provides Colors.Light,
+//                LocalDialogStyle provides dialogStyle,
+                localColors provides colors,
                 localDimensions provides Dimensions(
                     insets = LocalView.current.rootWindowInsets.toInsets(),
                     sizes = Sizes(

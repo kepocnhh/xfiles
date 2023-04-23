@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,7 +27,7 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.implementation.module.onfile.OnFileViewModel
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.clicks
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.onClick
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.onLongClick
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.window.Dialog
 
 @Composable
 internal fun OnFileScreen(onDelete: () -> Unit) {
@@ -39,11 +38,15 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
     ) {
         val logger = App.newLogger(tag = "[Items]")
         val viewModel = App.viewModel<OnFileViewModel>()
+        var deleteFile by remember { mutableStateOf(false) }
+        var newItem by remember { mutableStateOf(false) }
+        var deleteItem by remember { mutableStateOf(false) }
         val broadcast by viewModel.broadcast.collectAsState(null)
         when (broadcast) {
             OnFileViewModel.Broadcast.Delete -> {
                 onDelete()
             }
+
             null -> {
                 // noop
             }
@@ -52,6 +55,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
             null -> {
                 viewModel.requestItems()
             }
+
             else -> {
                 if (names.isEmpty()) {
                     BasicText(
@@ -91,7 +95,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                                                 // todo show
                                             },
                                             onLongClick = {
-                                                viewModel.deleteItem(key) // todo dialog?
+                                                deleteItem = true
                                             },
                                         )
                                         .padding(
@@ -128,7 +132,6 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                 }
             }
         }
-        var newItem by remember { mutableStateOf(false) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -159,7 +162,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                         .fillMaxHeight()
                         .weight(1f)
                         .clickable {
-                            viewModel.deleteFile() // todo dialog?
+                            deleteFile = true
                         }
                         .wrapContentHeight(),
                     text = "delete",
@@ -169,6 +172,27 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                     ),
                 )
             }
+        }
+        if (deleteFile) {
+            Dialog(
+                onDismissRequest = {
+                    deleteFile = false
+                },
+                message = "delete file?",
+//                buttons = setOf("ok"),
+                buttons = setOf("cancel", "ok"),
+                onClick = {
+                    when (it) {
+                        0 -> {
+                            deleteFile = false
+                        }
+                        1 -> {
+                            deleteFile = false
+                            viewModel.deleteFile()
+                        }
+                    }
+                }
+            )
         }
         if (newItem) {
             NewItemScreen(
@@ -181,5 +205,9 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                 },
             )
         }
+        if (deleteItem) {
+            // todo
+        }
     }
+
 }
