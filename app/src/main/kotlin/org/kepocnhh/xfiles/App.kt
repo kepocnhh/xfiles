@@ -7,6 +7,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,6 +20,7 @@ import org.kepocnhh.xfiles.implementation.provider.encrypted.FinalEncryptedFileP
 import org.kepocnhh.xfiles.implementation.provider.logger.FinalLoggerFactory
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.Sizes
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.toInsets
 import java.io.File
 
@@ -64,7 +66,20 @@ internal class App : Application() {
         fun Composition(content: @Composable () -> Unit) {
             CompositionLocalProvider(
                 localColors provides Colors.Light,
-                localDimensions provides Dimensions(LocalView.current.rootWindowInsets.toInsets()),
+                localDimensions provides Dimensions(
+                    insets = LocalView.current.rootWindowInsets.toInsets(),
+                    sizes = Sizes(
+                        xxxs = 2.dp,
+                        xxs = 4.dp,
+                        xs = 8.dp,
+                        s = 16.dp,
+                        m = 24.dp,
+                        l = 32.dp,
+                        xl = 48.dp,
+                        xxl = 56.dp,
+                        xxxl = 64.dp,
+                    )
+                ),
                 content = content,
             )
         }
@@ -72,7 +87,7 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        File(cacheDir, BuildConfig.APPLICATION_ID).delete()
+        File(cacheDir, BuildConfig.APPLICATION_ID).delete() // todo
         val injection = Injection(
             loggers = _loggerFactory,
             contexts = Contexts(

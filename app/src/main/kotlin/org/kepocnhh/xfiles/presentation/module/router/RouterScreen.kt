@@ -11,26 +11,6 @@ import org.kepocnhh.xfiles.presentation.module.nofile.NoFileScreen
 import org.kepocnhh.xfiles.presentation.module.onfile.OnFileScreen
 
 @Composable
-private fun RouterViewModel.OnState(state: RouterViewModel.State) {
-    when (state.exists) {
-        true -> {
-            OnFileScreen(
-                onDelete = {
-                    requestState()
-                }
-            )
-        }
-        false -> {
-            NoFileScreen(
-                onCreate = {
-                    requestState()
-                }
-            )
-        }
-    }
-}
-
-@Composable
 internal fun RouterScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         val logger = App.newLogger(tag = "[Router]")
@@ -41,7 +21,22 @@ internal fun RouterScreen() {
                 viewModel.requestState()
             }
             else -> {
-                viewModel.OnState(state)
+                when (state.exists) {
+                    true -> {
+                        OnFileScreen(
+                            onDelete = {
+                                viewModel.requestState()
+                            }
+                        )
+                    }
+                    false -> {
+                        NoFileScreen(
+                            onCreate = {
+                                viewModel.requestState()
+                            }
+                        )
+                    }
+                }
             }
         }
     }

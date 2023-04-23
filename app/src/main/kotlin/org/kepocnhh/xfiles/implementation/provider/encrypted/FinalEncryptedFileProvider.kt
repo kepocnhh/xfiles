@@ -7,7 +7,7 @@ import org.kepocnhh.xfiles.foundation.provider.encrypted.EncryptedFileProvider
 import java.io.File
 
 internal class FinalEncryptedFileProvider(
-    private val context: Context,
+    context: Context,
     private val file: File,
 ) : EncryptedFileProvider {
     init {
@@ -31,13 +31,10 @@ internal class FinalEncryptedFileProvider(
         check(file.delete())
     }
 
-    override fun createNewFile() {
-        writeText("")
-    }
-
     override fun writeText(text: String) {
         encrypted.openFileOutput().use {
-            it.writer().write(text)
+//            it.writer().write(text) // do not work
+            it.write(text.toByteArray())
         }
     }
 
@@ -45,14 +42,5 @@ internal class FinalEncryptedFileProvider(
         return encrypted.openFileInput().use {
             it.reader().readText()
         }
-    }
-
-    private fun encrypted(): EncryptedFile {
-        return EncryptedFile.Builder(
-            file,
-            context,
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-            EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB,
-        ).build()
     }
 }

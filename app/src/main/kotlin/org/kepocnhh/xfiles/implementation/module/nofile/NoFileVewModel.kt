@@ -19,7 +19,7 @@ internal class NoFileVewModel(private val injection: Injection) : AbstractViewMo
     fun newFile() {
         injection.launch {
             withContext(injection.contexts.io) {
-                injection.file.createNewFile()
+                injection.file.writeText("{}")
                 injection.file.exists()
             }
             _broadcast.emit(Broadcast.Create)
