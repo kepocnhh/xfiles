@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,8 +28,8 @@ import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.implementation.module.onfile.NewItemViewModel
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.ButtonsRow
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.clicks
 import org.kepocnhh.xfiles.showToast
+import sp.ax.jc.clicks.clicks
 
 @Composable
 private fun KeyboardRow(buttons: Set<Char>, onClick: (Char) -> Unit) {

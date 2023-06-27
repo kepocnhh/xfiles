@@ -1,7 +1,6 @@
 package org.kepocnhh.xfiles
 
 import android.app.Application
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -23,8 +22,6 @@ import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Sizes
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.toInsets
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.window.DialogStyle
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.window.LocalDialogStyle
 import java.io.File
 
 internal class App : Application() {

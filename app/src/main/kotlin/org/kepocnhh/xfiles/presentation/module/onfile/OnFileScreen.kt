@@ -25,9 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.implementation.module.onfile.OnFileViewModel
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.clicks
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.onClick
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.window.Dialog
+import sp.ax.jc.clicks.clicks
+import sp.ax.jc.clicks.onClick
+import sp.ax.jc.dialogs.Dialog
 
 @Composable
 internal fun OnFileScreen(onDelete: () -> Unit) {
@@ -55,7 +55,6 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
             null -> {
                 viewModel.requestItems()
             }
-
             else -> {
                 if (names.isEmpty()) {
                     BasicText(
@@ -175,23 +174,17 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
         }
         if (deleteFile) {
             Dialog(
+                "cancel" to {
+                    deleteFile = false
+                },
+                "ok" to {
+                    deleteFile = false
+                    viewModel.deleteFile()
+                },
                 onDismissRequest = {
                     deleteFile = false
                 },
                 message = "delete file?",
-//                buttons = setOf("ok"),
-                buttons = setOf("cancel", "ok"),
-                onClick = {
-                    when (it) {
-                        0 -> {
-                            deleteFile = false
-                        }
-                        1 -> {
-                            deleteFile = false
-                            viewModel.deleteFile()
-                        }
-                    }
-                }
             )
         }
         if (newItem) {
@@ -209,5 +202,4 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
             // todo
         }
     }
-
 }
