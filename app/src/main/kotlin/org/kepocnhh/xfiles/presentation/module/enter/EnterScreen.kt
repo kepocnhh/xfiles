@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,11 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.showToast
-import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 
 @Composable
@@ -53,40 +52,69 @@ internal fun EnterScreen() {
 }
 
 @Composable
-private fun RowScope.PinButton(
-    char: Char,
-    textStyle: TextStyle,
-    onClick: (Char) -> Unit,
-) {
-    BasicText(
-        modifier = Modifier
-            .fillMaxHeight()
-            .weight(1f)
-            .onClick {
-                onClick(char)
-            }
-            .wrapContentHeight(),
-        text = "$char",
-        style = textStyle,
-    )
-}
-
-@Composable
 private fun PinRow(
+    height: Dp,
     first: Char,
     second: Char,
     third: Char,
     textStyle: TextStyle,
     onClick: (Char) -> Unit
 ) {
-    Row(
+    PinRow(
         modifier = Modifier
             .fillMaxWidth()
-            .height(App.Theme.dimensions.sizes.xxxl),
-    ) {
-        PinButton(first, textStyle, onClick)
-        PinButton(second, textStyle, onClick)
-        PinButton(third, textStyle, onClick)
+            .height(height),
+        first = first,
+        second = second,
+        third = third,
+        textStyle = textStyle,
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun PinRow(
+    modifier: Modifier = Modifier,
+    first: Char,
+    second: Char,
+    third: Char,
+    textStyle: TextStyle,
+    onClick: (Char) -> Unit
+) {
+    Row(modifier) {
+        BasicText(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .onClick {
+                    onClick(first)
+                }
+                .wrapContentHeight(),
+            text = "$first",
+            style = textStyle,
+        )
+        BasicText(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .onClick {
+                    onClick(second)
+                }
+                .wrapContentHeight(),
+            text = "$second",
+            style = textStyle,
+        )
+        BasicText(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .onClick {
+                    onClick(third)
+                }
+                .wrapContentHeight(),
+            text = "$second",
+            style = textStyle,
+        )
     }
 }
 
@@ -100,13 +128,22 @@ private fun PinPad(
     onClick: (Char) -> Unit,
 ) {
     Column(modifier = modifier) {
-        PinRow('1', '2', '3', textStyle, onClick)
-        PinRow('4', '5', '6', textStyle, onClick)
-        PinRow('7', '8', '9', textStyle, onClick)
+        PinRow(
+            height = App.Theme.dimensions.sizes.xxxl,
+            '1', '2', '3', textStyle, onClick
+        )
+        PinRow(
+            height = App.Theme.dimensions.sizes.xxxl,
+            '4', '5', '6', textStyle, onClick
+        )
+        PinRow(
+            height = App.Theme.dimensions.sizes.xxxl,
+            '7', '8', '9', textStyle, onClick
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(App.Theme.dimensions.sizes.xl),
+                .height(App.Theme.dimensions.sizes.xxxl),
         ) {
             Spacer(
                 modifier = Modifier
@@ -114,7 +151,18 @@ private fun PinPad(
                     .weight(1f)
                     .wrapContentHeight(),
             )
-            PinButton('0', textStyle, onClick)
+            val char = '0'
+            BasicText(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .onClick {
+                        onClick(char)
+                    }
+                    .wrapContentHeight(),
+                text = "$char",
+                style = textStyle,
+            )
             Spacer(
                 modifier = Modifier
                     .fillMaxHeight()
