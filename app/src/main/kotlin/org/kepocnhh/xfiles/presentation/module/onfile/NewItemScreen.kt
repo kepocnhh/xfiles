@@ -122,7 +122,7 @@ internal fun NewItemScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(bottom = App.Theme.dimensions.insets.bottom)) {
+                .padding(bottom = App.Theme.dimensions.insets.calculateBottomPadding())) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

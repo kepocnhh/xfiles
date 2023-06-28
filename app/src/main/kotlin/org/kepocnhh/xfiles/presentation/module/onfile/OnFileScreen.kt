@@ -73,7 +73,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = App.Theme.dimensions.insets.top)
+                            .padding(top = App.Theme.dimensions.insets.calculateTopPadding())
                     ) {
                         val keys = names.toList()
                         items(
@@ -134,7 +134,7 @@ internal fun OnFileScreen(onDelete: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = App.Theme.dimensions.insets.bottom),
+                .padding(bottom = App.Theme.dimensions.insets.calculateBottomPadding()),
         ) {
             Row(
                 modifier = Modifier

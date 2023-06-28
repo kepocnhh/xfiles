@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import org.kepocnhh.xfiles.presentation.module.router.RouterScreen
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.padding
 
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(inState: Bundle?) {

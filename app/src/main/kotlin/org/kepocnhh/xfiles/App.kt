@@ -21,7 +21,7 @@ import org.kepocnhh.xfiles.implementation.provider.logger.FinalLoggerFactory
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
 import org.kepocnhh.xfiles.presentation.util.androidx.compose.Sizes
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.toInsets
+import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.layout.toPaddings
 import java.io.File
 
 internal class App : Application() {
@@ -78,7 +78,7 @@ internal class App : Application() {
 //                LocalDialogStyle provides dialogStyle,
                 localColors provides colors,
                 localDimensions provides Dimensions(
-                    insets = LocalView.current.rootWindowInsets.toInsets(),
+                    insets = LocalView.current.rootWindowInsets.toPaddings(),
                     sizes = Sizes(
                         xxxs = 2.dp,
                         xxs = 4.dp,
