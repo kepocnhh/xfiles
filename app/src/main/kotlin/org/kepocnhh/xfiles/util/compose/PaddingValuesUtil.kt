@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.layout
+package org.kepocnhh.xfiles.util.compose
 
 import android.os.Build
 import android.view.WindowInsets

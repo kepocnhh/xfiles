@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.unit
+package org.kepocnhh.xfiles.util.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable

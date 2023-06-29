@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.foundation.provider.coroutine
+package org.kepocnhh.xfiles.provider
 
 import kotlin.coroutines.CoroutineContext
 

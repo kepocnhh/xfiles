@@ -1,8 +1,6 @@
-package org.kepocnhh.xfiles.implementation.provider.logger
+package org.kepocnhh.xfiles.provider
 
 import android.util.Log
-import org.kepocnhh.xfiles.foundation.provider.logger.Logger
-import org.kepocnhh.xfiles.foundation.provider.logger.LoggerFactory
 
 internal object FinalLoggerFactory : LoggerFactory {
     override fun newLogger(tag: String): Logger {

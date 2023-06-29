@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.foundation.provider.logger
+package org.kepocnhh.xfiles.provider
 
 internal interface LoggerFactory {
     fun newLogger(tag: String): Logger

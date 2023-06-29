@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.presentation.util.androidx.compose
+package org.kepocnhh.xfiles.util.compose
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
@@ -10,7 +10,7 @@ internal sealed class Colors(
     val text: Color,
 ) {
     object Dark : Colors(
-        background = black,
+        background = gray,
         primary = Color(0xff3174d8),
         text = white,
     )
@@ -22,6 +22,7 @@ internal sealed class Colors(
     )
 
     companion object {
+        val gray = Color(0xff222222)
         val black = Color(0xff000000)
         val white = Color(0xffffffff)
     }

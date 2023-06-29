@@ -12,16 +12,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
-import org.kepocnhh.xfiles.foundation.provider.Injection
-import org.kepocnhh.xfiles.foundation.provider.coroutine.Contexts
-import org.kepocnhh.xfiles.foundation.provider.logger.Logger
-import org.kepocnhh.xfiles.foundation.provider.logger.LoggerFactory
-import org.kepocnhh.xfiles.implementation.provider.encrypted.FinalEncryptedFileProvider
-import org.kepocnhh.xfiles.implementation.provider.logger.FinalLoggerFactory
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.Colors
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.Dimensions
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.Sizes
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.foundation.layout.toPaddings
+import org.kepocnhh.xfiles.provider.Contexts
+import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
+import org.kepocnhh.xfiles.provider.FinalLoggerFactory
+import org.kepocnhh.xfiles.provider.Injection
+import org.kepocnhh.xfiles.provider.Logger
+import org.kepocnhh.xfiles.provider.LoggerFactory
+import org.kepocnhh.xfiles.util.compose.Colors
+import org.kepocnhh.xfiles.util.compose.Dimensions
+import org.kepocnhh.xfiles.util.compose.Sizes
+import org.kepocnhh.xfiles.util.compose.toPaddings
 import java.io.File
 
 internal class App : Application() {

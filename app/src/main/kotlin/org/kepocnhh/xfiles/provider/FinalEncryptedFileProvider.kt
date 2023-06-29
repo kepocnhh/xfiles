@@ -1,9 +1,8 @@
-package org.kepocnhh.xfiles.implementation.provider.encrypted
+package org.kepocnhh.xfiles.provider
 
 import android.content.Context
 import androidx.security.crypto.EncryptedFile
 import androidx.security.crypto.MasterKeys
-import org.kepocnhh.xfiles.foundation.provider.encrypted.EncryptedFileProvider
 import java.io.File
 
 internal class FinalEncryptedFileProvider(

@@ -1,10 +1,10 @@
-package org.kepocnhh.xfiles.implementation.module.router
+package org.kepocnhh.xfiles.module.router
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import org.kepocnhh.xfiles.foundation.provider.Injection
-import org.kepocnhh.xfiles.implementation.util.androidx.lifecycle.AbstractViewModel
+import org.kepocnhh.xfiles.provider.Injection
+import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 
 internal class RouterViewModel(private val injection: Injection) : AbstractViewModel() {
     data class State(val exists: Boolean)

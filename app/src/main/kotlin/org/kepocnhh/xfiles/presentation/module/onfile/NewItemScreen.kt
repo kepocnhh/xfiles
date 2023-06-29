@@ -191,32 +191,43 @@ internal fun NewItemScreen(
                     }
                 }
             )
-            ButtonsRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(App.Theme.dimensions.sizes.xxl),
-                names = setOf("x", "<", "v"),
-                onClick = { index ->
-                    when (index) {
-                        0 -> onBack()
-                        1 -> {
-                            when (state) {
-                                State.KEY -> {
-                                    if (key.isNotEmpty()) {
-                                        key = key.substring(0, key.lastIndex)
+            Row(Modifier
+                .fillMaxWidth()
+                .height(App.Theme.dimensions.sizes.xxl)) {
+                setOf("x", "<", "v").forEachIndexed { index, name ->
+                    BasicText(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(1f)
+                            .clickable {
+                                when (index) {
+                                    0 -> onBack()
+                                    1 -> {
+                                        when (state) {
+                                            State.KEY -> {
+                                                if (key.isNotEmpty()) {
+                                                    key = key.substring(0, key.lastIndex)
+                                                }
+                                            }
+                                            State.VALUE -> {
+                                                if (value.isNotEmpty()) {
+                                                    value = value.substring(0, value.lastIndex)
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                                State.VALUE -> {
-                                    if (value.isNotEmpty()) {
-                                        value = value.substring(0, value.lastIndex)
-                                    }
+                                    2 -> viewModel.add(key, value)
                                 }
                             }
-                        }
-                        2 -> viewModel.add(key, value)
-                    }
+                            .wrapContentHeight(),
+                        text = name,
+                        style = TextStyle(
+                            textAlign = TextAlign.Center,
+                            color = App.Theme.colors.text,
+                        ),
+                    )
                 }
-            )
+            }
         }
     }
 }

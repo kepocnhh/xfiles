@@ -1,4 +1,4 @@
-package org.kepocnhh.xfiles.foundation.provider.encrypted
+package org.kepocnhh.xfiles.provider
 
 internal interface EncryptedFileProvider {
     fun exists(): Boolean
