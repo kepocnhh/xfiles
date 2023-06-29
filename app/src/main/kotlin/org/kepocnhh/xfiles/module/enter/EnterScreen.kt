@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.kepocnhh.xfiles.util.compose.PinPad
 import sp.ax.jc.dialogs.Dialog
 import kotlin.time.Duration.Companion.seconds
@@ -77,7 +79,17 @@ private fun Top(
 @Composable
 internal fun EnterScreen() {
     val context = LocalContext.current
-    val exists = remember { mutableStateOf<Boolean?>(null) }
+    val viewModel = viewModel<EnterViewModel>()
+    val broadcast = viewModel.broadcast.collectAsState(null)
+    when (broadcast.value) {
+        EnterViewModel.Broadcast.OnCreate -> {
+            // todo
+        }
+        null -> {
+            // noop
+        }
+    }
+    val exists = viewModel.exists.collectAsState(null)
     val pin = remember { mutableStateOf("") }
     Column(
         modifier = Modifier
@@ -99,19 +111,17 @@ internal fun EnterScreen() {
             if (deleteDialog.value) {
                 Dialog(
                     "ok" to {
-                        context.cacheDir.resolve("db.enc").delete()
-                        exists.value = null
+                        viewModel.deleteFile(context.cacheDir)
                         deleteDialog.value = false
-                        pin.value = ""
                     },
                     message = "delete?",
                     onDismissRequest = { deleteDialog.value = false }
                 )
             }
             println("exists: ${exists.value}")
-            LaunchedEffect(exists.value) {
+            LaunchedEffect(Unit) {
                 if (exists.value == null) {
-                    exists.value = context.cacheDir.resolve("db.enc").exists()
+                    viewModel.requestFile(context.cacheDir)
                 }
             }
         }
@@ -122,9 +132,7 @@ internal fun EnterScreen() {
                         // todo
                     }
                     false -> {
-                        pin.value = "" // todo
-                        context.cacheDir.resolve("db.enc").createNewFile()
-                        exists.value = true
+                        viewModel.createNewFile(context.cacheDir, pin.value)
                     }
                     null -> {
                         // noop
