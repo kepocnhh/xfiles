@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +32,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
 import sp.ax.jc.dialogs.Dialog
 import kotlin.time.Duration.Companion.seconds
@@ -80,17 +86,51 @@ private fun Top(
 internal fun EnterScreen() {
     val context = LocalContext.current
     val viewModel = viewModel<EnterViewModel>()
-    val broadcast = viewModel.broadcast.collectAsState(null)
-    when (broadcast.value) {
-        EnterViewModel.Broadcast.OnCreate -> {
-            // todo
-        }
-        null -> {
-            // noop
+    val pin = remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        viewModel.broadcast.collect { broadcast ->
+            when (broadcast) {
+                EnterViewModel.Broadcast.OnCreate -> {
+                    context.showToast("on create...")
+                    // todo
+                }
+                EnterViewModel.Broadcast.OnUnlock -> {
+                    context.showToast("on unlock...")
+                    // todo
+                }
+                EnterViewModel.Broadcast.OnUnlockError -> {
+                    pin.value = ""
+                    context.showToast("on unlock error...")
+                    // todo
+                }
+                null -> {
+                    // noop
+                }
+            }
         }
     }
+//    val broadcast = viewModel.broadcast.collectAsState(null)
+//    LaunchedEffect(broadcast.value) {
+//        when (broadcast.value) {
+//            EnterViewModel.Broadcast.OnCreate -> {
+//                context.showToast("on create...")
+//                // todo
+//            }
+//            EnterViewModel.Broadcast.OnUnlock -> {
+//                context.showToast("on unlock...")
+//                // todo
+//            }
+//            EnterViewModel.Broadcast.OnUnlockError -> {
+//                pin.value = ""
+//                context.showToast("on unlock error...")
+//                // todo
+//            }
+//            null -> {
+//                // noop
+//            }
+//        }
+//    }
     val exists = viewModel.exists.collectAsState(null)
-    val pin = remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -125,11 +165,13 @@ internal fun EnterScreen() {
                 }
             }
         }
+        println("before: ${pin.value}")
         LaunchedEffect(pin.value) {
+            println("after: ${pin.value}")
             if (pin.value.length == 4) {
                 when (exists.value) {
                     true -> {
-                        // todo
+                        viewModel.unlockFile(context.cacheDir, pin.value)
                     }
                     false -> {
                         viewModel.createNewFile(context.cacheDir, pin.value)
@@ -140,6 +182,9 @@ internal fun EnterScreen() {
                 }
             }
         }
+        BasicText(modifier = Modifier
+            .clickable { pin.value = "" }
+            .padding(8.dp), text = "x")
         BasicText(text = pin.value)
         PinPad(
             modifier = Modifier

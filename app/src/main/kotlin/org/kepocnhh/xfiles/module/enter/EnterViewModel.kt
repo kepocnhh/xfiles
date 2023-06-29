@@ -15,6 +15,8 @@ import java.io.File
 internal class EnterViewModel : ViewModel() {
     sealed interface Broadcast {
         object OnCreate : Broadcast
+        object OnUnlock : Broadcast
+        object OnUnlockError : Broadcast
     }
 
     private val _broadcast = MutableSharedFlow<Broadcast>()
@@ -50,6 +52,25 @@ internal class EnterViewModel : ViewModel() {
                 delay(2_000)
             }
             _exists.value = false
+        }
+    }
+
+    fun unlockFile(parent: File, pin: String) {
+        println("unlock: $pin")
+        viewModelScope.launch {
+            _exists.value = null
+            val value = withContext(Dispatchers.IO) {
+                delay(2_000)
+                if (pin == "3454") {
+                    Broadcast.OnUnlock
+                } else {
+                    Broadcast.OnUnlockError
+                }
+            }
+            if (value == Broadcast.OnUnlockError) {
+                _exists.value = true
+            }
+            _broadcast.emit(value)
         }
     }
 }
