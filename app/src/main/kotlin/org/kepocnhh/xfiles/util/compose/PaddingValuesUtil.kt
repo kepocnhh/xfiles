@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import org.kepocnhh.xfiles.presentation.util.androidx.compose.ui.unit.px
 
 internal fun WindowInsets.toPaddings(density: Float) : PaddingValues {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
