@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.util.compose.PinPad
+import sp.ax.jc.dialogs.Dialog
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -37,7 +38,7 @@ private fun Top(
     exists: Boolean?,
     onDelete: () -> Unit,
 ) {
-    val durationMillis = 2_000
+    val durationMillis = 250
     AnimatedVisibility(
         visible = exists == null,
         enter = fadeIn(tween(durationMillis)),
@@ -56,7 +57,9 @@ private fun Top(
         Box(Modifier.fillMaxSize()) {
             Column(modifier = Modifier.align(Alignment.Center)) {
                 BasicText(modifier = Modifier.padding(8.dp), text = "exists")
-                BasicText(modifier = Modifier.clickable { onDelete() }.padding(8.dp), text = "delete")
+                BasicText(modifier = Modifier
+                    .clickable { onDelete() }
+                    .padding(8.dp), text = "delete")
             }
         }
     }
@@ -86,16 +89,46 @@ internal fun EnterScreen() {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
+            val deleteDialog = remember { mutableStateOf(false) }
             Top(
                 exists = exists.value,
                 onDelete = {
-                    exists.value = false
+                    deleteDialog.value = true
                 }
             )
+            if (deleteDialog.value) {
+                Dialog(
+                    "ok" to {
+                        context.cacheDir.resolve("db.enc").delete()
+                        exists.value = null
+                        deleteDialog.value = false
+                        pin.value = ""
+                    },
+                    message = "delete?",
+                    onDismissRequest = { deleteDialog.value = false }
+                )
+            }
             println("exists: ${exists.value}")
-            if (exists.value == null) {
-                LaunchedEffect(Unit) {
-                    exists.value = !context.cacheDir.resolve("db.enc").exists()
+            LaunchedEffect(exists.value) {
+                if (exists.value == null) {
+                    exists.value = context.cacheDir.resolve("db.enc").exists()
+                }
+            }
+        }
+        LaunchedEffect(pin.value) {
+            if (pin.value.length == 4) {
+                when (exists.value) {
+                    true -> {
+                        // todo
+                    }
+                    false -> {
+                        pin.value = "" // todo
+                        context.cacheDir.resolve("db.enc").createNewFile()
+                        exists.value = true
+                    }
+                    null -> {
+                        // noop
+                    }
                 }
             }
         }
