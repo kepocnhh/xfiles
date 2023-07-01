@@ -91,6 +91,7 @@ internal fun EnterScreen() {
         viewModel.broadcast.collect { broadcast ->
             when (broadcast) {
                 EnterViewModel.Broadcast.OnCreate -> {
+                    pin.value = "" // todo
                     context.showToast("on create...")
                     // todo
                 }

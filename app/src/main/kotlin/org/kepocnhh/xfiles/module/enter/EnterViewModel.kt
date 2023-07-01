@@ -14,10 +14,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
+import java.security.KeyFactory
 import java.security.KeyPairGenerator
+import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.Security
 import java.security.spec.AlgorithmParameterSpec
+import java.security.spec.PKCS8EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -70,54 +73,6 @@ internal class EnterViewModel : ViewModel() {
             _exists.value = null
             withContext(Dispatchers.IO) {
                 val random = getSecureRandom()
-                // https://github.com/doridori/Android-Security-Reference/blob/master/providers/platform_security_providers.md
-//                error(Security.getProviders().joinToString { it.name }) // AndroidNSSP, AndroidOpenSSL, CertPathProvider, AndroidKeyStoreBCWorkaround, BC, HarmonyJSSE, AndroidKeyStore
-//                error(Security.getAlgorithms("SecretKeyFactory")) // [PBEWITHHMACSHA384ANDAES_128, PBEWITHSHAAND128BITRC2-CBC, PBEWITHMD5AND128BITAES-CBC-OPENSSL, PBEWITHSHA256AND192BITAES-CBC-BC, HMACSHA256, PBEWITHHMACSHA512ANDAES_128, PBEWITHSHA256AND128BITAES-CBC-BC, PBEWITHHMACSHA224ANDAES_256, PBKDF2WITHHMACSHA384, HMACSHA512, PBEWITHSHAANDTWOFISH-CBC, PBEWITHMD5ANDDES, PBEWITHSHAAND40BITRC2-CBC, PBEWITHSHA1ANDDES, PBEWITHHMACSHA256ANDAES_256, PBEWITHSHA1ANDRC2, PBKDF2WITHHMACSHA224, PBEWITHHMACSHA1ANDAES_128, HMACSHA1, PBKDF2WITHHMACSHA1AND8BIT, PBEWITHMD5AND192BITAES-CBC-OPENSSL, PBEWITHHMACSHA512ANDAES_256, PBEWITHSHAAND128BITRC4, PBEWITHSHAAND3-KEYTRIPLEDES-CBC, PBEWITHSHAAND128BITAES-CBC-BC, DESEDE, HMACSHA384, PBEWITHSHAAND256BITAES-CBC-BC, HMACSHA224, PBKDF2WITHHMACSHA1, PBEWITHMD5AND256BITAES-CBC-OPENSSL, PBEWITHSHAAND40BITRC4, AES, PBEWITHSHAAND2-KEYTRIPLEDES-CBC, PBEWITHHMACSHA1, DES, PBEWITHHMACSHA256ANDAES_128, PBEWITHSHA256AND256BITAES-CBC-BC, PBEWITHMD5ANDRC2, PBKDF2WITHHMACSHA512, PBEWITHHMACSHA384ANDAES_256, PBEWITHSHAAND192BITAES-CBC-BC, PBEWITHHMACSHA1ANDAES_256, PBEWITHHMACSHA224ANDAES_128, PBKDF2WITHHMACSHA256]
-                // AES
-                // DES
-                // DESEDE
-                // HMACSHA1
-                // HMACSHA224
-                // HMACSHA256
-                // HMACSHA384
-                // HMACSHA512
-                // PBEWITHHMACSHA1
-                // PBEWITHHMACSHA1ANDAES_128
-                // PBEWITHHMACSHA1ANDAES_256
-                // PBEWITHHMACSHA224ANDAES_128
-                // PBEWITHHMACSHA224ANDAES_256
-                // PBEWITHHMACSHA256ANDAES_128
-                // PBEWITHHMACSHA256ANDAES_256
-                // PBEWITHHMACSHA384ANDAES_128
-                // PBEWITHHMACSHA384ANDAES_256
-                // PBEWITHHMACSHA512ANDAES_128
-                // PBEWITHHMACSHA512ANDAES_256
-                // PBEWITHMD5AND128BITAES-CBC-OPENSSL
-                // PBEWITHMD5AND192BITAES-CBC-OPENSSL
-                // PBEWITHMD5AND256BITAES-CBC-OPENSSL
-                // PBEWITHMD5ANDDES
-                // PBEWITHMD5ANDRC2
-                // PBEWITHSHA1ANDDES
-                // PBEWITHSHA1ANDRC2
-                // PBEWITHSHA256AND128BITAES-CBC-BC
-                // PBEWITHSHA256AND192BITAES-CBC-BC
-                // PBEWITHSHA256AND256BITAES-CBC-BC
-                // PBEWITHSHAAND128BITAES-CBC-BC
-                // PBEWITHSHAAND128BITRC2-CBC
-                // PBEWITHSHAAND128BITRC4
-                // PBEWITHSHAAND192BITAES-CBC-BC
-                // PBEWITHSHAAND2-KEYTRIPLEDES-CBC
-                // PBEWITHSHAAND256BITAES-CBC-BC
-                // PBEWITHSHAAND3-KEYTRIPLEDES-CBC
-                // PBEWITHSHAAND40BITRC2-CBC
-                // PBEWITHSHAAND40BITRC4
-                // PBEWITHSHAANDTWOFISH-CBC
-                // PBKDF2WITHHMACSHA1
-                // PBKDF2WITHHMACSHA1AND8BIT
-                // PBKDF2WITHHMACSHA224
-                // PBKDF2WITHHMACSHA256
-                // PBKDF2WITHHMACSHA384
-                // PBKDF2WITHHMACSHA512
                 val factory = SecretKeyFactory.getInstance(algorithm)
                 val sym1 = KeyMeta(
                     salt = ByteArray(32).also(random::nextBytes),
@@ -193,15 +148,38 @@ internal class EnterViewModel : ViewModel() {
         println("unlock: $pin")
         viewModelScope.launch {
             _exists.value = null
-            val value = withContext(Dispatchers.IO) {
-                val cipher = Cipher.getInstance(algorithm)
+            val value: Broadcast = withContext(Dispatchers.IO) {
                 val factory = SecretKeyFactory.getInstance(algorithm)
-                delay(2_000)
-                if (pin == "3454") {
-                    Broadcast.OnUnlock
-                } else {
-                    Broadcast.OnUnlockError
+                val sym1 = JSONObject(parent.resolve("sym1.json").readText()).let { json ->
+                    KeyMeta(
+                        salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
+                        iv = json.getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
+                    )
                 }
+                val private = Cipher.getInstance(algorithm).let { cipher ->
+                    val encrypted = JSONObject(parent.resolve("asym.json").readText()).let { json ->
+                        json.getString("private").let { Base64.decode(it, Base64.DEFAULT) }
+                    }
+                    val spec = PBEKeySpec(pin.toCharArray(), sym1.salt, iterations, size)
+                    val key = factory.generateSecret(spec)
+                    val params = IvParameterSpec(sym1.iv)
+                    cipher.init(Cipher.DECRYPT_MODE, key, params)
+                    KeyFactory.getInstance("RSA")
+                        .generatePrivate(PKCS8EncodedKeySpec(cipher.doFinal(encrypted)))
+                }
+//                val sym2 = JSONObject(parent.resolve("sym2.json").readText()).let { json ->
+//                    KeyMeta(
+//                        salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
+//                        iv = json.getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
+//                    )
+//                }
+                val password = Cipher.getInstance("RSA/ECB/PKCS1Padding").let { cipher ->
+                    cipher.init(Cipher.DECRYPT_MODE, private)
+                    val encoded = parent.resolve("sym2.enc").readBytes()
+                    val encrypted = Base64.decode(encoded, Base64.DEFAULT)
+                    cipher.doFinal(encrypted)
+                }
+                Broadcast.OnUnlock
             }
             if (value == Broadcast.OnUnlockError) {
                 _exists.value = true
