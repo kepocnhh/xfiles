@@ -14,9 +14,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
+import java.lang.StringBuilder
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.Security
 import java.security.spec.AlgorithmParameterSpec
@@ -41,9 +43,15 @@ internal class EnterViewModel : ViewModel() {
     private val _exists = MutableStateFlow<Boolean?>(null)
     val exists = _exists.asStateFlow()
 
-    private val size = 256 // 32 bytes
+    private val bits = 256 // 32 bytes
+//    private val algorithm = StringBuilder()
+//        .append("PBE")
+//        .append("WITH")
+//        .append("HMACSHA256")
+//        .append("AND")
+//        .append("AES_$size")
 //    private val algorithm = "PBEWITHHMACSHA256ANDAES_128" // https://datatracker.ietf.org/doc/html/rfc8018
-    private val algorithm = "PBEWITHHMACSHA256ANDAES_$size"
+    private val algorithm = "PBEWITHHMACSHA256ANDAES_$bits"
 //    private val algorithm = "PBEWITHHMACSHA512ANDAES_256"
     private val iterations = 1_048_576
 //    private var salt: ByteArray = ByteArray(0)
@@ -68,6 +76,12 @@ internal class EnterViewModel : ViewModel() {
 
     private data class KeyMeta(val salt: ByteArray, val iv: ByteArray)
 
+    private fun KeyMeta.toJson(): JSONObject {
+        return JSONObject()
+            .put("salt", salt.base64())
+            .put("iv", iv.base64())
+    }
+
     fun createNewFile(parent: File, pin: String) {
         viewModelScope.launch {
             _exists.value = null
@@ -78,24 +92,18 @@ internal class EnterViewModel : ViewModel() {
                     salt = ByteArray(32).also(random::nextBytes),
                     iv = ByteArray(16).also(random::nextBytes)
                 )
-                JSONObject()
-                    .put("salt", Base64.encodeToString(sym1.salt, Base64.DEFAULT))
-                    .put("iv", Base64.encodeToString(sym1.iv, Base64.DEFAULT))
-                    .also { json ->
-                        parent.resolve("sym1.json").writeText(json.toString())
-                    }
+                parent.resolve("sym1.json").writeText(sym1.toJson().toString())
                 val pair = KeyPairGenerator.getInstance("RSA").let { generator ->
                     generator.initialize(2048, random)
                     generator.generateKeyPair()
                 }
                 Cipher.getInstance(algorithm).also { cipher ->
-                    val spec = PBEKeySpec(pin.toCharArray(), sym1.salt, iterations, size)
-                    val key = factory.generateSecret(spec)
+                    val key = generateSecret(cipher.algorithm, pin.toCharArray(), sym1.salt)
                     val params = IvParameterSpec(sym1.iv)
-                    cipher.init(Cipher.ENCRYPT_MODE, key, params)
+                    val encrypted = cipher.encrypt(key, params, pair.private.encoded)
                     JSONObject()
-                        .put("public", Base64.encodeToString(pair.public.encoded, Base64.DEFAULT))
-                        .put("private", Base64.encodeToString(cipher.doFinal(pair.private.encoded), Base64.DEFAULT))
+                        .put("public", pair.public.encoded.base64())
+                        .put("private", encrypted.base64())
                         .also { json ->
                             parent.resolve("asym.json").writeText(json.toString())
                         }
@@ -104,28 +112,19 @@ internal class EnterViewModel : ViewModel() {
                     salt = ByteArray(32).also(random::nextBytes),
                     iv = ByteArray(16).also(random::nextBytes)
                 )
-                JSONObject()
-                    .put("salt", Base64.encodeToString(sym2.salt, Base64.DEFAULT))
-                    .put("iv", Base64.encodeToString(sym2.iv, Base64.DEFAULT))
-                    .also { json ->
-                        parent.resolve("sym2.json").writeText(json.toString())
-                    }
+                parent.resolve("sym2.json").writeText(sym2.toJson().toString())
                 val password = ByteArray(32).also(random::nextBytes)
                 Cipher.getInstance("RSA/ECB/PKCS1Padding").also { cipher ->
-                    cipher.init(Cipher.ENCRYPT_MODE, pair.public)
-                    parent.resolve("sym2.enc")
-                        .writeText(Base64.encodeToString(cipher.doFinal(password), Base64.DEFAULT))
+                    val encrypted = cipher.encrypt(pair.public, password)
+                    parent.resolve("sym2.enc").writeBytes(encrypted)
                 }
                 Cipher.getInstance(algorithm).also { cipher ->
-                    val chars = Base64.encodeToString(password, Base64.DEFAULT).toCharArray()
-                    val spec = PBEKeySpec(chars, sym2.salt, iterations, size)
-                    val key = factory.generateSecret(spec)
-                    cipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(sym2.iv))
+                    val chars = password.base64().toCharArray()
+                    val key = generateSecret(cipher.algorithm, chars, sym2.salt)
+                    val params = IvParameterSpec(sym2.iv)
                     val decrypted = "{}"
-                    val encoded = Base64.encode(decrypted.toByteArray(), Base64.DEFAULT)
-                    val encrypted = cipher.doFinal(encoded)
-                    parent.resolve("db.json.enc")
-                        .writeText(Base64.encodeToString(encrypted, Base64.DEFAULT))
+                    val encrypted = cipher.encrypt(key, params, decrypted.toByteArray())
+                    parent.resolve("db.json.enc").writeBytes(encrypted)
                 }
             }
             _exists.value = true // todo
@@ -144,12 +143,41 @@ internal class EnterViewModel : ViewModel() {
         }
     }
 
+    private fun generateSecret(algorithm: String, chars: CharArray, salt: ByteArray): SecretKey {
+        val factory = SecretKeyFactory.getInstance(algorithm)
+        val spec = PBEKeySpec(chars, salt, iterations, bits)
+        return factory.generateSecret(spec)
+    }
+
+    private fun Cipher.encrypt(key: PublicKey, decrypted: ByteArray): ByteArray {
+        init(Cipher.ENCRYPT_MODE, key)
+        return doFinal(decrypted)
+    }
+
+    private fun Cipher.encrypt(key: SecretKey, params: AlgorithmParameterSpec, decrypted: ByteArray): ByteArray {
+        init(Cipher.ENCRYPT_MODE, key, params)
+        return doFinal(decrypted)
+    }
+
+    private fun ByteArray.base64(flags: Int = Base64.DEFAULT): String {
+        return Base64.encodeToString(this, flags)
+    }
+
+    private fun Cipher.decrypt(key: SecretKey, params: AlgorithmParameterSpec, decrypted: ByteArray): ByteArray {
+        init(Cipher.DECRYPT_MODE, key, params)
+        return doFinal(decrypted)
+    }
+
+    private fun Cipher.decrypt(key: PrivateKey, decrypted: ByteArray): ByteArray {
+        init(Cipher.DECRYPT_MODE, key)
+        return doFinal(decrypted)
+    }
+
     fun unlockFile(parent: File, pin: String) {
         println("unlock: $pin")
         viewModelScope.launch {
             _exists.value = null
             val value: Broadcast = withContext(Dispatchers.IO) {
-                val factory = SecretKeyFactory.getInstance(algorithm)
                 val sym1 = JSONObject(parent.resolve("sym1.json").readText()).let { json ->
                     KeyMeta(
                         salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
@@ -160,12 +188,11 @@ internal class EnterViewModel : ViewModel() {
                     val encrypted = JSONObject(parent.resolve("asym.json").readText()).let { json ->
                         json.getString("private").let { Base64.decode(it, Base64.DEFAULT) }
                     }
-                    val spec = PBEKeySpec(pin.toCharArray(), sym1.salt, iterations, size)
-                    val key = factory.generateSecret(spec)
+                    val key = generateSecret(algorithm = cipher.algorithm, chars = pin.toCharArray(), salt = sym1.salt)
                     val params = IvParameterSpec(sym1.iv)
-                    cipher.init(Cipher.DECRYPT_MODE, key, params)
+                    val decrypted = cipher.decrypt(key, params, encrypted)
                     KeyFactory.getInstance("RSA")
-                        .generatePrivate(PKCS8EncodedKeySpec(cipher.doFinal(encrypted)))
+                        .generatePrivate(PKCS8EncodedKeySpec(decrypted))
                 }
 //                val sym2 = JSONObject(parent.resolve("sym2.json").readText()).let { json ->
 //                    KeyMeta(
@@ -174,10 +201,8 @@ internal class EnterViewModel : ViewModel() {
 //                    )
 //                }
                 val password = Cipher.getInstance("RSA/ECB/PKCS1Padding").let { cipher ->
-                    cipher.init(Cipher.DECRYPT_MODE, private)
-                    val encoded = parent.resolve("sym2.enc").readBytes()
-                    val encrypted = Base64.decode(encoded, Base64.DEFAULT)
-                    cipher.doFinal(encrypted)
+                    val encrypted = parent.resolve("sym2.enc").readBytes()
+                    cipher.decrypt(private, encrypted)
                 }
                 Broadcast.OnUnlock
             }
