@@ -103,33 +103,9 @@ internal fun EnterScreen() {
                     context.showToast("on unlock error...")
                     // todo
                 }
-                null -> {
-                    // noop
-                }
             }
         }
     }
-//    val broadcast = viewModel.broadcast.collectAsState(null)
-//    LaunchedEffect(broadcast.value) {
-//        when (broadcast.value) {
-//            EnterViewModel.Broadcast.OnCreate -> {
-//                context.showToast("on create...")
-//                // todo
-//            }
-//            EnterViewModel.Broadcast.OnUnlock -> {
-//                context.showToast("on unlock...")
-//                // todo
-//            }
-//            EnterViewModel.Broadcast.OnUnlockError -> {
-//                pin.value = ""
-//                context.showToast("on unlock error...")
-//                // todo
-//            }
-//            null -> {
-//                // noop
-//            }
-//        }
-//    }
     val exists = viewModel.exists.collectAsState(null)
     Column(
         modifier = Modifier
