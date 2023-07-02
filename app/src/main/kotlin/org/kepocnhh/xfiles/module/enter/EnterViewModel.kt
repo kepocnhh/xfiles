@@ -1,6 +1,5 @@
 package org.kepocnhh.xfiles.module.enter
 
-import android.os.Build
 import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,16 +12,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.util.base64
+import org.kepocnhh.xfiles.util.security.decrypt
+import org.kepocnhh.xfiles.util.security.encrypt
+import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.io.File
-import java.lang.StringBuilder
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.SecureRandom
-import java.security.Security
 import java.security.Signature
-import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
@@ -30,7 +27,6 @@ import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
-import javax.crypto.spec.PBEParameterSpec
 
 internal class EnterViewModel : ViewModel() {
     sealed interface Broadcast {
@@ -65,14 +61,6 @@ internal class EnterViewModel : ViewModel() {
             _exists.value = withContext(Dispatchers.IO) {
                 parent.resolve("db.json.enc").exists()
             }
-        }
-    }
-
-    private fun getSecureRandom(): SecureRandom {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            SecureRandom.getInstanceStrong()
-        } else {
-            SecureRandom.getInstance("SHA1PRNG")
         }
     }
 
@@ -158,30 +146,6 @@ internal class EnterViewModel : ViewModel() {
         return factory.generateSecret(spec)
     }
 
-    private fun Cipher.encrypt(key: PublicKey, decrypted: ByteArray): ByteArray {
-        init(Cipher.ENCRYPT_MODE, key)
-        return doFinal(decrypted)
-    }
-
-    private fun Cipher.encrypt(key: SecretKey, params: AlgorithmParameterSpec, decrypted: ByteArray): ByteArray {
-        init(Cipher.ENCRYPT_MODE, key, params)
-        return doFinal(decrypted)
-    }
-
-    private fun ByteArray.base64(flags: Int = Base64.DEFAULT): String {
-        return Base64.encodeToString(this, flags)
-    }
-
-    private fun Cipher.decrypt(key: SecretKey, params: AlgorithmParameterSpec, decrypted: ByteArray): ByteArray {
-        init(Cipher.DECRYPT_MODE, key, params)
-        return doFinal(decrypted)
-    }
-
-    private fun Cipher.decrypt(key: PrivateKey, decrypted: ByteArray): ByteArray {
-        init(Cipher.DECRYPT_MODE, key)
-        return doFinal(decrypted)
-    }
-
     fun unlockFile(parent: File, pin: String) {
         println("unlock: $pin")
         viewModelScope.launch {
@@ -233,7 +197,8 @@ internal class EnterViewModel : ViewModel() {
                 Signature.getInstance("SHA256WITHRSA").also { signature ->
                     signature.initVerify(public)
                     signature.update(decrypted)
-                    signature.verify(parent.resolve("db.json.sig").readBytes())
+                    val verified = signature.verify(parent.resolve("db.json.sig").readBytes())
+                    check(verified)
                 }
                 Broadcast.OnUnlock
             }
