@@ -47,22 +47,25 @@ private fun Top(
     onDelete: () -> Unit,
 ) {
     val durationMillis = 250
+//    val durationMillis = 2_000
     AnimatedVisibility(
         visible = exists == null,
         enter = fadeIn(tween(durationMillis)),
         exit = fadeOut(tween(durationMillis)),
     ) {
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(Color.Yellow)) {
             println("loading...")
             BasicText(modifier = Modifier.align(Alignment.Center), text = "loading...")
         }
     }
     AnimatedVisibility(
         visible = exists == true,
-        enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { it }),
-        exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { it }),
+        enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { it })
+        + fadeIn(tween(durationMillis)),
+        exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { it })
+        + fadeOut(tween(durationMillis)),
     ) {
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(Color.Red)) {
             Column(modifier = Modifier.align(Alignment.Center)) {
                 BasicText(modifier = Modifier.padding(8.dp), text = "exists")
                 BasicText(modifier = Modifier
@@ -76,14 +79,20 @@ private fun Top(
         enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { -it }),
         exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { -it }),
     ) {
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(Color.Green)) {
             BasicText(modifier = Modifier.align(Alignment.Center), text = "none")
         }
     }
 }
 
+internal object EnterScreen {
+    sealed interface Broadcast {
+        object Unlock : Broadcast
+    }
+}
+
 @Composable
-internal fun EnterScreen() {
+internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val viewModel = viewModel<EnterViewModel>()
     val pin = remember { mutableStateOf("") }
@@ -96,8 +105,7 @@ internal fun EnterScreen() {
                     // todo
                 }
                 EnterViewModel.Broadcast.OnUnlock -> {
-                    context.showToast("on unlock...")
-                    // todo
+                    broadcast(EnterScreen.Broadcast.Unlock)
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
                     pin.value = ""

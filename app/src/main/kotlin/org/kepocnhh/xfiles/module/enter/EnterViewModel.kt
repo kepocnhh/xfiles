@@ -128,54 +128,61 @@ internal class EnterViewModel : ViewModel() {
         }
     }
 
+    private fun unlock(parent: File, pin: String) {
+        val chars = hash(pin = pin).base64().toCharArray()
+        val meta = JSONObject(parent.resolve("sym.json").readText()).let { json ->
+            KeyMeta(
+                salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
+                iv = json.getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
+                iterations = json.getInt("iterations"),
+                bits = json.getInt("bits"),
+            )
+        }
+        Cipher.getInstance(algorithm).also { cipher ->
+            val (public, encrypted) = JSONObject(parent.resolve("asym.json").readText()).let { json ->
+                json.getString("public").let {
+                    Base64.decode(it, Base64.DEFAULT)
+                } to json.getString("private").let {
+                    Base64.decode(it, Base64.DEFAULT)
+                }
+            }
+            val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+                val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+                factory.generateSecret(spec)
+            }
+            val params = IvParameterSpec(meta.iv)
+            val decrypted = cipher.decrypt(key, params, parent.resolve("db.json.enc").readBytes())
+            val private = cipher.decrypt(key, params, encrypted)
+            val pair = KeyFactory.getInstance("DSA").let { factory ->
+                KeyPair(
+                    factory.generatePublic(X509EncodedKeySpec(public)),
+                    factory.generatePrivate(PKCS8EncodedKeySpec(private)),
+                )
+            }
+            Signature.getInstance("SHA256WithDSA").also { signature ->
+                signature.initVerify(pair.public)
+                signature.update(decrypted)
+                val verified = signature.verify(parent.resolve("db.json.sig").readBytes())
+                check(verified)
+            }
+        }
+    }
+
     fun unlockFile(parent: File, pin: String) {
         println("unlock: $pin") // todo
         viewModelScope.launch {
             _exists.value = null
-            val value: Broadcast = withContext(Dispatchers.IO) {
-                val chars = hash(pin = pin).base64().toCharArray()
-                val meta = JSONObject(parent.resolve("sym.json").readText()).let { json ->
-                    KeyMeta(
-                        salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
-                        iv = json.getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
-                        iterations = json.getInt("iterations"),
-                        bits = json.getInt("bits"),
-                    )
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    unlock(parent, pin)
                 }
-                Cipher.getInstance(algorithm).also { cipher ->
-                    val (public, encrypted) = JSONObject(parent.resolve("asym.json").readText()).let { json ->
-                        json.getString("public").let {
-                            Base64.decode(it, Base64.DEFAULT)
-                        } to json.getString("private").let {
-                            Base64.decode(it, Base64.DEFAULT)
-                        }
-                    }
-                    val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
-                        val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
-                        factory.generateSecret(spec)
-                    }
-                    val params = IvParameterSpec(meta.iv)
-                    val decrypted = cipher.decrypt(key, params, parent.resolve("db.json.enc").readBytes())
-                    val private = cipher.decrypt(key, params, encrypted)
-                    val pair = KeyFactory.getInstance("DSA").let { factory ->
-                        KeyPair(
-                            factory.generatePublic(X509EncodedKeySpec(public)),
-                            factory.generatePrivate(PKCS8EncodedKeySpec(private)),
-                        )
-                    }
-                    Signature.getInstance("SHA256WithDSA").also { signature ->
-                        signature.initVerify(pair.public)
-                        signature.update(decrypted)
-                        val verified = signature.verify(parent.resolve("db.json.sig").readBytes())
-                        check(verified)
-                    }
-                }
-                Broadcast.OnUnlock
             }
-            if (value == Broadcast.OnUnlockError) {
+            if (result.isFailure) {
                 _exists.value = true
+                _broadcast.emit(Broadcast.OnUnlockError)
+            } else {
+                _broadcast.emit(Broadcast.OnUnlock)
             }
-            _broadcast.emit(value)
         }
     }
 }
