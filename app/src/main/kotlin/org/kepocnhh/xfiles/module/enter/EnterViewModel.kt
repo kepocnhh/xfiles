@@ -43,20 +43,7 @@ internal class EnterViewModel : ViewModel() {
     private val _exists = MutableStateFlow<Boolean?>(null)
     val exists = _exists.asStateFlow()
 
-    private val bits = 256 // 32 bytes
-//    private val algorithm = StringBuilder()
-//        .append("PBE")
-//        .append("WITH")
-//        .append("HMACSHA256")
-//        .append("AND")
-//        .append("AES_$size")
-//    private val algorithm = "PBEWITHHMACSHA256ANDAES_128" // https://datatracker.ietf.org/doc/html/rfc8018
-    private val algorithm = "PBEWITHHMACSHA256ANDAES_$bits"
-//    private val algorithm = "PBEWITHHMACSHA512ANDAES_256"
-    private val iterations = 1_048_576
-//    private var salt: ByteArray = ByteArray(0)
-//    private var iv: ByteArray = ByteArray(0)
-//    private var key: SecretKey? = null
+    private val algorithm = "PBEWITHHMACSHA256ANDAES_256"
 
     fun requestFile(parent: File) {
         viewModelScope.launch {
@@ -66,12 +53,19 @@ internal class EnterViewModel : ViewModel() {
         }
     }
 
-    private data class KeyMeta(val salt: ByteArray, val iv: ByteArray)
+    private data class KeyMeta(
+        val salt: ByteArray,
+        val iv: ByteArray,
+        val iterations: Int,
+        val bits: Int,
+    )
 
     private fun KeyMeta.toJson(): JSONObject {
         return JSONObject()
             .put("salt", salt.base64())
             .put("iv", iv.base64())
+            .put("iterations", iterations)
+            .put("bits", bits)
     }
 
     private fun hash(pin: String): ByteArray {
@@ -87,7 +81,9 @@ internal class EnterViewModel : ViewModel() {
                 val random = getSecureRandom()
                 val meta = KeyMeta(
                     salt = ByteArray(32).also(random::nextBytes),
-                    iv = ByteArray(16).also(random::nextBytes)
+                    iv = ByteArray(16).also(random::nextBytes),
+                    iterations = 1_048_576,
+                    bits = 256,
                 )
                 parent.resolve("sym.json").writeText(meta.toJson().toString())
                 val pair = KeyPairGenerator.getInstance("DSA").let { generator ->
@@ -96,7 +92,10 @@ internal class EnterViewModel : ViewModel() {
                 }
                 val decrypted = "{}".toByteArray()
                 Cipher.getInstance(algorithm).also { cipher ->
-                    val key = generateSecret(cipher.algorithm, chars, meta.salt)
+                    val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+                        val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+                        factory.generateSecret(spec)
+                    }
                     val params = IvParameterSpec(meta.iv)
                     parent.resolve("db.json.enc").writeBytes(cipher.encrypt(key, params, decrypted))
                     val private = cipher.encrypt(key, params, pair.private.encoded)
@@ -129,12 +128,6 @@ internal class EnterViewModel : ViewModel() {
         }
     }
 
-    private fun generateSecret(algorithm: String, chars: CharArray, salt: ByteArray): SecretKey {
-        val factory = SecretKeyFactory.getInstance(algorithm)
-        val spec = PBEKeySpec(chars, salt, iterations, bits)
-        return factory.generateSecret(spec)
-    }
-
     fun unlockFile(parent: File, pin: String) {
         println("unlock: $pin") // todo
         viewModelScope.launch {
@@ -145,6 +138,8 @@ internal class EnterViewModel : ViewModel() {
                     KeyMeta(
                         salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
                         iv = json.getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
+                        iterations = json.getInt("iterations"),
+                        bits = json.getInt("bits"),
                     )
                 }
                 Cipher.getInstance(algorithm).also { cipher ->
@@ -155,7 +150,10 @@ internal class EnterViewModel : ViewModel() {
                             Base64.decode(it, Base64.DEFAULT)
                         }
                     }
-                    val key = generateSecret(algorithm = cipher.algorithm, chars = chars, salt = meta.salt)
+                    val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+                        val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+                        factory.generateSecret(spec)
+                    }
                     val params = IvParameterSpec(meta.iv)
                     val decrypted = cipher.decrypt(key, params, parent.resolve("db.json.enc").readBytes())
                     val private = cipher.decrypt(key, params, encrypted)
