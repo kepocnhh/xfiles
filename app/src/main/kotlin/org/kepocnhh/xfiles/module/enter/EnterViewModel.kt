@@ -32,8 +32,7 @@ import javax.crypto.spec.PBEKeySpec
 
 internal class EnterViewModel : ViewModel() {
     sealed interface Broadcast {
-        object OnCreate : Broadcast
-        object OnUnlock : Broadcast
+        class OnUnlock(val key: SecretKey) : Broadcast
         object OnUnlockError : Broadcast
     }
 
@@ -73,47 +72,50 @@ internal class EnterViewModel : ViewModel() {
         return md.digest(pin.toByteArray())
     }
 
+    private fun create(parent: File, pin: String): SecretKey {
+        val chars = hash(pin = pin).base64().toCharArray()
+        val random = getSecureRandom()
+        val meta = KeyMeta(
+            salt = ByteArray(32).also(random::nextBytes),
+            iv = ByteArray(16).also(random::nextBytes),
+            iterations = 1_048_576,
+            bits = 256,
+        )
+        parent.resolve("sym.json").writeText(meta.toJson().toString())
+        val pair = KeyPairGenerator.getInstance("DSA").let { generator ->
+            generator.initialize(2048, random)
+            generator.generateKeyPair()
+        }
+        val decrypted = "{}".toByteArray()
+        val cipher = Cipher.getInstance(algorithm)
+        val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+            val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+            factory.generateSecret(spec)
+        }
+        val params = IvParameterSpec(meta.iv)
+        parent.resolve("db.json.enc").writeBytes(cipher.encrypt(key, params, decrypted))
+        val private = cipher.encrypt(key, params, pair.private.encoded)
+        JSONObject()
+            .put("public", pair.public.encoded.base64())
+            .put("private", private.base64())
+            .also { json ->
+                parent.resolve("asym.json").writeText(json.toString())
+            }
+        Signature.getInstance("SHA256WithDSA").also { signature ->
+            signature.initSign(pair.private, random)
+            signature.update(decrypted)
+            parent.resolve("db.json.sig").writeBytes(signature.sign())
+        }
+        return key
+    }
+
     fun createNewFile(parent: File, pin: String) {
         viewModelScope.launch {
             _exists.value = null
-            withContext(Dispatchers.IO) {
-                val chars = hash(pin = pin).base64().toCharArray()
-                val random = getSecureRandom()
-                val meta = KeyMeta(
-                    salt = ByteArray(32).also(random::nextBytes),
-                    iv = ByteArray(16).also(random::nextBytes),
-                    iterations = 1_048_576,
-                    bits = 256,
-                )
-                parent.resolve("sym.json").writeText(meta.toJson().toString())
-                val pair = KeyPairGenerator.getInstance("DSA").let { generator ->
-                    generator.initialize(2048, random)
-                    generator.generateKeyPair()
-                }
-                val decrypted = "{}".toByteArray()
-                Cipher.getInstance(algorithm).also { cipher ->
-                    val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
-                        val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
-                        factory.generateSecret(spec)
-                    }
-                    val params = IvParameterSpec(meta.iv)
-                    parent.resolve("db.json.enc").writeBytes(cipher.encrypt(key, params, decrypted))
-                    val private = cipher.encrypt(key, params, pair.private.encoded)
-                    JSONObject()
-                        .put("public", pair.public.encoded.base64())
-                        .put("private", private.base64())
-                        .also { json ->
-                            parent.resolve("asym.json").writeText(json.toString())
-                        }
-                }
-                Signature.getInstance("SHA256WithDSA").also { signature ->
-                    signature.initSign(pair.private, random)
-                    signature.update(decrypted)
-                    parent.resolve("db.json.sig").writeBytes(signature.sign())
-                }
+            val key = withContext(Dispatchers.IO) {
+                create(parent, pin)
             }
-            _exists.value = true // todo
-            _broadcast.emit(Broadcast.OnCreate)
+            _broadcast.emit(Broadcast.OnUnlock(key))
         }
     }
 
@@ -128,7 +130,7 @@ internal class EnterViewModel : ViewModel() {
         }
     }
 
-    private fun unlock(parent: File, pin: String) {
+    private fun unlock(parent: File, pin: String): SecretKey {
         val chars = hash(pin = pin).base64().toCharArray()
         val meta = JSONObject(parent.resolve("sym.json").readText()).let { json ->
             KeyMeta(
@@ -138,34 +140,34 @@ internal class EnterViewModel : ViewModel() {
                 bits = json.getInt("bits"),
             )
         }
-        Cipher.getInstance(algorithm).also { cipher ->
-            val (public, encrypted) = JSONObject(parent.resolve("asym.json").readText()).let { json ->
-                json.getString("public").let {
-                    Base64.decode(it, Base64.DEFAULT)
-                } to json.getString("private").let {
-                    Base64.decode(it, Base64.DEFAULT)
-                }
-            }
-            val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
-                val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
-                factory.generateSecret(spec)
-            }
-            val params = IvParameterSpec(meta.iv)
-            val decrypted = cipher.decrypt(key, params, parent.resolve("db.json.enc").readBytes())
-            val private = cipher.decrypt(key, params, encrypted)
-            val pair = KeyFactory.getInstance("DSA").let { factory ->
-                KeyPair(
-                    factory.generatePublic(X509EncodedKeySpec(public)),
-                    factory.generatePrivate(PKCS8EncodedKeySpec(private)),
-                )
-            }
-            Signature.getInstance("SHA256WithDSA").also { signature ->
-                signature.initVerify(pair.public)
-                signature.update(decrypted)
-                val verified = signature.verify(parent.resolve("db.json.sig").readBytes())
-                check(verified)
+        val cipher = Cipher.getInstance(algorithm)
+        val (public, encrypted) = JSONObject(parent.resolve("asym.json").readText()).let { json ->
+            json.getString("public").let {
+                Base64.decode(it, Base64.DEFAULT)
+            } to json.getString("private").let {
+                Base64.decode(it, Base64.DEFAULT)
             }
         }
+        val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+            val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+            factory.generateSecret(spec)
+        }
+        val params = IvParameterSpec(meta.iv)
+        val decrypted = cipher.decrypt(key, params, parent.resolve("db.json.enc").readBytes())
+        val private = cipher.decrypt(key, params, encrypted)
+        val pair = KeyFactory.getInstance("DSA").let { factory ->
+            KeyPair(
+                factory.generatePublic(X509EncodedKeySpec(public)),
+                factory.generatePrivate(PKCS8EncodedKeySpec(private)),
+            )
+        }
+        Signature.getInstance("SHA256WithDSA").also { signature ->
+            signature.initVerify(pair.public)
+            signature.update(decrypted)
+            val verified = signature.verify(parent.resolve("db.json.sig").readBytes())
+            check(verified)
+        }
+        return key
     }
 
     fun unlockFile(parent: File, pin: String) {
@@ -177,12 +179,15 @@ internal class EnterViewModel : ViewModel() {
                     unlock(parent, pin)
                 }
             }
-            if (result.isFailure) {
-                _exists.value = true
-                _broadcast.emit(Broadcast.OnUnlockError)
-            } else {
-                _broadcast.emit(Broadcast.OnUnlock)
-            }
+            result.fold(
+                onFailure = {
+                    _exists.value = true
+                    _broadcast.emit(Broadcast.OnUnlockError)
+                },
+                onSuccess = {
+                    _broadcast.emit(Broadcast.OnUnlock(it))
+                }
+            )
         }
     }
 }

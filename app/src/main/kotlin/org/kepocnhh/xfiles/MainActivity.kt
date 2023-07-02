@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.kepocnhh.xfiles.module.enter.EnterScreen
 import org.kepocnhh.xfiles.module.unlocked.UnlockedScreen
+import javax.crypto.SecretKey
 
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,11 +31,11 @@ internal class MainActivity : AppCompatActivity() {
                     .fillMaxSize()
                     .background(Color.Black),
             ) {
-                val locked = remember { mutableStateOf(true) }
+                val key = remember { mutableStateOf<SecretKey?>(null) }
                 val durationMillis = 250
 //                val durationMillis = 2_000
                 AnimatedVisibility(
-                    visible = locked.value,
+                    visible = key.value == null,
                     enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { -it })
                             + fadeIn(tween(durationMillis)),
                     exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { -it })
@@ -43,15 +44,15 @@ internal class MainActivity : AppCompatActivity() {
                     EnterScreen(
                         broadcast = {
                             when (it) {
-                                EnterScreen.Broadcast.Unlock -> {
-                                    locked.value = false
+                                is EnterScreen.Broadcast.Unlock -> {
+                                    key.value = it.key
                                 }
                             }
                         }
                     )
                 }
                 AnimatedVisibility(
-                    visible = !locked.value,
+                    visible = key.value != null,
                     enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { it })
                             + fadeIn(tween(durationMillis)),
                     exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { it })
@@ -61,7 +62,7 @@ internal class MainActivity : AppCompatActivity() {
                         broadcast = {
                             when (it) {
                                 UnlockedScreen.Broadcast.Lock -> {
-                                    locked.value = true
+                                    key.value = null
                                 }
                             }
                         }

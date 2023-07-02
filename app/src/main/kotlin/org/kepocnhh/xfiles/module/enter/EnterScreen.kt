@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.onEach
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
 import sp.ax.jc.dialogs.Dialog
+import javax.crypto.SecretKey
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -87,7 +88,7 @@ private fun Top(
 
 internal object EnterScreen {
     sealed interface Broadcast {
-        object Unlock : Broadcast
+        class Unlock(val key: SecretKey) : Broadcast
     }
 }
 
@@ -99,13 +100,8 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     LaunchedEffect(Unit) {
         viewModel.broadcast.collect { broadcast ->
             when (broadcast) {
-                EnterViewModel.Broadcast.OnCreate -> {
-                    pin.value = "" // todo
-                    context.showToast("on create...")
-                    // todo
-                }
-                EnterViewModel.Broadcast.OnUnlock -> {
-                    broadcast(EnterScreen.Broadcast.Unlock)
+                is EnterViewModel.Broadcast.OnUnlock -> {
+                    broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
                     pin.value = ""
