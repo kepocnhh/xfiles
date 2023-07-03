@@ -1,16 +1,27 @@
 package org.kepocnhh.xfiles.module.unlocked
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +46,30 @@ private fun Data(values: Map<String, String>) {
 }
 
 @Composable
+private fun Add(
+    onAdd: (String, String) -> Unit,
+    onCancel: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Green),
+    ) {
+        Column(Modifier.align(Alignment.Center)) {
+            BasicText(
+                modifier = Modifier
+                    .height(64.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        onCancel()
+                    },
+                text = "cancel",
+            )
+        }
+    }
+}
+
+@Composable
 internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
@@ -42,6 +77,7 @@ internal fun UnlockedScreen(
     val context = LocalContext.current
     val viewModel = viewModel<UnlockedViewModel>()
     val data = viewModel.data.collectAsState(null)
+    val added = remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -51,13 +87,46 @@ internal fun UnlockedScreen(
             null -> viewModel.requestData(context.cacheDir, key)
             else -> Data(values)
         }
-        BasicText(
+        Row(
             modifier = Modifier
-                .align(Alignment.BottomStart)
-                .clickable { broadcast(UnlockedScreen.Broadcast.Lock) }
-                .padding(8.dp)
-                .padding(bottom = 128.dp),
-            text = "lock",
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = 64.dp)
+                .height(64.dp)
+        ) {
+            BasicText(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clickable { broadcast(UnlockedScreen.Broadcast.Lock) },
+                text = "lock",
+            )
+            BasicText(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .clickable {
+                               added.value = true
+                    },
+                text = "add",
+            )
+        }
+    }
+    val durationMillis = 250
+    AnimatedVisibility(
+        visible = added.value,
+        enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { it })
+                + fadeIn(tween(durationMillis)),
+        exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { it })
+                + fadeOut(tween(durationMillis)),
+    ) {
+        Add(
+            onCancel = {
+                added.value = false
+            },
+            onAdd = { key, value ->
+                // todo
+            }
         )
     }
 }
