@@ -42,7 +42,7 @@ internal class EnterViewModel : ViewModel() {
     private val _exists = MutableStateFlow<Boolean?>(null)
     val exists = _exists.asStateFlow()
 
-    private val algorithm = "PBEWITHHMACSHA256ANDAES_256"
+    private val algorithm = "PBEWITHHMACSHA256ANDAES_256" // todo
 
     fun requestFile(parent: File) {
         viewModelScope.launch {

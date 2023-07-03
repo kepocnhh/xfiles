@@ -59,6 +59,7 @@ internal class MainActivity : AppCompatActivity() {
                             + fadeOut(tween(durationMillis)),
                 ) {
                     UnlockedScreen(
+                        key = remember { mutableStateOf(key.value!!) }.value,
                         broadcast = {
                             when (it) {
                                 UnlockedScreen.Broadcast.Lock -> {
