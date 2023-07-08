@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.module.unlocked
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -50,6 +51,9 @@ private fun Add(
     onAdd: (String, String) -> Unit,
     onCancel: () -> Unit,
 ) {
+    BackHandler {
+        onCancel()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -74,6 +78,9 @@ internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
+    BackHandler {
+        broadcast(UnlockedScreen.Broadcast.Lock)
+    }
     val context = LocalContext.current
     val viewModel = viewModel<UnlockedViewModel>()
     val data = viewModel.data.collectAsState(null)
@@ -106,7 +113,7 @@ internal fun UnlockedScreen(
                     .fillMaxHeight()
                     .weight(1f)
                     .clickable {
-                               added.value = true
+                        added.value = true
                     },
                 text = "add",
             )
