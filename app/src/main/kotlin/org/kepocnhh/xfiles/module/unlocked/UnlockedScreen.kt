@@ -47,33 +47,6 @@ private fun Data(values: Map<String, String>) {
 }
 
 @Composable
-private fun Add(
-    onAdd: (String, String) -> Unit,
-    onCancel: () -> Unit,
-) {
-    BackHandler {
-        onCancel()
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Green),
-    ) {
-        Column(Modifier.align(Alignment.Center)) {
-            BasicText(
-                modifier = Modifier
-                    .height(64.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        onCancel()
-                    },
-                text = "cancel",
-            )
-        }
-    }
-}
-
-@Composable
 internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
@@ -127,7 +100,7 @@ internal fun UnlockedScreen(
         exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { it })
                 + fadeOut(tween(durationMillis)),
     ) {
-        Add(
+        AddItemScreen(
             onCancel = {
                 added.value = false
             },
