@@ -61,7 +61,8 @@ internal fun UnlockedScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(Color.White)
+            .padding(top = 64.dp), // todo
     ) {
         when (val values = data.value) {
             null -> viewModel.requestData(context.cacheDir, key)
@@ -105,9 +106,9 @@ internal fun UnlockedScreen(
             onCancel = {
                 added.value = false
             },
-            onAdd = { key, value ->
+            onAdd = { name, value ->
+                viewModel.addData(context.cacheDir, key, name = name, value = value)
                 added.value = false
-                // todo
             }
         )
     }
