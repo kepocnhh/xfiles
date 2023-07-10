@@ -113,4 +113,30 @@ internal class UnlockedViewModel : ViewModel() {
             _data.value = map
         }
     }
+
+    fun deleteData(parent: File, key: SecretKey, name: String) {
+        println("delete: \"$name\"")
+        if (name.trim().isEmpty()) TODO()
+        viewModelScope.launch {
+            val map = withContext(Dispatchers.IO) {
+                val decrypted = decrypt(parent, key)
+                val decoded = decrypted.toString(Charsets.UTF_8)
+                println("decoded: $decoded")
+                val jsonObject = JSONObject(decoded)
+                if (!jsonObject.has(name)) TODO("$decoded has no \"$name\"")
+                jsonObject.remove(name)
+                println("decrypt: $jsonObject")
+                encrypt(
+                    sym = parent.resolve("sym.json"),
+                    asym = parent.resolve("asym.json"),
+                    target = parent.resolve("db.json.enc"),
+                    sig = parent.resolve("db.json.sig"),
+                    key = key,
+                    decrypted = jsonObject.toString().toByteArray(),
+                )
+                jsonObject.toMap()
+            }
+            _data.value = map
+        }
+    }
 }

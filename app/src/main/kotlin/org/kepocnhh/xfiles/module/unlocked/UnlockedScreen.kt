@@ -41,6 +41,7 @@ import javax.crypto.SecretKey
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.IntOffset
+import sp.ax.jc.clicks.onClick
 import kotlin.math.roundToInt
 
 internal object UnlockedScreen {
@@ -50,9 +51,10 @@ internal object UnlockedScreen {
 }
 
 @Composable
-private fun Data(values: Map<String, String>) {
+private fun Data(values: Map<String, String>, onClick: (String) -> Unit) {
     LazyColumn {
         items(values.keys.toList()) { name ->
+            println("compose: $name")
             val value = values[name] ?: TODO()
             val draggableState = remember { mutableStateOf(false) }
             val animatable = remember { Animatable(0f) }
@@ -75,6 +77,11 @@ private fun Data(values: Map<String, String>) {
                     .fillMaxWidth()
                     .height(56.dp)
                     .offset { IntOffset(offsetXState.value.roundToInt() / 2, 0) }
+                    .background(Color.Green)
+                    .clickable {
+                        println("on click: $name")
+                        onClick(name)
+                    }
                     .draggable(
                         orientation = Orientation.Horizontal,
                         state = rememberDraggableState { delta ->
@@ -113,7 +120,12 @@ internal fun UnlockedScreen(
     ) {
         when (val values = data.value) {
             null -> viewModel.requestData(context.cacheDir, key)
-            else -> Data(values)
+            else -> Data(
+                values,
+                onClick = { name ->
+                    viewModel.deleteData(context.cacheDir, key, name = name)
+                }
+            )
         }
         Row(
             modifier = Modifier
