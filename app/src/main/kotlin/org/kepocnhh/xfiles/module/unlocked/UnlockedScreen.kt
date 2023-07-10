@@ -101,6 +101,7 @@ internal fun UnlockedScreen(
                 + fadeOut(tween(durationMillis)),
     ) {
         AddItemScreen(
+            keys = data.value!!.keys,
             onCancel = {
                 added.value = false
             },

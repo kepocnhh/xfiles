@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ private enum class Focused {
 
 @Composable
 internal fun AddItemScreen(
+    keys: Set<String>,
     onAdd: (String, String) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -48,7 +50,7 @@ internal fun AddItemScreen(
                 onClick = {},
             )
             .fillMaxSize()
-            .background(Color.Green),
+            .background(Color.White),
     ) {
         val keyState = remember { mutableStateOf("") }
         val valueState = remember { mutableStateOf("") }
@@ -62,19 +64,18 @@ internal fun AddItemScreen(
                 text = "key:",
             )
             TextFocused(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp)
-                    .height(64.dp)
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(16.dp))
-                    .onClick {
-                        focusedState.value = Focused.KEY
-                    }
-                    .padding(start = 16.dp, end = 16.dp),
+                margin = PaddingValues(start = 16.dp, end = 16.dp),
+                padding = PaddingValues(start = 16.dp, end = 16.dp),
+                height = 56.dp,
+                color = Color.White,
+                corners = 16.dp,
                 text = keyState.value,
                 textStyle = TextStyle(
                     color = Color.Black,
                 ),
+                onClick = {
+                    focusedState.value = Focused.KEY
+                },
                 focused = focusedState.value == Focused.KEY,
             )
             BasicText(
@@ -82,19 +83,18 @@ internal fun AddItemScreen(
                 text = "value:",
             )
             TextFocused(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp)
-                    .height(64.dp)
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(16.dp))
-                    .onClick {
-                        focusedState.value = Focused.VALUE
-                    }
-                    .padding(start = 16.dp, end = 16.dp),
+                margin = PaddingValues(start = 16.dp, end = 16.dp),
+                padding = PaddingValues(start = 16.dp, end = 16.dp),
+                height = 56.dp,
+                color = Color.White,
+                corners = 16.dp,
                 text = valueState.value,
                 textStyle = TextStyle(
                     color = Color.Black,
                 ),
+                onClick = {
+                    focusedState.value = Focused.VALUE
+                },
                 focused = focusedState.value == Focused.VALUE,
             )
             BasicText(
@@ -102,14 +102,22 @@ internal fun AddItemScreen(
                     .padding(16.dp)
                     .height(56.dp)
                     .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .background(Color.Blue, RoundedCornerShape(16.dp))
                     .clickable {
-                        onAdd(keyState.value, valueState.value)
+                        if (keyState.value.isEmpty()) {
+                            // todo
+                        } else if (valueState.value.isEmpty()) {
+                            // todo
+                        } else if (keys.contains(keyState.value)) {
+                            // todo
+                        } else {
+                            onAdd(keyState.value, valueState.value)
+                        }
                     }
                     .wrapContentHeight(),
                 text = "ok",
                 style = TextStyle(
-                    color = Color.Black,
+                    color = Color.White,
                     textAlign = TextAlign.Center,
                 ),
             )
