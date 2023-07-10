@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.util.compose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import sp.ax.jc.clicks.clicks
-import sp.ax.jc.clicks.onClick
 
 private fun Char.up(): Char {
     if (!Character.isLowerCase(this)) return this
@@ -81,7 +81,7 @@ internal fun Keyboard(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .onClick {
+                    .clickable {
                         onClick(' ')
                     }
                     .wrapContentHeight(),
@@ -92,7 +92,7 @@ internal fun Keyboard(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(64.dp)
-                    .onClick {
+                    .clickable {
                         onBackspace()
                     }
                     .wrapContentHeight(),

@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.util.compose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
-import sp.ax.jc.clicks.onClick
 
 @Composable
 private fun PinRow(
@@ -28,7 +28,7 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .onClick {
+                .clickable {
                     onClick(first)
                 }
                 .wrapContentHeight(),
@@ -39,7 +39,7 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .onClick {
+                .clickable {
                     onClick(second)
                 }
                 .wrapContentHeight(),
@@ -50,7 +50,7 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .onClick {
+                .clickable {
                     onClick(third)
                 }
                 .wrapContentHeight(),
@@ -108,7 +108,7 @@ internal fun PinPad(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .onClick {
+                    .clickable {
                         onClick(char)
                     }
                     .wrapContentHeight(),

@@ -10,7 +10,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,10 +27,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.kepocnhh.xfiles.util.compose.AnimatedText
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.TextFocused
-import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
 
 private enum class Focused {
