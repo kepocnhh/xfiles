@@ -105,6 +105,7 @@ internal fun UnlockedScreen(
                 added.value = false
             },
             onAdd = { key, value ->
+                added.value = false
                 // todo
             }
         )
