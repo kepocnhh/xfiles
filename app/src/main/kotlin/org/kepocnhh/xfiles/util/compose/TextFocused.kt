@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 
 @Composable
@@ -46,6 +47,7 @@ internal fun TextFocused(
     text: String,
     textStyle: TextStyle,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     focused: Boolean,
 ) {
     val borderColor = if (focused) textStyle.color else Color.LightGray
@@ -57,9 +59,10 @@ internal fun TextFocused(
             .background(color, RoundedCornerShape(corners))
             .border(1.dp, borderColor, RoundedCornerShape(corners))
             .clip(RoundedCornerShape(corners))
-            .onClick {
-                onClick()
-            }
+            .clicks(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .padding(padding),
     ) {
         val timeState = remember { mutableStateOf(System.currentTimeMillis()) }

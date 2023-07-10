@@ -1,5 +1,8 @@
 package org.kepocnhh.xfiles.module.unlocked
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,9 +32,18 @@ import org.kepocnhh.xfiles.util.compose.AnimatedText
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.TextFocused
 import sp.ax.jc.clicks.onClick
+import sp.ax.jc.dialogs.Dialog
 
 private enum class Focused {
     KEY, VALUE,
+}
+
+private fun ClipData.getFirstTextOrNull(): String? {
+    for (i in 0 until itemCount) {
+        val text = getItemAt(i).text ?: continue
+        return text.toString()
+    }
+    return null
 }
 
 @Composable
@@ -55,6 +68,41 @@ internal fun AddItemScreen(
         val keyState = remember { mutableStateOf("") }
         val valueState = remember { mutableStateOf("") }
         val focusedState = remember { mutableStateOf(Focused.KEY) }
+        val textDialogState = remember { mutableStateOf(false) }
+        val context = LocalContext.current
+        if (textDialogState.value) {
+            Dialog(
+                "paste" to {
+                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = clipboardManager.primaryClip
+                    val text = clip?.getFirstTextOrNull()
+                    if (text != null) {
+                        when (focusedState.value) {
+                            Focused.KEY -> {
+                                keyState.value = text
+                            }
+                            Focused.VALUE -> {
+                                valueState.value = text
+                            }
+                        }
+                    }
+                    textDialogState.value = false
+                },
+                "clear" to {
+                    when (focusedState.value) {
+                        Focused.KEY -> {
+                            keyState.value = ""
+                        }
+                        Focused.VALUE -> {
+                            valueState.value = ""
+                        }
+                    }
+                    textDialogState.value = false
+                },
+                message = "?",
+                onDismissRequest = { textDialogState.value = false },
+            )
+        }
         Column(
             modifier = Modifier
                 .padding(top = 64.dp)
@@ -76,6 +124,16 @@ internal fun AddItemScreen(
                 onClick = {
                     focusedState.value = Focused.KEY
                 },
+                onLongClick = {
+                    when (focusedState.value) {
+                        Focused.KEY -> {
+                            textDialogState.value = true
+                        }
+                        Focused.VALUE -> {
+                            focusedState.value = Focused.KEY
+                        }
+                    }
+                },
                 focused = focusedState.value == Focused.KEY,
             )
             BasicText(
@@ -94,6 +152,16 @@ internal fun AddItemScreen(
                 ),
                 onClick = {
                     focusedState.value = Focused.VALUE
+                },
+                onLongClick = {
+                    when (focusedState.value) {
+                        Focused.KEY -> {
+                            focusedState.value = Focused.VALUE
+                        }
+                        Focused.VALUE -> {
+                            textDialogState.value = true
+                        }
+                    }
                 },
                 focused = focusedState.value == Focused.VALUE,
             )
