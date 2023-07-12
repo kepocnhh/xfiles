@@ -1,5 +1,10 @@
 package org.kepocnhh.xfiles.module.unlocked
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.Build
+import android.os.PersistableBundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -106,20 +111,38 @@ internal fun UnlockedScreen(
     }
     val context = LocalContext.current
     val viewModel = viewModel<UnlockedViewModel>()
+    LaunchedEffect(Unit) {
+        viewModel.broadcast.collect { broadcast ->
+            when (broadcast) {
+                is UnlockedViewModel.Broadcast.OnCopy -> {
+                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("secret", broadcast.secret)
+                    clip.description.extras = PersistableBundle().also {
+                        it.putBoolean("android.content.extra.IS_SENSITIVE", true)
+                    }
+                    clipboardManager.setPrimaryClip(clip)
+                }
+            }
+        }
+    }
     val data = viewModel.data.collectAsState(null)
     val added = remember { mutableStateOf(false) }
-    val deletedState = remember { mutableStateOf<String?>(null) }
-    val deleted = deletedState.value
-    if (deleted != null) {
+    val clickedState = remember { mutableStateOf<String?>(null) }
+    val clicked = clickedState.value
+    if (clicked != null) {
         Dialog(
-            "ok" to {
-                viewModel.deleteData(context.cacheDir, key, name = deleted)
-                deletedState.value = null
+            "delete" to {
+                viewModel.deleteData(context.cacheDir, key, name = clicked)
+                clickedState.value = null
+            },
+            "copy" to {
+                viewModel.requestToCopy(context.cacheDir, key, name = clicked)
+                clickedState.value = null
             },
             onDismissRequest = {
-                deletedState.value = null
+                clickedState.value = null
             },
-            message = "delete \"$deleted\"?",
+            message = "\"$clicked\"?",
         )
     }
     Box(
@@ -133,7 +156,7 @@ internal fun UnlockedScreen(
             else -> Data(
                 values,
                 onClick = { name ->
-                    deletedState.value = name
+                    clickedState.value = name
                 }
             )
         }

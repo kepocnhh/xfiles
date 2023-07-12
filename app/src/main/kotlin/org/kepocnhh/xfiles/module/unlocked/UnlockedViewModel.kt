@@ -4,7 +4,9 @@ import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,10 +27,17 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 
 internal class UnlockedViewModel : ViewModel() {
+    sealed interface Broadcast {
+        class OnCopy(val secret: String) : Broadcast
+    }
+
     private val algorithm = "PBEWITHHMACSHA256ANDAES_256" // todo
 
     private val _data = MutableStateFlow<Map<String, String>?>(null)
     val data = _data.asStateFlow()
+
+    private val _broadcast = MutableSharedFlow<Broadcast>()
+    val broadcast = _broadcast.asSharedFlow()
 
     private fun JSONObject.toMap(): Map<String, String> {
         val result = mutableMapOf<String, String>()
@@ -88,6 +97,16 @@ internal class UnlockedViewModel : ViewModel() {
                 JSONObject(decrypt(parent, key).toString(Charsets.UTF_8)).toMap()
             }
             _data.value = map
+        }
+    }
+
+    fun requestToCopy(parent: File, key: SecretKey, name: String) {
+        viewModelScope.launch {
+            val value = withContext(Dispatchers.IO) {
+                val jsonObject = JSONObject(decrypt(parent, key).toString(Charsets.UTF_8))
+                jsonObject.getString(name)
+            }
+            _broadcast.emit(Broadcast.OnCopy(value))
         }
     }
 
