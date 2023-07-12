@@ -15,9 +15,4 @@ object Version {
 //        const val compose = "1.3.1"
         const val compose = "1.4.1"
     }
-
-    object Application {
-        const val code = 2
-        const val name = "0.0.$code"
-    }
 }

@@ -1,8 +1,17 @@
+import sp.gx.core.camelCase
+import sp.gx.core.existing
+import sp.gx.core.file
+import sp.gx.core.filled
+import sp.gx.core.kebabCase
+
 repositories {
     google()
     mavenCentral()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
 }
+
+val code = 3
+version = "0.1.0"
 
 plugins {
     id("com.android.application")
@@ -21,8 +30,8 @@ android {
         applicationId = appId
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = Version.Application.name
-        versionCode = Version.Application.code
+        versionName = version.toString()
+        versionCode = code
         manifestPlaceholders["appName"] = "@string/app_name"
     }
 
@@ -41,14 +50,11 @@ android {
     composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
 }
 
-jacoco {
-    toolVersion = Version.jacoco
-}
+jacoco.toolVersion = Version.jacoco
 
 fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
-    val capitalize = variant.name.capitalize()
-    val taskUnitTest = tasks.getByName<Test>("test${capitalize}UnitTest")
-    val taskCoverageReport = task<JacocoReport>("test${capitalize}CoverageReport") {
+    val taskUnitTest = tasks.getByName<Test>(camelCase("test", variant.name, "UnitTest"))
+    val taskCoverageReport = task<JacocoReport>(camelCase("test", variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
         reports {
             csv.required.set(false)
@@ -62,7 +68,7 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
         classDirectories.setFrom(dirs)
         executionData(taskUnitTest)
     }
-    task<JacocoCoverageVerification>("test${capitalize}CoverageVerification") {
+    task<JacocoCoverageVerification>(camelCase("test", variant.name, "CoverageVerification")) {
         dependsOn(taskCoverageReport)
         violationRules {
             rule {
@@ -77,7 +83,6 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
 }
 
 fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
-    val capitalize = variant.name.capitalize()
     val configs = setOf(
         "comments",
         "common",
@@ -90,19 +95,20 @@ fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
         "potential-bugs",
         "style",
     ).map { config ->
-        File(rootDir, "buildSrc/src/main/resources/detekt/config/$config.yml").also {
-            check(it.exists() && !it.isDirectory)
-        }
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
+            .existing()
+            .file()
+            .filled()
     }
     setOf("main", "test").forEach { source ->
-        task<io.gitlab.arturbosch.detekt.Detekt>("checkCodeQuality$capitalize${source.capitalize()}") {
+        task<io.gitlab.arturbosch.detekt.Detekt>(camelCase("checkCodeQuality", variant.name, source)) {
             jvmTarget = Version.jvmTarget
             setSource(files("src/$source/kotlin"))
             config.setFrom(configs)
             reports {
                 html {
                     required.set(true)
-                    outputLocation.set(File(buildDir, "reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
+                    outputLocation.set(buildDir.resolve("reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
                 }
                 md.required.set(false)
                 sarif.required.set(false)
@@ -114,7 +120,7 @@ fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
                 "test" -> "UnitTest"
                 else -> error("Source \"$source\" is not supported!")
             }
-            val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt$capitalize$postfix")
+            val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>(camelCase("detekt", variant.name, postfix))
             classpath.setFrom(detektTask.classpath)
         }
     }
@@ -123,18 +129,18 @@ fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    output.outputFileName.set("${rootProject.name}-${Version.Application.name}-${variant.name}-${Version.Application.code}.apk")
+    output.outputFileName.set(kebabCase(rootProject.name, version.toString(), variant.name, code.toString()) + ".apk")
     afterEvaluate {
         setCoverage(variant)
         setCodeQuality(variant)
-        tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
+        tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
             targetCompatibility = Version.jvmTarget
         }
-        tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compile${variant.name.capitalize()}Kotlin") {
+        tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
             kotlinOptions.jvmTarget = Version.jvmTarget
         }
-        val checkManifestTask = task("checkManifest${variant.name.capitalize()}") {
-            dependsOn("compile${variant.name.capitalize()}Sources")
+        val checkManifestTask = task(camelCase("checkManifest", variant.name)) {
+            dependsOn(camelCase("compile", variant.name, "Sources"))
             doLast {
                 val file = "intermediates/merged_manifest/${variant.name}/AndroidManifest.xml"
                 val manifest = groovy.xml.XmlParser().parse(File(buildDir, file))
@@ -154,7 +160,7 @@ androidComponents.onVariants { variant ->
                 }
             }
         }
-        tasks.getByName("assemble${variant.name.capitalize()}") {
+        tasks.getByName(camelCase("assemble", variant.name)) {
             dependsOn(checkManifestTask)
         }
     }
