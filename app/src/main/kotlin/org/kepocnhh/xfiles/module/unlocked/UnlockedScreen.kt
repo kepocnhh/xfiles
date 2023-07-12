@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import javax.crypto.SecretKey
 import kotlin.math.roundToInt
+import sp.ax.jc.dialogs.Dialog
 
 internal object UnlockedScreen {
     sealed interface Broadcast {
@@ -107,6 +108,20 @@ internal fun UnlockedScreen(
     val viewModel = viewModel<UnlockedViewModel>()
     val data = viewModel.data.collectAsState(null)
     val added = remember { mutableStateOf(false) }
+    val deletedState = remember { mutableStateOf<String?>(null) }
+    val deleted = deletedState.value
+    if (deleted != null) {
+        Dialog(
+            "ok" to {
+                viewModel.deleteData(context.cacheDir, key, name = deleted)
+                deletedState.value = null
+            },
+            onDismissRequest = {
+                deletedState.value = null
+            },
+            message = "delete \"$deleted\"?",
+        )
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,7 +133,7 @@ internal fun UnlockedScreen(
             else -> Data(
                 values,
                 onClick = { name ->
-                    viewModel.deleteData(context.cacheDir, key, name = name)
+                    deletedState.value = name
                 }
             )
         }
