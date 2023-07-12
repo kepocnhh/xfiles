@@ -29,6 +29,7 @@ import javax.crypto.spec.PBEKeySpec
 internal class UnlockedViewModel : ViewModel() {
     sealed interface Broadcast {
         class OnCopy(val secret: String) : Broadcast
+        class OnShow(val secret: String) : Broadcast
     }
 
     private val algorithm = "PBEWITHHMACSHA256ANDAES_256" // todo
@@ -107,6 +108,16 @@ internal class UnlockedViewModel : ViewModel() {
                 jsonObject.getString(name)
             }
             _broadcast.emit(Broadcast.OnCopy(value))
+        }
+    }
+
+    fun requestToShow(parent: File, key: SecretKey, name: String) {
+        viewModelScope.launch {
+            val value = withContext(Dispatchers.IO) {
+                val jsonObject = JSONObject(decrypt(parent, key).toString(Charsets.UTF_8))
+                jsonObject.getString(name)
+            }
+            _broadcast.emit(Broadcast.OnShow(value))
         }
     }
 

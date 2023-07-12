@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import sp.ax.jc.clicks.clicks
 import javax.crypto.SecretKey
 import kotlin.math.roundToInt
 import sp.ax.jc.dialogs.Dialog
@@ -52,7 +53,11 @@ internal object UnlockedScreen {
 }
 
 @Composable
-private fun Data(values: Map<String, String>, onClick: (String) -> Unit) {
+private fun Data(
+    values: Map<String, String>,
+    onClick: (String) -> Unit,
+    onLongClick: (String) -> Unit,
+) {
     LazyColumn {
         items(values.keys.toList()) { name ->
             println("compose: $name")
@@ -79,10 +84,14 @@ private fun Data(values: Map<String, String>, onClick: (String) -> Unit) {
                     .height(56.dp)
                     .offset { IntOffset(offsetXState.value.roundToInt() / 2, 0) }
                     .background(Color.Green)
-                    .clickable {
-                        println("on click: $name")
-                        onClick(name)
-                    }
+                    .clicks(
+                        onClick = {
+                            onClick(name)
+                        },
+                        onLongClick = {
+                            onLongClick(name)
+                        }
+                    )
                     .draggable(
                         orientation = Orientation.Horizontal,
                         state = rememberDraggableState { delta ->
@@ -111,6 +120,7 @@ internal fun UnlockedScreen(
     }
     val context = LocalContext.current
     val viewModel = viewModel<UnlockedViewModel>()
+    val secretState = remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         viewModel.broadcast.collect { broadcast ->
             when (broadcast) {
@@ -121,6 +131,9 @@ internal fun UnlockedScreen(
                         it.putBoolean("android.content.extra.IS_SENSITIVE", true)
                     }
                     clipboardManager.setPrimaryClip(clip)
+                }
+                is UnlockedViewModel.Broadcast.OnShow -> {
+                    secretState.value = broadcast.secret
                 }
             }
         }
@@ -145,6 +158,18 @@ internal fun UnlockedScreen(
             message = "\"$clicked\"?",
         )
     }
+    val secret = secretState.value
+    if (secret != null) {
+        Dialog(
+            "ok" to {
+                secretState.value = null
+            },
+            onDismissRequest = {
+                secretState.value = null
+            },
+            message = "$secret",
+        )
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -157,7 +182,10 @@ internal fun UnlockedScreen(
                 values,
                 onClick = { name ->
                     clickedState.value = name
-                }
+                },
+                onLongClick = { name ->
+                    viewModel.requestToShow(context.cacheDir, key, name = name)
+                },
             )
         }
         Row(
