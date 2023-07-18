@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.module.enter
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -26,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +38,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
 import sp.ax.jc.dialogs.Dialog
@@ -94,6 +97,50 @@ internal object EnterScreen {
 
 @Composable
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
+    when (LocalConfiguration.current.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            TODO("EnterScreen:LANDSCAPE")
+        }
+        else -> {
+            EnterScreenPortrait(broadcast = broadcast)
+        }
+    }
+}
+
+@Composable
+private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(App.Theme.colors.background)
+            .padding(bottom = App.Theme.dimensions.insets.calculateBottomPadding()),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            // todo
+        }
+        PinPad(
+            modifier = Modifier
+                .fillMaxWidth(),
+            rowHeight = 64.dp,
+            textStyle = TextStyle(
+                textAlign = TextAlign.Center,
+                color = App.Theme.colors.foreground,
+                fontSize = 24.sp,
+            ),
+            onClick = { char ->
+                context.showToast("char: $char")
+            },
+        )
+    }
+}
+
+@Composable
+private fun EnterScreenOld(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val viewModel = viewModel<EnterViewModel>()
     val pinState = remember { mutableStateOf("") }
