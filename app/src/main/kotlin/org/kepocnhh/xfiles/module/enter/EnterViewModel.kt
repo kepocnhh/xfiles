@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
@@ -53,13 +54,6 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             }
         }
     }
-
-    private data class KeyMeta(
-        val salt: ByteArray,
-        val iv: ByteArray,
-        val iterations: Int,
-        val bits: Int,
-    )
 
     private fun KeyMeta.toJson(): JSONObject {
         return JSONObject()

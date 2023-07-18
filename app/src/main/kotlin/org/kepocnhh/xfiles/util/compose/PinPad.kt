@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import sp.ax.jc.clicks.clicks
 
 @Composable
 private fun PinRow(
@@ -66,6 +67,8 @@ internal fun PinPad(
     rowHeight: Dp,
     textStyle: TextStyle,
     onClick: (Char) -> Unit,
+    onDelete: () -> Unit,
+    onDeleteLong: () -> Unit,
 ) {
     Column(modifier = modifier) {
         PinRow(
@@ -115,12 +118,18 @@ internal fun PinPad(
                 text = "$char",
                 style = textStyle,
             )
-            Spacer(
+            BasicText(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
+                    .clicks(
+                        onClick = onDelete,
+                        onLongClick = onDeleteLong,
+                    )
                     .wrapContentHeight(),
-            )
+                text = "x",
+                style = textStyle,
+            ) // todo icon
         }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -122,6 +123,7 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
+    val pinState = remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         if (exists == null) {
             viewModel.requestFile()
@@ -146,9 +148,27 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 false -> "does not exist"
                 null -> "loading..."
             }
-            BasicText(text = text)
+            BasicText(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                text = text,
+            )
             // todo
         }
+        BasicText(
+            modifier = Modifier
+                .padding(
+                    bottom = 32.dp,
+                    top = 32.dp,
+                )
+                .align(Alignment.CenterHorizontally),
+            text = "*".repeat(pinState.value.length),
+            style = TextStyle(
+                color = App.Theme.colors.foreground,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 24.sp,
+            )
+        )
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -159,8 +179,14 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 fontSize = 24.sp,
             ),
             onClick = { char ->
-                context.showToast("char: $char")
+                pinState.value += char
             },
+            onDelete = {
+                pinState.value = ""
+            },
+            onDeleteLong = {
+                context.showToast("on delete long")
+            }
         )
     }
 }
@@ -249,6 +275,12 @@ private fun EnterScreenOld(broadcast: (EnterScreen.Broadcast) -> Unit) {
             ),
             onClick = { char ->
                 pinState.value += char
+            },
+            onDelete = {
+                // todo
+            },
+            onDeleteLong = {
+                // todo
             },
         )
         Spacer(modifier = Modifier.height(128.dp))
