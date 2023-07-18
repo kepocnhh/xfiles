@@ -4,13 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlin.time.Duration
 
 @Composable
 internal fun AnimatedHVisibility(
     visible: Boolean,
     modifier: Modifier = Modifier,
     label: String = "AnimatedHVisibility",
-    durationMillis: Int,
+    duration: Duration,
     initialOffsetX: (fullWidth: Int) -> Int = { -it },
     targetOffsetX: (fullWidth: Int) -> Int = initialOffsetX,
     content: @Composable AnimatedVisibilityScope.() -> Unit
@@ -20,11 +21,11 @@ internal fun AnimatedHVisibility(
         modifier = modifier,
         label = label,
         enter = slideInHAndFade(
-            durationMillis = durationMillis,
+            durationMillis = duration.inWholeMilliseconds.toInt(),
             initialOffsetX = initialOffsetX,
         ),
         exit = slideOutHAndFade(
-            durationMillis = durationMillis,
+            durationMillis = duration.inWholeMilliseconds.toInt(),
             targetOffsetX = targetOffsetX,
         ),
         content = content,

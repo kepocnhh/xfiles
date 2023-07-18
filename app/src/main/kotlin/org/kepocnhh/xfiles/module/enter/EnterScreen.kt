@@ -96,7 +96,7 @@ internal object EnterScreen {
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val viewModel = viewModel<EnterViewModel>()
-    val pin = remember { mutableStateOf("") }
+    val pinState = remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         viewModel.broadcast.collect { broadcast ->
             when (broadcast) {
@@ -104,7 +104,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
-                    pin.value = ""
+                    pinState.value = ""
                     context.showToast("on unlock error...")
                     // todo
                 }
@@ -146,16 +146,14 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 }
             }
         }
-        println("before: ${pin.value}")
-        LaunchedEffect(pin.value) {
-            println("after: ${pin.value}")
-            if (pin.value.length == 4) {
+        LaunchedEffect(pinState.value) {
+            if (pinState.value.length == 4) {
                 when (exists.value) {
                     true -> {
-                        viewModel.unlockFile(context.cacheDir, pin.value)
+                        viewModel.unlockFile(context.cacheDir, pinState.value)
                     }
                     false -> {
-                        viewModel.createNewFile(context.cacheDir, pin.value)
+                        viewModel.createNewFile(context.cacheDir, pinState.value)
                     }
                     null -> {
                         // noop
@@ -164,9 +162,9 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
             }
         }
         BasicText(modifier = Modifier
-            .clickable { pin.value = "" }
+            .clickable { pinState.value = "" }
             .padding(8.dp), text = "x")
-        BasicText(text = pin.value)
+        BasicText(text = pinState.value)
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -177,7 +175,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 fontSize = 24.sp,
             ),
             onClick = { char ->
-                pin.value += char
+                pinState.value += char
             },
         )
         Spacer(modifier = Modifier.height(128.dp))

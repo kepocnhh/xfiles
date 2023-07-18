@@ -22,10 +22,9 @@ internal fun RouterScreen() {
             .background(App.Theme.colors.background),
     ) {
         val keyState = rememberSaveable { mutableStateOf<SecretKey?>(null) }
-        val durationMillis = 250
         AnimatedHVisibility(
             visible = keyState.value == null,
-            durationMillis = durationMillis,
+            duration = App.Theme.durations.animation,
         ) {
             EnterScreen { broadcast ->
                 when (broadcast) {
@@ -37,7 +36,7 @@ internal fun RouterScreen() {
         }
         AnimatedHVisibility(
             visible = keyState.value != null,
-            durationMillis = durationMillis,
+            duration = App.Theme.durations.animation,
             initialOffsetX = { it },
         ) {
             UnlockedScreen(

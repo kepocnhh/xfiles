@@ -8,16 +8,24 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
+import org.kepocnhh.xfiles.module.app.Durations
 import org.kepocnhh.xfiles.module.app.ThemeState
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class App : Application() {
     object Theme {
         private val LocalColors = staticCompositionLocalOf<Colors> { error("no colors") }
+        private val LocalDurations = staticCompositionLocalOf<Durations> { error("no durations") }
 
         val colors: Colors
             @Composable
             @ReadOnlyComposable
             get() = LocalColors.current
+
+        val durations: Durations
+            @Composable
+            @ReadOnlyComposable
+            get() = LocalDurations.current
 
         @Composable
         fun Composition(
@@ -30,6 +38,9 @@ internal class App : Application() {
                     ColorsType.LIGHT -> Colors.Light
                     ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.Dark else Colors.Light
                 },
+                LocalDurations provides Durations(
+                    animation = 250.milliseconds,
+                ),
                 content = content,
             )
         }
