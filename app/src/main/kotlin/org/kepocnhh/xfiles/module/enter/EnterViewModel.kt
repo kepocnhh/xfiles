@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.util.base64
+import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.decrypt
 import org.kepocnhh.xfiles.util.security.encrypt
 import org.kepocnhh.xfiles.util.security.getSecureRandom
@@ -30,7 +32,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 
-internal class EnterViewModel : ViewModel() {
+internal class EnterViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         class OnUnlock(val key: SecretKey) : Broadcast
         object OnUnlockError : Broadcast
@@ -44,10 +46,10 @@ internal class EnterViewModel : ViewModel() {
 
     private val algorithm = "PBEWITHHMACSHA256ANDAES_256" // todo
 
-    fun requestFile(parent: File) {
-        viewModelScope.launch {
-            _exists.value = withContext(Dispatchers.IO) {
-                parent.resolve("db.json.enc").exists()
+    fun requestFile() {
+        injection.launch {
+            _exists.value = withContext(injection.contexts.default) {
+                injection.files.exists("db.json.enc")
             }
         }
     }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,7 +58,10 @@ private fun Top(
         enter = fadeIn(tween(durationMillis)),
         exit = fadeOut(tween(durationMillis)),
     ) {
-        Box(Modifier.fillMaxSize().background(Color.Yellow)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Yellow)) {
             println("loading...")
             BasicText(modifier = Modifier.align(Alignment.Center), text = "loading...")
         }
@@ -69,7 +73,10 @@ private fun Top(
         exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { it })
         + fadeOut(tween(durationMillis)),
     ) {
-        Box(Modifier.fillMaxSize().background(Color.Red)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Red)) {
             Column(modifier = Modifier.align(Alignment.Center)) {
                 BasicText(modifier = Modifier.padding(8.dp), text = "exists")
                 BasicText(modifier = Modifier
@@ -83,7 +90,10 @@ private fun Top(
         enter = slideInHorizontally(tween(durationMillis), initialOffsetX = { -it }),
         exit = slideOutHorizontally(tween(durationMillis), targetOffsetX = { -it }),
     ) {
-        Box(Modifier.fillMaxSize().background(Color.Green)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Green)) {
             BasicText(modifier = Modifier.align(Alignment.Center), text = "none")
         }
     }
@@ -110,17 +120,33 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
 @Composable
 private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
+    val viewModel = App.viewModel<EnterViewModel>()
+    val exists by viewModel.exists.collectAsState(null)
+    LaunchedEffect(Unit) {
+        if (exists == null) {
+            viewModel.requestFile()
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .padding(bottom = App.Theme.dimensions.insets.calculateBottomPadding()),
+            .padding(
+                top = App.Theme.dimensions.insets.calculateTopPadding(),
+                bottom = App.Theme.dimensions.insets.calculateBottomPadding(),
+            ),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
         ) {
+            val text = when (exists) {
+                true -> "exists"
+                false -> "does not exist"
+                null -> "loading..."
+            }
+            BasicText(text = text)
             // todo
         }
         PinPad(
@@ -189,7 +215,7 @@ private fun EnterScreenOld(broadcast: (EnterScreen.Broadcast) -> Unit) {
             println("exists: ${exists.value}")
             LaunchedEffect(Unit) {
                 if (exists.value == null) {
-                    viewModel.requestFile(context.cacheDir)
+                    viewModel.requestFile()
                 }
             }
         }
