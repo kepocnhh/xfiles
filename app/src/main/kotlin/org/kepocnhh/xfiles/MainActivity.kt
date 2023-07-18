@@ -4,11 +4,8 @@ import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import org.kepocnhh.xfiles.module.app.ColorsType
+import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.router.RouterScreen
 
 internal class MainActivity : AppCompatActivity() {
@@ -18,10 +15,9 @@ internal class MainActivity : AppCompatActivity() {
             BackHandler {
                 finish()
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black),
+            // todo theme state
+            App.Theme.Composition(
+                themeState = ThemeState(colorsType = ColorsType.AUTO),
             ) {
                 RouterScreen()
             }
