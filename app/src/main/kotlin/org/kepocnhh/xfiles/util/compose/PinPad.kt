@@ -18,6 +18,7 @@ import sp.ax.jc.clicks.clicks
 @Composable
 private fun PinRow(
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     first: Char,
     second: Char,
     third: Char,
@@ -29,8 +30,14 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .clickable {
-                    onClick(first)
+                .let {
+                    if (enabled) {
+                        it.clickable {
+                            onClick(first)
+                        }
+                    } else {
+                        it
+                    }
                 }
                 .wrapContentHeight(),
             text = "$first",
@@ -40,8 +47,14 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .clickable {
-                    onClick(second)
+                .let {
+                    if (enabled) {
+                        it.clickable {
+                            onClick(second)
+                        }
+                    } else {
+                        it
+                    }
                 }
                 .wrapContentHeight(),
             text = "$second",
@@ -51,8 +64,14 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .clickable {
-                    onClick(third)
+                .let {
+                    if (enabled) {
+                        it.clickable {
+                            onClick(third)
+                        }
+                    } else {
+                        it
+                    }
                 }
                 .wrapContentHeight(),
             text = "$third",
@@ -66,6 +85,7 @@ internal fun PinPad(
     modifier: Modifier = Modifier,
     rowHeight: Dp,
     textStyle: TextStyle,
+    enabled: Boolean = true,
     onClick: (Char) -> Unit,
     onDelete: () -> Unit,
     onDeleteLong: () -> Unit,
@@ -75,6 +95,7 @@ internal fun PinPad(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(rowHeight),
+            enabled = enabled,
             '1', '2', '3',
             textStyle = textStyle,
             onClick = onClick,
@@ -83,6 +104,7 @@ internal fun PinPad(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(rowHeight),
+            enabled = enabled,
             '4', '5', '6',
             textStyle = textStyle,
             onClick = onClick,
@@ -91,6 +113,7 @@ internal fun PinPad(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(rowHeight),
+            enabled = enabled,
             '7', '8', '9',
             textStyle = textStyle,
             onClick = onClick,
@@ -111,8 +134,14 @@ internal fun PinPad(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .clickable {
-                        onClick(char)
+                    .let {
+                        if (enabled) {
+                            it.clickable {
+                                onClick(char)
+                            }
+                        } else {
+                            it
+                        }
                     }
                     .wrapContentHeight(),
                 text = "$char",
@@ -122,10 +151,20 @@ internal fun PinPad(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .clicks(
-                        onClick = onDelete,
-                        onLongClick = onDeleteLong,
-                    )
+                    .let {
+                        if (enabled) {
+                            it.clicks(
+                                onClick = {
+                                    onDelete()
+                                },
+                                onLongClick = {
+                                    onDeleteLong()
+                                },
+                            )
+                        } else {
+                            it
+                        }
+                    }
                     .wrapContentHeight(),
                 text = "x",
                 style = textStyle,

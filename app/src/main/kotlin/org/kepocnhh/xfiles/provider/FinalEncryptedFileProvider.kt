@@ -27,11 +27,15 @@ internal class FinalEncryptedFileProvider(
         check(context.filesDir.resolve(pathname).delete())
     }
 
-    override fun openOutput(pathname: String): FileOutputStream {
-        return context.filesDir.resolve(pathname).encrypted().openFileOutput()
-    }
-
     override fun openInput(pathname: String): FileInputStream {
         return context.filesDir.resolve(pathname).encrypted().openFileInput()
+    }
+
+    override fun writeBytes(pathname: String, bytes: ByteArray) {
+        val file = context.filesDir.resolve(pathname)
+        file.delete()
+        file.encrypted().openFileOutput().use {
+            it.write(bytes)
+        }
     }
 }

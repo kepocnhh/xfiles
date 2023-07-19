@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.decrypt
@@ -25,6 +26,7 @@ import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
 import java.security.Signature
+import java.security.spec.KeySpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
@@ -68,7 +70,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         return md.digest(pin.toByteArray())
     }
 
-    private fun create(parent: File, pin: String): SecretKey {
+    private fun create(pin: String): SecretKey {
         val chars = hash(pin = pin).base64().toCharArray()
         val random = getSecureRandom()
         val meta = KeyMeta(
@@ -77,7 +79,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             iterations = 1_048_576,
             bits = 256,
         )
-        parent.resolve("sym.json").writeText(meta.toJson().toString())
+        injection.files.writeBytes("sym.json", meta.toJson().toString().toByteArray())
         val pair = KeyPairGenerator.getInstance("DSA").let { generator ->
             generator.initialize(2048, random)
             generator.generateKeyPair()
@@ -89,27 +91,27 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             factory.generateSecret(spec)
         }
         val params = IvParameterSpec(meta.iv)
-        parent.resolve("db.json.enc").writeBytes(cipher.encrypt(key, params, decrypted))
+        injection.files.writeBytes("db.json.enc", cipher.encrypt(key, params, decrypted))
         val private = cipher.encrypt(key, params, pair.private.encoded)
         JSONObject()
             .put("public", pair.public.encoded.base64())
             .put("private", private.base64())
             .also { json ->
-                parent.resolve("asym.json").writeText(json.toString())
+                injection.files.writeBytes("asym.json", json.toString().toByteArray())
             }
         Signature.getInstance("SHA256WithDSA").also { signature ->
             signature.initSign(pair.private, random)
             signature.update(decrypted)
-            parent.resolve("db.json.sig").writeBytes(signature.sign())
+            injection.files.writeBytes("db.json.sig", signature.sign())
         }
         return key
     }
 
-    fun createNewFile(parent: File, pin: String) {
-        viewModelScope.launch {
+    fun createNewFile(pin: String) {
+        injection.launch {
             _exists.value = null
-            val key = withContext(Dispatchers.IO) {
-                create(parent, pin)
+            val key = withContext(injection.contexts.default) {
+                create(pin)
             }
             _broadcast.emit(Broadcast.OnUnlock(key))
         }
@@ -126,30 +128,62 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
     }
 
-    private fun unlock(parent: File, pin: String): SecretKey {
+    private fun JSONObject.toKeyMeta(): KeyMeta {
+        return KeyMeta(
+            salt = getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
+            iv = getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
+            iterations = getInt("iterations"),
+            bits = getInt("bits"),
+        )
+    }
+
+    private fun KeyFactory.generateKeyPair(
+        publicKeySpec: KeySpec,
+        privateKeySpec: KeySpec,
+    ): KeyPair {
+        return KeyPair(
+            generatePublic(publicKeySpec),
+            generatePrivate(privateKeySpec),
+        )
+    }
+
+    private fun KeyFactory.generateKeyPair(
+        public: ByteArray,
+        private: ByteArray,
+    ): KeyPair {
+        return generateKeyPair(
+            publicKeySpec = X509EncodedKeySpec(public),
+            privateKeySpec = PKCS8EncodedKeySpec(private),
+        )
+    }
+
+    private fun JSONObject.toKeyPair(algorithm: String): KeyPair {
+        val public = getString("public").let { Base64.decode(it, Base64.DEFAULT) }
+        val private = getString("private").let { Base64.decode(it, Base64.DEFAULT) }
+        val factory = KeyFactory.getInstance("DSA")
+        return KeyPair(
+            factory.generatePublic(X509EncodedKeySpec(public)),
+            factory.generatePrivate(PKCS8EncodedKeySpec(private)),
+        )
+    }
+
+    private fun unlock(pin: String): SecretKey {
         val chars = hash(pin = pin).base64().toCharArray()
-        val meta = JSONObject(parent.resolve("sym.json").readText()).let { json ->
-            KeyMeta(
-                salt = json.getString("salt").let { Base64.decode(it, Base64.DEFAULT) },
-                iv = json.getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
-                iterations = json.getInt("iterations"),
-                bits = json.getInt("bits"),
-            )
-        }
+        val meta = JSONObject(injection.files.readText("sym.json")).toKeyMeta()
         val cipher = Cipher.getInstance(algorithm)
-        val (public, encrypted) = JSONObject(parent.resolve("asym.json").readText()).let { json ->
+        val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+            val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+            factory.generateSecret(spec)
+        }
+        val (public, encrypted) = JSONObject(injection.files.readText("asym.json")).let { json ->
             json.getString("public").let {
                 Base64.decode(it, Base64.DEFAULT)
             } to json.getString("private").let {
                 Base64.decode(it, Base64.DEFAULT)
             }
         }
-        val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
-            val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
-            factory.generateSecret(spec)
-        }
         val params = IvParameterSpec(meta.iv)
-        val decrypted = cipher.decrypt(key, params, parent.resolve("db.json.enc").readBytes())
+        val decrypted = cipher.decrypt(key, params, injection.files.openInput("db.json.enc").use { it.readBytes() })
         val private = cipher.decrypt(key, params, encrypted)
         val pair = KeyFactory.getInstance("DSA").let { factory ->
             KeyPair(
@@ -160,19 +194,18 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         Signature.getInstance("SHA256WithDSA").also { signature ->
             signature.initVerify(pair.public)
             signature.update(decrypted)
-            val verified = signature.verify(parent.resolve("db.json.sig").readBytes())
+            val verified = signature.verify(injection.files.openInput("db.json.sig").use { it.readBytes() })
             check(verified)
         }
         return key
     }
 
-    fun unlockFile(parent: File, pin: String) {
-        println("unlock: $pin") // todo
-        viewModelScope.launch {
+    fun unlockFile(pin: String) {
+        injection.launch {
             _exists.value = null
-            val result = withContext(Dispatchers.IO) {
+            val result = withContext(injection.contexts.default) {
                 runCatching {
-                    unlock(parent, pin)
+                    unlock(pin = pin)
                 }
             }
             result.fold(

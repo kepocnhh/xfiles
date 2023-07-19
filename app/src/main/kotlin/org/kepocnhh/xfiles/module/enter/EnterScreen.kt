@@ -129,6 +129,36 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
             viewModel.requestFile()
         }
     }
+    LaunchedEffect(pinState.value) {
+        val pin = pinState.value
+        if (pin.length == 4) {
+            when (exists) {
+                true -> {
+                    viewModel.unlockFile(pinState.value)
+                }
+                false -> {
+                    viewModel.createNewFile(pinState.value)
+                }
+                null -> {
+                    // noop
+                }
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.broadcast.collect { broadcast ->
+            when (broadcast) {
+                is EnterViewModel.Broadcast.OnUnlock -> {
+                    broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
+                }
+                EnterViewModel.Broadcast.OnUnlockError -> {
+                    pinState.value = ""
+                    context.showToast("on unlock error...")
+                    // todo
+                }
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -172,6 +202,7 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
+            enabled = exists != null,
             rowHeight = 64.dp,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,
@@ -185,7 +216,7 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 pinState.value = ""
             },
             onDeleteLong = {
-                context.showToast("on delete long")
+                context.showToast("on delete long") // todo
             }
         )
     }
@@ -247,17 +278,17 @@ private fun EnterScreenOld(broadcast: (EnterScreen.Broadcast) -> Unit) {
         }
         LaunchedEffect(pinState.value) {
             if (pinState.value.length == 4) {
-                when (exists.value) {
-                    true -> {
-                        viewModel.unlockFile(context.cacheDir, pinState.value)
-                    }
-                    false -> {
-                        viewModel.createNewFile(context.cacheDir, pinState.value)
-                    }
-                    null -> {
-                        // noop
-                    }
-                }
+//                when (exists.value) {
+//                    true -> {
+//                        viewModel.unlockFile(context.cacheDir, pinState.value)
+//                    }
+//                    false -> {
+//                        viewModel.createNewFile(context.cacheDir, pinState.value)
+//                    }
+//                    null -> {
+//                        // noop
+//                    }
+//                }
             }
         }
         BasicText(modifier = Modifier
