@@ -12,3 +12,7 @@ internal interface EncryptedFileProvider {
 internal fun EncryptedFileProvider.readText(pathname: String): String {
     return openInput(pathname).use { it.reader().readText() }
 }
+
+internal fun EncryptedFileProvider.readBytes(pathname: String): ByteArray {
+    return openInput(pathname).use { it.readBytes() }
+}

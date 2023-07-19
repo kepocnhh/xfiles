@@ -1,7 +1,6 @@
 package org.kepocnhh.xfiles.module.enter
 
 import android.util.Base64
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -14,6 +13,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
@@ -157,16 +157,6 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         )
     }
 
-    private fun JSONObject.toKeyPair(algorithm: String): KeyPair {
-        val public = getString("public").let { Base64.decode(it, Base64.DEFAULT) }
-        val private = getString("private").let { Base64.decode(it, Base64.DEFAULT) }
-        val factory = KeyFactory.getInstance("DSA")
-        return KeyPair(
-            factory.generatePublic(X509EncodedKeySpec(public)),
-            factory.generatePrivate(PKCS8EncodedKeySpec(private)),
-        )
-    }
-
     private fun unlock(pin: String): SecretKey {
         val chars = hash(pin = pin).base64().toCharArray()
         val meta = JSONObject(injection.files.readText("sym.json")).toKeyMeta()
@@ -175,26 +165,20 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
             factory.generateSecret(spec)
         }
-        val (public, encrypted) = JSONObject(injection.files.readText("asym.json")).let { json ->
-            json.getString("public").let {
-                Base64.decode(it, Base64.DEFAULT)
-            } to json.getString("private").let {
-                Base64.decode(it, Base64.DEFAULT)
-            }
-        }
         val params = IvParameterSpec(meta.iv)
-        val decrypted = cipher.decrypt(key, params, injection.files.openInput("db.json.enc").use { it.readBytes() })
-        val private = cipher.decrypt(key, params, encrypted)
-        val pair = KeyFactory.getInstance("DSA").let { factory ->
-            KeyPair(
-                factory.generatePublic(X509EncodedKeySpec(public)),
-                factory.generatePrivate(PKCS8EncodedKeySpec(private)),
+        val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
+            val public = json.getString("public").let { Base64.decode(it, Base64.DEFAULT) }
+            val encrypted = json.getString("private").let { Base64.decode(it, Base64.DEFAULT) }
+            KeyFactory.getInstance("DSA").generateKeyPair(
+                public = public,
+                private = cipher.decrypt(key, params, encrypted)
             )
         }
+        val decrypted = cipher.decrypt(key, params, injection.files.readBytes("db.json.enc"))
         Signature.getInstance("SHA256WithDSA").also { signature ->
             signature.initVerify(pair.public)
             signature.update(decrypted)
-            val verified = signature.verify(injection.files.openInput("db.json.sig").use { it.readBytes() })
+            val verified = signature.verify(injection.files.readBytes("db.json.sig"))
             check(verified)
         }
         return key
