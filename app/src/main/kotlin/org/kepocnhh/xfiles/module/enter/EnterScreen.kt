@@ -1,20 +1,26 @@
 package org.kepocnhh.xfiles.module.enter
 
 import android.content.res.Configuration
+import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -22,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
@@ -38,36 +45,19 @@ internal object EnterScreen {
 
 @Composable
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
-    when (LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            EnterScreenLandscape(broadcast = broadcast)
-        }
-        else -> {
-            EnterScreenPortrait(broadcast = broadcast)
-        }
-    }
-}
-
-@Composable
-private fun EnterScreenLandscape(broadcast: (EnterScreen.Broadcast) -> Unit) {
-    TODO()
-}
-
-@Composable
-private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
-    var pin by remember { mutableStateOf("") }
-    var deleteDialog by remember { mutableStateOf(false) }
-    if (deleteDialog) {
+    val pinState = rememberSaveable { mutableStateOf("") }
+    val deleteDialogState = remember { mutableStateOf(false) }
+    if (deleteDialogState.value) {
         Dialog(
             "ok" to {
                 viewModel.deleteFile()
-                deleteDialog = false
+                deleteDialogState.value = false
             },
             message = "delete?",
-            onDismissRequest = { deleteDialog = false }
+            onDismissRequest = { deleteDialogState.value = false }
         )
     }
     LaunchedEffect(Unit) {
@@ -75,14 +65,14 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
             viewModel.requestFile()
         }
     }
-    LaunchedEffect(pin) {
-        if (pin.length == 4) {
+    LaunchedEffect(pinState.value) {
+        if (pinState.value.length == 4) {
             when (exists) {
                 true -> {
-                    viewModel.unlockFile(pin)
+                    viewModel.unlockFile(pinState.value)
                 }
                 false -> {
-                    viewModel.createNewFile(pin)
+                    viewModel.createNewFile(pinState.value)
                 }
                 null -> {
                     // noop
@@ -97,13 +87,114 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
-                    pin = ""
+                    pinState.value = ""
                     context.showToast("on unlock error...")
                     // todo
                 }
             }
         }
     }
+    when (LocalConfiguration.current.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            EnterScreenLandscape(
+                exists = exists,
+                pinState = pinState,
+                deleteDialogState = deleteDialogState,
+            )
+        }
+        else -> {
+            EnterScreenPortrait(
+                exists = exists,
+                pinState = pinState,
+                deleteDialogState = deleteDialogState,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EnterScreenLandscape(
+    exists: Boolean?,
+    pinState: MutableState<String>,
+    deleteDialogState: MutableState<Boolean>,
+) {
+    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
+        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
+        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
+        else -> error("Layout direction $i is not supported!")
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val parent = this
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(App.Theme.colors.background)
+                .padding(
+                    top = App.Theme.dimensions.insets.calculateTopPadding(),
+                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .align(Alignment.CenterVertically),
+            ) {
+                val text = when (exists) {
+                    true -> "exists"
+                    false -> "does not exist"
+                    null -> "loading..."
+                }
+                BasicText(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    text = text,
+                )
+                BasicText(
+                    modifier = Modifier
+                        .padding(
+                            bottom = 32.dp,
+                            top = 32.dp,
+                        )
+                        .align(Alignment.CenterHorizontally),
+                    text = "*".repeat(pinState.value.length),
+                    style = TextStyle(
+                        color = App.Theme.colors.foreground,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 24.sp,
+                    )
+                )
+            }
+            PinPad(
+                modifier = Modifier
+                    .width(parent.maxHeight)
+                    .align(Alignment.CenterVertically),
+                enabled = exists != null,
+                rowHeight = 64.dp,
+                textStyle = TextStyle(
+                    textAlign = TextAlign.Center,
+                    color = App.Theme.colors.foreground,
+                    fontSize = 24.sp,
+                ),
+                onClick = { char ->
+                    pinState.value += char
+                },
+                onDelete = {
+                    pinState.value = ""
+                },
+                onDeleteLong = {
+                    deleteDialogState.value = true
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun EnterScreenPortrait(
+    exists: Boolean?,
+    pinState: MutableState<String>,
+    deleteDialogState: MutableState<Boolean>,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -137,7 +228,7 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     top = 32.dp,
                 )
                 .align(Alignment.CenterHorizontally),
-            text = "*".repeat(pin.length),
+            text = "*".repeat(pinState.value.length),
             style = TextStyle(
                 color = App.Theme.colors.foreground,
                 fontFamily = FontFamily.Monospace,
@@ -155,13 +246,13 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 fontSize = 24.sp,
             ),
             onClick = { char ->
-                pin += char
+                pinState.value += char
             },
             onDelete = {
-                pin = ""
+                pinState.value = ""
             },
             onDeleteLong = {
-                deleteDialog = true
+                deleteDialogState.value = true
             }
         )
     }
