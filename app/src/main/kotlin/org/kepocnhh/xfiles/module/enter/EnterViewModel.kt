@@ -15,6 +15,7 @@ import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.decrypt
 import org.kepocnhh.xfiles.util.security.encrypt
+import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.security.KeyFactory
 import java.security.KeyPair
@@ -128,26 +129,6 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             iv = getString("iv").let { Base64.decode(it, Base64.DEFAULT) },
             iterations = getInt("iterations"),
             bits = getInt("bits"),
-        )
-    }
-
-    private fun KeyFactory.generateKeyPair(
-        publicKeySpec: KeySpec,
-        privateKeySpec: KeySpec,
-    ): KeyPair {
-        return KeyPair(
-            generatePublic(publicKeySpec),
-            generatePrivate(privateKeySpec),
-        )
-    }
-
-    private fun KeyFactory.generateKeyPair(
-        public: ByteArray,
-        private: ByteArray,
-    ): KeyPair {
-        return generateKeyPair(
-            publicKeySpec = X509EncodedKeySpec(public),
-            privateKeySpec = PKCS8EncodedKeySpec(private),
         )
     }
 

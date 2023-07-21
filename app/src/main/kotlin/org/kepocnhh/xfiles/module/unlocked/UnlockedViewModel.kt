@@ -11,8 +11,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.readBytes
+import org.kepocnhh.xfiles.provider.readText
+import org.kepocnhh.xfiles.util.base64
+import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.decrypt
 import org.kepocnhh.xfiles.util.security.encrypt
+import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.io.File
 import java.security.KeyFactory
@@ -26,7 +32,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 
-internal class UnlockedViewModel : ViewModel() {
+internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         class OnCopy(val secret: String) : Broadcast
         class OnShow(val secret: String) : Broadcast
@@ -48,93 +54,75 @@ internal class UnlockedViewModel : ViewModel() {
         return result
     }
 
-    private fun decrypt(parent: File, key: SecretKey): ByteArray {
-        val jsonObject = JSONObject(parent.resolve("sym.json").readText())
+    private fun decrypt(key: SecretKey): ByteArray {
+        val jsonObject = JSONObject(injection.files.readText("sym.json"))
         val iv = jsonObject.getString("iv").let { Base64.decode(it, Base64.DEFAULT) }
         val cipher = Cipher.getInstance(algorithm)
         val params = IvParameterSpec(iv)
-        val encrypted = parent.resolve("db.json.enc").readBytes()
+        val encrypted = injection.files.readBytes("db.json.enc")
         return cipher.decrypt(key, params, encrypted)
     }
 
     private fun encrypt(
-        sym: File,
-        asym: File,
-        target: File,
-        sig: File,
         key: SecretKey,
         decrypted: ByteArray,
     ) {
-        val mata = JSONObject(sym.readText())
-        val iv = mata.getString("iv").let { Base64.decode(it, Base64.DEFAULT) }
+        val mata = JSONObject(injection.files.readText("sym.json"))
         val cipher = Cipher.getInstance(algorithm)
-        val params = IvParameterSpec(iv)
-        val pair = KeyFactory.getInstance("DSA").let { factory ->
-            val jsonObject = JSONObject(asym.readText())
-            val public = jsonObject.getString("public").let {
-                Base64.decode(it, Base64.DEFAULT)
-            }
-            val encrypted = jsonObject.getString("private").let {
-                Base64.decode(it, Base64.DEFAULT)
-            }
-            val private = cipher.decrypt(key, params, encrypted)
-            KeyPair(
-                factory.generatePublic(X509EncodedKeySpec(public)),
-                factory.generatePrivate(PKCS8EncodedKeySpec(private)),
+        val params = IvParameterSpec(mata.getString("iv").base64())
+        val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
+            KeyFactory.getInstance("DSA").generateKeyPair(
+                public = json.getString("public").base64(),
+                private = cipher.decrypt(key, params, json.getString("private").base64())
             )
         }
-        target.writeBytes(cipher.encrypt(key, params, decrypted))
+        injection.files.writeBytes("db.json.enc", cipher.encrypt(key, params, decrypted))
         val random = getSecureRandom()
         Signature.getInstance("SHA256WithDSA").also { signature ->
             signature.initSign(pair.private, random)
             signature.update(decrypted)
-            sig.writeBytes(signature.sign())
+            injection.files.writeBytes("db.json.sig", signature.sign())
         }
     }
 
-    fun requestData(parent: File, key: SecretKey) {
-        viewModelScope.launch {
-            val map = withContext(Dispatchers.IO) {
-                JSONObject(decrypt(parent, key).toString(Charsets.UTF_8)).toMap()
+    fun requestData(key: SecretKey) {
+        injection.launch {
+            _data.value = withContext(injection.contexts.default) {
+                JSONObject(decrypt(key).toString(Charsets.UTF_8)).toMap()
             }
-            _data.value = map
         }
     }
 
-    fun requestToCopy(parent: File, key: SecretKey, name: String) {
+    fun requestToCopy(key: SecretKey, name: String) {
         viewModelScope.launch {
             val value = withContext(Dispatchers.IO) {
-                val jsonObject = JSONObject(decrypt(parent, key).toString(Charsets.UTF_8))
+                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
                 jsonObject.getString(name)
             }
             _broadcast.emit(Broadcast.OnCopy(value))
         }
     }
 
-    fun requestToShow(parent: File, key: SecretKey, name: String) {
+    fun requestToShow(key: SecretKey, name: String) {
         viewModelScope.launch {
             val value = withContext(Dispatchers.IO) {
-                val jsonObject = JSONObject(decrypt(parent, key).toString(Charsets.UTF_8))
+                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
                 jsonObject.getString(name)
             }
             _broadcast.emit(Broadcast.OnShow(value))
         }
     }
 
-    fun addData(parent: File, key: SecretKey, name: String, value: String) {
+    fun addData(key: SecretKey, name: String, value: String) {
         if (name.trim().isEmpty()) TODO()
         if (value.trim().isEmpty()) TODO()
         viewModelScope.launch {
             val map = withContext(Dispatchers.IO) {
-                val decrypted = decrypt(parent, key)
+                val decrypted = decrypt(key)
                 val jsonObject = JSONObject(decrypted.toString(Charsets.UTF_8))
                 if (jsonObject.has(name)) TODO()
                 jsonObject.put(name, value)
                 encrypt(
-                    sym = parent.resolve("sym.json"),
-                    asym = parent.resolve("asym.json"),
-                    target = parent.resolve("db.json.enc"),
-                    sig = parent.resolve("db.json.sig"),
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
@@ -144,12 +132,12 @@ internal class UnlockedViewModel : ViewModel() {
         }
     }
 
-    fun deleteData(parent: File, key: SecretKey, name: String) {
+    fun deleteData(key: SecretKey, name: String) {
         println("delete: \"$name\"")
         if (name.trim().isEmpty()) TODO()
         viewModelScope.launch {
             val map = withContext(Dispatchers.IO) {
-                val decrypted = decrypt(parent, key)
+                val decrypted = decrypt(key)
                 val decoded = decrypted.toString(Charsets.UTF_8)
                 println("decoded: $decoded")
                 val jsonObject = JSONObject(decoded)
@@ -157,10 +145,6 @@ internal class UnlockedViewModel : ViewModel() {
                 jsonObject.remove(name)
                 println("decrypt: $jsonObject")
                 encrypt(
-                    sym = parent.resolve("sym.json"),
-                    asym = parent.resolve("asym.json"),
-                    target = parent.resolve("db.json.enc"),
-                    sig = parent.resolve("db.json.sig"),
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
