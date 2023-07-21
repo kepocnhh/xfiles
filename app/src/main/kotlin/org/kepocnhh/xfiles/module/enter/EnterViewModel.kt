@@ -1,14 +1,10 @@
 package org.kepocnhh.xfiles.module.enter
 
 import android.util.Base64
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.KeyMeta
@@ -20,7 +16,6 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.decrypt
 import org.kepocnhh.xfiles.util.security.encrypt
 import org.kepocnhh.xfiles.util.security.getSecureRandom
-import java.io.File
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -117,12 +112,11 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
     }
 
-    fun deleteFile(parent: File) {
-        viewModelScope.launch {
+    fun deleteFile() {
+        injection.launch {
             _exists.value = null
-            withContext(Dispatchers.IO) {
-                parent.resolve("db.json.enc").delete()
-                delay(2_000)
+            withContext(injection.contexts.default) {
+                injection.files.delete("db.json.enc")
             }
             _exists.value = false
         }

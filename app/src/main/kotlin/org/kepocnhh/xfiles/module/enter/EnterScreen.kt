@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -123,21 +124,31 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
-    val pinState = remember { mutableStateOf("") }
+    var pin by remember { mutableStateOf("") }
+    var deleteDialog by remember { mutableStateOf(false) }
+    if (deleteDialog) {
+        Dialog(
+            "ok" to {
+                viewModel.deleteFile()
+                deleteDialog = false
+            },
+            message = "delete?",
+            onDismissRequest = { deleteDialog = false }
+        )
+    }
     LaunchedEffect(Unit) {
         if (exists == null) {
             viewModel.requestFile()
         }
     }
-    LaunchedEffect(pinState.value) {
-        val pin = pinState.value
+    LaunchedEffect(pin) {
         if (pin.length == 4) {
             when (exists) {
                 true -> {
-                    viewModel.unlockFile(pinState.value)
+                    viewModel.unlockFile(pin)
                 }
                 false -> {
-                    viewModel.createNewFile(pinState.value)
+                    viewModel.createNewFile(pin)
                 }
                 null -> {
                     // noop
@@ -152,7 +163,7 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
-                    pinState.value = ""
+                    pin = ""
                     context.showToast("on unlock error...")
                     // todo
                 }
@@ -192,7 +203,7 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     top = 32.dp,
                 )
                 .align(Alignment.CenterHorizontally),
-            text = "*".repeat(pinState.value.length),
+            text = "*".repeat(pin.length),
             style = TextStyle(
                 color = App.Theme.colors.foreground,
                 fontFamily = FontFamily.Monospace,
@@ -210,13 +221,13 @@ private fun EnterScreenPortrait(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 fontSize = 24.sp,
             ),
             onClick = { char ->
-                pinState.value += char
+                pin += char
             },
             onDelete = {
-                pinState.value = ""
+                pin = ""
             },
             onDeleteLong = {
-                context.showToast("on delete long") // todo
+                deleteDialog = true
             }
         )
     }
@@ -262,7 +273,7 @@ private fun EnterScreenOld(broadcast: (EnterScreen.Broadcast) -> Unit) {
             if (deleteDialog.value) {
                 Dialog(
                     "ok" to {
-                        viewModel.deleteFile(context.cacheDir)
+                        viewModel.deleteFile()
                         deleteDialog.value = false
                     },
                     message = "delete?",
