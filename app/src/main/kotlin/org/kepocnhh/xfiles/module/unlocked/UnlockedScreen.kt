@@ -16,6 +16,7 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -183,8 +184,10 @@ internal fun UnlockedScreen(
             UnlockedScreenLandscape(
                 viewModel = viewModel,
                 clickedState = clickedState,
+                addedState = addedState,
                 entries = entries,
                 key = key,
+                broadcast = broadcast,
             )
         }
         Configuration.ORIENTATION_PORTRAIT -> {
@@ -221,8 +224,10 @@ internal fun UnlockedScreen(
 private fun UnlockedScreenLandscape(
     viewModel: UnlockedViewModel,
     clickedState: MutableState<String?>,
+    addedState: MutableState<Boolean>,
     entries: Map<String, String>?,
     key: SecretKey,
+    broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
     val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
         View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
@@ -241,7 +246,10 @@ private fun UnlockedScreenLandscape(
                 ),
         ) {
             when (entries) {
-                null -> viewModel.requestData(key)
+                null -> {
+                    Spacer(Modifier.width(parent.maxHeight)) // todo loading
+                    viewModel.requestData(key)
+                }
                 else -> Data(
                     modifier = Modifier.width(parent.maxHeight),
                     entries = entries,
@@ -251,6 +259,37 @@ private fun UnlockedScreenLandscape(
                     onLongClick = { name ->
                         viewModel.requestToShow(key, name = name)
                     },
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.Bottom)
+                    .weight(1f)
+                    .height(64.dp)
+            ) {
+                BasicText(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                        .clickable { broadcast(UnlockedScreen.Broadcast.Lock) }
+                        .wrapContentHeight(),
+                    text = "lock",
+                    style = TextStyle(
+                        textAlign = TextAlign.Center,
+                    ),
+                )
+                BasicText(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                        .clickable {
+                            addedState.value = true
+                        }
+                        .wrapContentHeight(),
+                    text = "add",
+                    style = TextStyle(
+                        textAlign = TextAlign.Center,
+                    ),
                 )
             }
         }
