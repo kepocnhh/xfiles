@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.PersistableBundle
+import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
@@ -13,13 +14,16 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,11 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
@@ -56,11 +62,12 @@ internal object UnlockedScreen {
 
 @Composable
 private fun Data(
+    modifier: Modifier = Modifier,
     entries: Map<String, String>,
     onClick: (String) -> Unit,
     onLongClick: (String) -> Unit,
 ) {
-    LazyColumn {
+    LazyColumn(modifier = modifier) {
         items(entries.keys.toList()) { name ->
             println("compose: $name")
             val value = entries[name] ?: TODO()
@@ -173,7 +180,12 @@ internal fun UnlockedScreen(
     }
     when (val orientation = LocalConfiguration.current.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
-            TODO()
+            UnlockedScreenLandscape(
+                viewModel = viewModel,
+                clickedState = clickedState,
+                entries = entries,
+                key = key,
+            )
         }
         Configuration.ORIENTATION_PORTRAIT -> {
             UnlockedScreenPortrait(
@@ -202,6 +214,46 @@ internal fun UnlockedScreen(
                 addedState.value = false
             }
         )
+    }
+}
+
+@Composable
+private fun UnlockedScreenLandscape(
+    viewModel: UnlockedViewModel,
+    clickedState: MutableState<String?>,
+    entries: Map<String, String>?,
+    key: SecretKey,
+) {
+    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
+        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
+        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
+        else -> error("Layout direction $i is not supported!")
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val parent = this
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(App.Theme.colors.background)
+                .padding(
+                    top = App.Theme.dimensions.insets.calculateTopPadding(),
+                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                ),
+        ) {
+            when (entries) {
+                null -> viewModel.requestData(key)
+                else -> Data(
+                    modifier = Modifier.width(parent.maxHeight),
+                    entries = entries,
+                    onClick = { name ->
+                        clickedState.value = name
+                    },
+                    onLongClick = { name ->
+                        viewModel.requestToShow(key, name = name)
+                    },
+                )
+            }
+        }
     }
 }
 
