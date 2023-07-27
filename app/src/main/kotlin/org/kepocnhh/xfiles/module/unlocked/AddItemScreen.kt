@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -37,10 +39,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.util.compose.Keyboard
@@ -74,10 +78,10 @@ private fun TitledFocused(
     )
     TextFocused(
         margin = PaddingValues(start = 16.dp, end = 16.dp),
-        padding = PaddingValues(start = 16.dp, end = 16.dp),
+        padding = PaddingValues(start = 32.dp, end = 32.dp),
         height = 56.dp,
         color = Color.White,
-        corners = 16.dp,
+        corners = 32.dp,
         text = text,
         textStyle = TextStyle(
             color = Color.Black,
@@ -91,7 +95,7 @@ private fun TitledFocused(
 @Composable
 private fun RoundedButton(
     margin: PaddingValues,
-    height: Dp,
+    padding: PaddingValues,
     backgroundColor: Color,
     corners: Dp,
     text: String,
@@ -101,15 +105,17 @@ private fun RoundedButton(
     BasicText(
         modifier = Modifier
             .padding(margin)
-            .height(height)
-            .fillMaxWidth()
+            .widthIn(min = 128.dp)
             .background(backgroundColor, RoundedCornerShape(corners))
             .clip(RoundedCornerShape(corners))
             .onClick(onClick)
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .padding(padding),
         text = text,
         style = TextStyle(
             color = textColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         ),
     )
@@ -255,7 +261,7 @@ private fun AddItemScreenLandscape(
                 )
                 RoundedButton(
                     margin = PaddingValues(16.dp),
-                    height = 56.dp,
+                    padding = PaddingValues(8.dp),
                     backgroundColor = Colors.primary,
                     corners = 16.dp,
                     text = "ok",
@@ -368,10 +374,10 @@ private fun AddItemScreenPortrait(
             )
             RoundedButton(
                 margin = PaddingValues(16.dp),
-                height = 56.dp,
+                padding = PaddingValues(16.dp),
                 backgroundColor = Colors.primary,
-                corners = 16.dp,
-                text = "ok",
+                corners = 32.dp,
+                text = "OK",
                 textColor = Colors.white,
                 onClick = {
                     if (keyState.value.isEmpty()) {
