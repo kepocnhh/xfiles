@@ -4,19 +4,25 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
+import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -33,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
@@ -157,7 +164,14 @@ internal fun AddItemScreen(
     }
     when (val orientation = LocalConfiguration.current.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
-            TODO("AddItemScreen:LANDSCAPE")
+            AddItemScreenLandscape(
+                keys = keys,
+                keyState = keyState,
+                valueState = valueState,
+                focusedState = focusedState,
+                textDialogState = textDialogState,
+                onAdd = onAdd,
+            )
         }
         Configuration.ORIENTATION_PORTRAIT -> {
             AddItemScreenPortrait(
@@ -170,6 +184,121 @@ internal fun AddItemScreen(
             )
         }
         else -> error("Orientation $orientation is not supported!")
+    }
+}
+
+@Composable
+private fun AddItemScreenLandscape(
+    keys: Set<String>,
+    keyState: MutableState<String>,
+    valueState: MutableState<String>,
+    focusedState: MutableState<Focused>,
+    textDialogState: MutableState<Boolean>,
+    onAdd: (String, String) -> Unit,
+) {
+    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
+        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
+        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
+        else -> error("Layout direction $i is not supported!")
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val parent = this
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(App.Theme.colors.background)
+                .padding(
+                    top = App.Theme.dimensions.insets.calculateTopPadding(),
+                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+            ) {
+                TitledFocused(
+                    title = "key:",
+                    text = keyState.value,
+                    onClick = {
+                        focusedState.value = Focused.KEY
+                    },
+                    onLongClick = {
+                        when (focusedState.value) {
+                            Focused.KEY -> {
+                                textDialogState.value = true
+                            }
+                            Focused.VALUE -> {
+                                focusedState.value = Focused.KEY
+                            }
+                        }
+                    },
+                    focused = focusedState.value == Focused.KEY,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                TitledFocused(
+                    title = "value:",
+                    text = valueState.value,
+                    onClick = {
+                        focusedState.value = Focused.VALUE
+                    },
+                    onLongClick = {
+                        when (focusedState.value) {
+                            Focused.KEY -> {
+                                focusedState.value = Focused.VALUE
+                            }
+                            Focused.VALUE -> {
+                                textDialogState.value = true
+                            }
+                        }
+                    },
+                    focused = focusedState.value == Focused.VALUE,
+                )
+                RoundedButton(
+                    margin = PaddingValues(16.dp),
+                    height = 56.dp,
+                    backgroundColor = Colors.primary,
+                    corners = 16.dp,
+                    text = "ok",
+                    textColor = Colors.white,
+                    onClick = {
+                        if (keyState.value.isEmpty()) {
+                            // todo
+                        } else if (valueState.value.isEmpty()) {
+                            // todo
+                        } else if (keys.contains(keyState.value)) {
+                            // todo
+                        } else {
+                            onAdd(keyState.value, valueState.value)
+                        }
+                    },
+                )
+            }
+            Keyboard(
+                modifier = Modifier
+                    .align(Alignment.Bottom)
+                    .width(parent.maxHeight),
+                onClick = {
+                    when (focusedState.value) {
+                        Focused.KEY -> keyState.value += it
+                        Focused.VALUE -> valueState.value += it
+                    }
+                },
+                onBackspace = {
+                    when (focusedState.value) {
+                        Focused.KEY -> {
+                            if (keyState.value.isNotEmpty()) {
+                                keyState.value = keyState.value.take(keyState.value.lastIndex)
+                            }
+                        }
+                        Focused.VALUE -> {
+                            if (valueState.value.isNotEmpty()) {
+                                valueState.value = valueState.value.take(valueState.value.lastIndex)
+                            }
+                        }
+                    }
+                }
+            )
+        }
     }
 }
 
