@@ -21,5 +21,6 @@ internal sealed class Colors(
     companion object {
         val black = Color(0xff000000)
         val white = Color(0xffffffff)
+        val primary = Color(0xff1E88E5)
     }
 }

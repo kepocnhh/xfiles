@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -25,15 +26,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.TextFocused
+import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
 
 private enum class Focused {
@@ -73,6 +78,33 @@ private fun TitledFocused(
         onClick = onClick,
         onLongClick = onLongClick,
         focused = focused,
+    )
+}
+
+@Composable
+private fun RoundedButton(
+    margin: PaddingValues,
+    height: Dp,
+    backgroundColor: Color,
+    corners: Dp,
+    text: String,
+    textColor: Color,
+    onClick: () -> Unit,
+) {
+    BasicText(
+        modifier = Modifier
+            .padding(margin)
+            .height(height)
+            .fillMaxWidth()
+            .background(backgroundColor, RoundedCornerShape(corners))
+            .clip(RoundedCornerShape(corners))
+            .onClick(onClick)
+            .wrapContentHeight(),
+        text = text,
+        style = TextStyle(
+            color = textColor,
+            textAlign = TextAlign.Center,
+        ),
     )
 }
 
@@ -165,7 +197,8 @@ private fun AddItemScreenPortrait(
             ),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
         ) {
             TitledFocused(
                 title = "key:",
@@ -204,29 +237,24 @@ private fun AddItemScreenPortrait(
                 },
                 focused = focusedState.value == Focused.VALUE,
             )
-            BasicText(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .height(56.dp)
-                    .fillMaxWidth()
-                    .background(Color.Blue, RoundedCornerShape(16.dp))
-                    .clickable {
-                        if (keyState.value.isEmpty()) {
-                            // todo
-                        } else if (valueState.value.isEmpty()) {
-                            // todo
-                        } else if (keys.contains(keyState.value)) {
-                            // todo
-                        } else {
-                            onAdd(keyState.value, valueState.value)
-                        }
-                    }
-                    .wrapContentHeight(),
+            RoundedButton(
+                margin = PaddingValues(16.dp),
+                height = 56.dp,
+                backgroundColor = Colors.primary,
+                corners = 16.dp,
                 text = "ok",
-                style = TextStyle(
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                ),
+                textColor = Colors.white,
+                onClick = {
+                    if (keyState.value.isEmpty()) {
+                        // todo
+                    } else if (valueState.value.isEmpty()) {
+                        // todo
+                    } else if (keys.contains(keyState.value)) {
+                        // todo
+                    } else {
+                        onAdd(keyState.value, valueState.value)
+                    }
+                },
             )
         }
         Keyboard(
