@@ -50,10 +50,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 internal object UnlockedScreen {
     sealed interface Broadcast {
@@ -202,9 +204,10 @@ internal fun UnlockedScreen(
         }
         else -> error("Orientation $orientation is not supported!")
     }
-    AnimatedHVisibility(
+    AnimatedHVisibilityShadow(
         visible = addedState.value,
         duration = App.Theme.durations.animation,
+//        duration = 2.seconds,
         initialOffsetX = { it },
     ) {
         AddItemScreen(

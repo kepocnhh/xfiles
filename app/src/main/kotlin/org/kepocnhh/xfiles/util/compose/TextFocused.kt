@@ -54,20 +54,32 @@ internal fun TextFocused(
             )
             .padding(padding),
     ) {
-        val timeState = remember { mutableStateOf(System.currentTimeMillis()) }
-        LaunchedEffect(key1 = focused, key2 = timeState.value) {
+        val timeStart = remember { mutableStateOf<Long?>(null) }
+        val timeState = remember { mutableStateOf<Long?>(null) }
+        LaunchedEffect(focused, timeState.value, timeStart.value) {
             if (focused) {
-                withContext(Dispatchers.Default) {
-                    delay(100)
+                if (timeStart.value == null) {
+                    timeStart.value = System.currentTimeMillis()
+                } else {
+                    withContext(Dispatchers.Default) {
+                        delay(100)
+                    }
+                    timeState.value = System.currentTimeMillis()
                 }
-                timeState.value = System.currentTimeMillis()
+            } else if (timeState.value != null) {
+                timeState.value = null
+            } else if (timeStart.value != null) {
+                timeStart.value = null
             }
         }
-        val seconds = timeState.value / 500
-        val value = if (focused && seconds % 2 == 0L) {
-            text + "_"
-        } else {
-            text
+        val start = timeStart.value
+        val millis = timeState.value
+        val value = when {
+            !focused -> text
+            start == null -> text
+            millis == null -> text
+            ((millis - start) / 500) % 2 == 0L -> text + "_"
+            else -> text
         }
         BasicText(
             modifier = Modifier

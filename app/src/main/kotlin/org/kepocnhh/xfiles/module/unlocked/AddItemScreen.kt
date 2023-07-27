@@ -49,6 +49,34 @@ private fun ClipData.getFirstTextOrNull(): String? {
 }
 
 @Composable
+private fun TitledFocused(
+    title: String,
+    text: String,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    focused: Boolean,
+) {
+    BasicText(
+        modifier = Modifier.padding(start = 32.dp, bottom = 8.dp),
+        text = title,
+    )
+    TextFocused(
+        margin = PaddingValues(start = 16.dp, end = 16.dp),
+        padding = PaddingValues(start = 16.dp, end = 16.dp),
+        height = 56.dp,
+        color = Color.White,
+        corners = 16.dp,
+        text = text,
+        textStyle = TextStyle(
+            color = Color.Black,
+        ),
+        onClick = onClick,
+        onLongClick = onLongClick,
+        focused = focused,
+    )
+}
+
+@Composable
 internal fun AddItemScreen(
     keys: Set<String>,
     onAdd: (String, String) -> Unit,
@@ -97,7 +125,7 @@ internal fun AddItemScreen(
     }
     when (val orientation = LocalConfiguration.current.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
-            TODO()
+            TODO("AddItemScreen:LANDSCAPE")
         }
         Configuration.ORIENTATION_PORTRAIT -> {
             AddItemScreenPortrait(
@@ -139,20 +167,9 @@ private fun AddItemScreenPortrait(
         Column(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            BasicText(
-                modifier = Modifier.padding(start = 16.dp),
-                text = "key:",
-            )
-            TextFocused(
-                margin = PaddingValues(start = 16.dp, end = 16.dp),
-                padding = PaddingValues(start = 16.dp, end = 16.dp),
-                height = 56.dp,
-                color = Color.White,
-                corners = 16.dp,
+            TitledFocused(
+                title = "key:",
                 text = keyState.value,
-                textStyle = TextStyle(
-                    color = Color.Black,
-                ),
                 onClick = {
                     focusedState.value = Focused.KEY
                 },
@@ -169,20 +186,9 @@ private fun AddItemScreenPortrait(
                 focused = focusedState.value == Focused.KEY,
             )
             Spacer(modifier = Modifier.height(16.dp))
-            BasicText(
-                modifier = Modifier.padding(start = 16.dp),
-                text = "value:",
-            )
-            TextFocused(
-                margin = PaddingValues(start = 16.dp, end = 16.dp),
-                padding = PaddingValues(start = 16.dp, end = 16.dp),
-                height = 56.dp,
-                color = Color.White,
-                corners = 16.dp,
+            TitledFocused(
+                title = "value:",
                 text = valueState.value,
-                textStyle = TextStyle(
-                    color = Color.Black,
-                ),
                 onClick = {
                     focusedState.value = Focused.VALUE
                 },
