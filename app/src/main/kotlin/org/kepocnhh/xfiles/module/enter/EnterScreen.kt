@@ -40,6 +40,7 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
+import org.kepocnhh.xfiles.util.compose.append
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 
@@ -215,62 +216,50 @@ private fun EnterScreenPortrait(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            val text = when (exists) {
-//                true -> "exists"
+            val modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+                .padding(
+                    start = App.Theme.sizes.s,
+                    end = App.Theme.sizes.s,
+                )
+            when (exists) {
                 true -> {
+                    // todo
                     val deleteDatabaseTag = "deleteDatabaseTag"
                     val text = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                color = App.Theme.colors.foreground,
-                                fontSize = 16.sp,
-                            ),
-                        ) {
-                            append("The database exists. Enter the pin code to unlock.")
-                        }
+                        append(
+                            color = App.Theme.colors.foreground,
+                            fontSize = 16.sp,
+                            text = "The database exists. Enter the pin code to unlock.",
+                        )
                         append("\n")
-                        withStyle(
-                            SpanStyle(
-                                color = App.Theme.colors.foreground,
-                                fontSize = 16.sp,
-                            ),
-                        ) {
-                            append("Or you can ")
-                        }
-                        pushStringAnnotation(deleteDatabaseTag, "delete database").let { index ->
-                            try {
-                                withStyle(
-                                    SpanStyle(
-                                        color = Colors.primary,
-                                        fontSize = 16.sp,
-                                    ),
-                                ) {
-                                    append("delete")
-                                }
-                            } finally {
-                                pop(index)
-                            }
-                        }
-                        withStyle(
-                            SpanStyle(
-                                color = App.Theme.colors.foreground,
-                                fontSize = 16.sp,
-                            ),
-                        ) {
-                            append(" the base.")
-                        }
+                        append(
+                            color = App.Theme.colors.foreground,
+                            fontSize = 16.sp,
+                            text = "Or you can ",
+                        )
+                        append(
+                            tag = deleteDatabaseTag,
+                            annotation = "delete database",
+                            color = Colors.primary,
+                            fontSize = 16.sp,
+                            text = "delete",
+                        )
+                        append(
+                            color = App.Theme.colors.foreground,
+                            fontSize = 16.sp,
+                            text = " the base.",
+                        )
                     }
                     ClickableText(
-                        modifier = Modifier.align(Alignment.Center),
+                        modifier = modifier,
                         text = text,
                         style = TextStyle(textAlign = TextAlign.Center),
                         onClick = { offset ->
-                            val annotations = text.getStringAnnotations(offset, offset)
-                            if (annotations.size == 1) {
-                                when (annotations.single().tag) {
-                                    deleteDatabaseTag -> {
-                                        deleteDialogState.value = true
-                                    }
+                            when (text.getStringAnnotations(offset, offset).takeIf { it.size == 1 }?.single()?.tag) {
+                                deleteDatabaseTag -> {
+                                    deleteDialogState.value = true
                                 }
                             }
                         },
@@ -278,8 +267,13 @@ private fun EnterScreenPortrait(
                 }
                 false -> {
                     BasicText(
-                        modifier = Modifier.align(Alignment.Center),
-                        text = "does not exist", // todo
+                        modifier = modifier,
+                        style = TextStyle(
+                            color = App.Theme.colors.foreground,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                        ),
+                        text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
                     )
                 }
                 null -> {
