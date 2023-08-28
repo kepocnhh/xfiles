@@ -8,6 +8,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,6 +18,7 @@ import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Dimensions
 import org.kepocnhh.xfiles.module.app.Durations
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.module.app.Sizes
 import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
@@ -31,6 +33,7 @@ internal class App : Application() {
         private val LocalColors = staticCompositionLocalOf<Colors> { error("no colors") }
         private val LocalDurations = staticCompositionLocalOf<Durations> { error("no durations") }
         private val LocalDimensions = staticCompositionLocalOf<Dimensions> { error("no dimensions") }
+        private val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
 
         val colors: Colors
             @Composable
@@ -46,6 +49,11 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = LocalDimensions.current
+
+        val sizes: Sizes
+            @Composable
+            @ReadOnlyComposable
+            get() = LocalSizes.current
 
         @Composable
         fun Composition(
@@ -63,6 +71,17 @@ internal class App : Application() {
                 ),
                 LocalDimensions provides Dimensions(
                     insets = LocalView.current.rootWindowInsets.toPaddings(),
+                ),
+                LocalSizes provides Sizes(
+                    xxxs = 2.dp,
+                    xxs = 4.dp,
+                    xs = 8.dp,
+                    s = 16.dp,
+                    m = 24.dp,
+                    l = 32.dp,
+                    xl = 48.dp,
+                    xxl = 56.dp,
+                    xxxl = 64.dp,
                 ),
                 content = content,
             )

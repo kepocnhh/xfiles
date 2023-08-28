@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -23,15 +24,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
 import sp.ax.jc.dialogs.Dialog
@@ -210,22 +216,85 @@ private fun EnterScreenPortrait(
                 .weight(1f)
         ) {
             val text = when (exists) {
-                true -> "exists"
-                false -> "does not exist"
-                null -> "loading..."
+//                true -> "exists"
+                true -> {
+                    val deleteDatabaseTag = "deleteDatabaseTag"
+                    val text = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                color = App.Theme.colors.foreground,
+                                fontSize = 16.sp,
+                            ),
+                        ) {
+                            append("The database exists. Enter the pin code to unlock.")
+                        }
+                        append("\n")
+                        withStyle(
+                            SpanStyle(
+                                color = App.Theme.colors.foreground,
+                                fontSize = 16.sp,
+                            ),
+                        ) {
+                            append("Or you can ")
+                        }
+                        pushStringAnnotation(deleteDatabaseTag, "delete database").let { index ->
+                            try {
+                                withStyle(
+                                    SpanStyle(
+                                        color = Colors.primary,
+                                        fontSize = 16.sp,
+                                    ),
+                                ) {
+                                    append("delete")
+                                }
+                            } finally {
+                                pop(index)
+                            }
+                        }
+                        withStyle(
+                            SpanStyle(
+                                color = App.Theme.colors.foreground,
+                                fontSize = 16.sp,
+                            ),
+                        ) {
+                            append(" the base.")
+                        }
+                    }
+                    ClickableText(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = text,
+                        style = TextStyle(textAlign = TextAlign.Center),
+                        onClick = { offset ->
+                            val annotations = text.getStringAnnotations(offset, offset)
+                            if (annotations.size == 1) {
+                                when (annotations.single().tag) {
+                                    deleteDatabaseTag -> {
+                                        deleteDialogState.value = true
+                                    }
+                                }
+                            }
+                        },
+                    )
+                }
+                false -> {
+                    BasicText(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = "does not exist", // todo
+                    )
+                }
+                null -> {
+                    BasicText(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = "loading...", // todo
+                    )
+                }
             }
-            BasicText(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = text,
-            )
-            // todo
         }
         BasicText(
             modifier = Modifier
                 .padding(
-                    bottom = 32.dp,
-                    top = 32.dp,
+                    bottom = App.Theme.sizes.l,
+                    top = App.Theme.sizes.l,
                 )
                 .align(Alignment.CenterHorizontally),
             text = "*".repeat(pinState.value.length),
@@ -239,7 +308,7 @@ private fun EnterScreenPortrait(
             modifier = Modifier
                 .fillMaxWidth(),
             enabled = exists != null,
-            rowHeight = 64.dp,
+            rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,
                 color = App.Theme.colors.foreground,
@@ -252,7 +321,7 @@ private fun EnterScreenPortrait(
                 pinState.value = ""
             },
             onDeleteLong = {
-                deleteDialogState.value = true
+                // todo
             }
         )
     }
