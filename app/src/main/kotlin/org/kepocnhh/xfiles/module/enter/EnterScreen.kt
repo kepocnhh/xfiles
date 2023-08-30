@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
+import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
@@ -223,31 +224,26 @@ private fun EnterScreenPortrait(
             when (exists) {
                 true -> {
                     // todo
-                    val deleteDatabaseTag = "deleteDatabaseTag"
                     val text = buildAnnotatedString {
-                        append(
-                            color = App.Theme.colors.foreground,
-                            fontSize = 16.sp,
-                            text = "The database exists. Enter the pin code to unlock.",
-                        )
-                        append("\n")
-                        append(
-                            color = App.Theme.colors.foreground,
-                            fontSize = 16.sp,
-                            text = "Or you can ",
-                        )
-                        append(
-                            tag = deleteDatabaseTag,
-                            annotation = "delete database",
-                            color = Colors.primary,
-                            fontSize = 16.sp,
-                            text = "delete",
-                        )
-                        append(
-                            color = App.Theme.colors.foreground,
-                            fontSize = 16.sp,
-                            text = " the base.",
-                        )
+                        val annotated = App.Theme.strings.databaseExists
+                        annotated.texts.forEachIndexed { index, text ->
+                            val tag = annotated.tags[index]
+                            if (tag == null) {
+                                append(
+                                    color = App.Theme.colors.foreground,
+                                    fontSize = 16.sp,
+                                    text = text,
+                                )
+                            } else {
+                                append(
+                                    tag = tag,
+                                    annotation = "", // todo
+                                    color = Colors.primary,
+                                    fontSize = 16.sp,
+                                    text = text,
+                                )
+                            }
+                        }
                     }
                     ClickableText(
                         modifier = modifier,
@@ -255,7 +251,7 @@ private fun EnterScreenPortrait(
                         style = TextStyle(textAlign = TextAlign.Center),
                         onClick = { offset ->
                             when (text.getStringAnnotations(offset, offset).takeIf { it.size == 1 }?.single()?.tag) {
-                                deleteDatabaseTag -> {
+                                Strings.Tags.DELETE -> {
                                     deleteDialogState.value = true
                                 }
                             }
