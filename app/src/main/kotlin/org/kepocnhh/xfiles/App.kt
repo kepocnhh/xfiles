@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -18,8 +19,12 @@ import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Dimensions
 import org.kepocnhh.xfiles.module.app.Durations
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.Sizes
+import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.module.app.ThemeState
+import org.kepocnhh.xfiles.module.app.strings.En
+import org.kepocnhh.xfiles.module.app.strings.Ru
 import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
@@ -34,6 +39,7 @@ internal class App : Application() {
         private val LocalDurations = staticCompositionLocalOf<Durations> { error("no durations") }
         private val LocalDimensions = staticCompositionLocalOf<Dimensions> { error("no dimensions") }
         private val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
+        private val LocalStrings = staticCompositionLocalOf<Strings> { error("no strings") }
 
         val colors: Colors
             @Composable
@@ -54,6 +60,11 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = LocalSizes.current
+
+        val strings: Strings
+            @Composable
+            @ReadOnlyComposable
+            get() = LocalStrings.current
 
         @Composable
         fun Composition(
@@ -83,6 +94,17 @@ internal class App : Application() {
                     xxl = 56.dp,
                     xxxl = 64.dp,
                 ),
+                LocalStrings provides when (themeState.language) {
+                    Language.ENGLISH -> En
+                    Language.RUSSIAN -> Ru
+                    Language.AUTO -> {
+                        val locale = LocalConfiguration.current.locales.get(0)
+                        when (locale?.language) {
+                            "ru" -> Ru
+                            else -> En
+                        }
+                    }
+                },
                 content = content,
             )
         }

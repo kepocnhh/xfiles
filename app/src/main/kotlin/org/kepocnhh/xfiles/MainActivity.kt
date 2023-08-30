@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import org.kepocnhh.xfiles.module.app.ColorsType
+import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.router.RouterScreen
 
@@ -17,7 +18,10 @@ internal class MainActivity : AppCompatActivity() {
             }
             // todo theme state
             App.Theme.Composition(
-                themeState = ThemeState(colorsType = ColorsType.AUTO),
+                themeState = ThemeState(
+                    colorsType = ColorsType.AUTO,
+                    language = Language.AUTO,
+                ),
             ) {
                 RouterScreen()
             }
