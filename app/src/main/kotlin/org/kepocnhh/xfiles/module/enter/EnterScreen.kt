@@ -39,6 +39,7 @@ import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
+import org.kepocnhh.xfiles.util.compose.ClickableText
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 
@@ -223,34 +224,24 @@ private fun EnterScreenPortrait(
                 )
             when (exists) {
                 true -> {
-                    // todo
-                    val text = buildAnnotatedString {
-                        val annotated = App.Theme.strings.databaseExists
-                        annotated.texts.forEachIndexed { index, text ->
-                            val tag = annotated.tags[index]
-                            if (tag == null) {
-                                append(
-                                    color = App.Theme.colors.foreground,
-                                    fontSize = 16.sp,
-                                    text = text,
-                                )
-                            } else {
-                                append(
-                                    tag = tag,
-                                    annotation = "", // todo
-                                    color = Colors.primary,
-                                    fontSize = 16.sp,
-                                    text = text,
-                                )
-                            }
-                        }
-                    }
                     ClickableText(
                         modifier = modifier,
-                        text = text,
+                        annotated = App.Theme.strings.databaseExists,
                         style = TextStyle(textAlign = TextAlign.Center),
-                        onClick = { offset ->
-                            when (text.getStringAnnotations(offset, offset).takeIf { it.size == 1 }?.single()?.tag) {
+                        styles = { tag ->
+                            when (tag) {
+                                Strings.Tags.DELETE -> TextStyle(
+                                    color = Colors.primary,
+                                    fontSize = 16.sp,
+                                )
+                                else -> TextStyle(
+                                    color = App.Theme.colors.foreground,
+                                    fontSize = 16.sp,
+                                )
+                            }
+                        },
+                        onClick = { tag ->
+                            when (tag) {
                                 Strings.Tags.DELETE -> {
                                     deleteDialogState.value = true
                                 }

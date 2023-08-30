@@ -9,7 +9,10 @@ internal interface Strings {
     }
 
     val yes: String
-    val databaseExists: Annotated
+    val databaseExists: AnnotatedText
 
-    data class Annotated(val texts: List<String>, val tags: Map<Int, String>)
+    data class AnnotatedText(
+        val text: String,
+        val tags: Map<IntRange, String>,
+    )
 }
