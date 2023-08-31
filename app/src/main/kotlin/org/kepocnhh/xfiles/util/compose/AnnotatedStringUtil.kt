@@ -10,16 +10,16 @@ import androidx.compose.ui.unit.TextUnit
 import org.kepocnhh.xfiles.module.app.Strings
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.text.buildAnnotatedString
+import java.util.regex.Pattern
 
 internal fun AnnotatedString.Builder.append(
-    color: Color,
-    fontSize: TextUnit,
+    textStyle: TextStyle,
     text: String,
 ) {
     val index = pushStyle(
         SpanStyle(
-            color = color,
-            fontSize = fontSize,
+            color = textStyle.color,
+            fontSize = textStyle.fontSize,
         ),
     )
     try {
@@ -38,8 +38,7 @@ internal fun AnnotatedString.Builder.append(
     val index = pushStringAnnotation(tag, annotation)
     try {
         append(
-            color = textStyle.color,
-            fontSize = textStyle.fontSize,
+            textStyle = textStyle,
             text = text,
         )
     } finally {
@@ -47,99 +46,62 @@ internal fun AnnotatedString.Builder.append(
     }
 }
 
-//@Composable
-//internal fun ClickableText(
-//    modifier: Modifier = Modifier,
-//    annotated: Strings.Annotated,
-//    style: TextStyle = TextStyle.Default,
-//    styles: @Composable (String?) -> TextStyle,
-//    onClick: (String?) -> Unit
-//) {
-//    val text = buildAnnotatedString {
-//        annotated.texts.forEachIndexed { index, text ->
-//            val tag = annotated.tags[index]
-//            val textStyle = styles(tag)
-//            when (tag) {
-//                null -> {
-//                    append(
-//                        color = textStyle.color,
-//                        fontSize = textStyle.fontSize,
-//                        text = text,
-//                    )
-//                }
-//                else -> {
-//                    append(
-//                        tag = tag,
-//                        annotation = "", // todo
-//                        color = textStyle.color,
-//                        fontSize = textStyle.fontSize,
-//                        text = text,
-//                    )
-//                }
-//            }
-//        }
-//    }
-//    ClickableText(
-//        modifier = modifier,
-//        style = style,
-//        text = text,
-//        onClick = { offset ->
-//            onClick(text.getStringAnnotations(offset, offset).singleOrNull()?.tag)
-//        }
-//    )
-//}
+private object ClickableTextUtil {
+    const val all = "\\w\\d\\s.!?-"
+    val regexTags = "\\[[$all]+\\]\\([$all]+\\)".toRegex()
+    val betweenSquareBrackets = "(?<=\\[)[\\S\\s]+(?=\\])".toRegex()
+    val betweenRoundBrackets = "(?<=\\()[\\S\\s]+(?=\\))".toRegex()
+}
 
 @Composable
 internal fun ClickableText(
     modifier: Modifier = Modifier,
-    annotated: Strings.AnnotatedText,
+    text: String,
     style: TextStyle = TextStyle.Default,
     styles: @Composable (String?) -> TextStyle,
     onClick: (String?) -> Unit
 ) {
-    val text = buildAnnotatedString {
-        val tags = annotated.tags.keys.sortedBy { it.first }
+    val split = ClickableTextUtil.regexTags.split(text)
+    val matches = ClickableTextUtil
+        .regexTags
+        .findAll(text)
+        .map { it.value }
+        .toList()
+    val first = split.firstOrNull()
+    val annotated: AnnotatedString = if (first == null) {
+        AnnotatedString.Builder().toAnnotatedString()
+    } else {
         val normal = styles(null)
-        if (tags.isEmpty()) {
-            append(
-                color = normal.color,
-                fontSize = normal.fontSize,
-                text = annotated.text,
-            )
-        } else {
-            tags.forEachIndexed { index, range ->
-                val tag = annotated.tags[range]!!
-                println("$index] $range tag: $tag")
-                if (index == 0) {
-                    val text = annotated.text.substring(0, range.first)
-                    println("$index] first index text: $text")
-                    append(
-                        color = normal.color,
-                        fontSize = normal.fontSize,
-                        text = text,
-                    )
-                } else {
-                    val text = annotated.text.substring(tags[index - 1].last + 1, range.first)
-                    println("$index] text: $text")
-                    append(
-                        color = normal.color,
-                        fontSize = normal.fontSize,
-                        text = text,
-                    )
-                }
+        buildAnnotatedString {
+            if (first.isNotEmpty()) {
                 append(
-                    tag = annotated.tags[range]!!,
+                    textStyle = normal,
+                    text = first,
+                )
+            }
+            for (i in 1 until split.size) {
+                val match = matches[i - 1]
+                val tag = ClickableTextUtil
+                    .betweenSquareBrackets
+                    .find(match)
+                    ?.value
+                check(!tag.isNullOrEmpty())
+                val value = ClickableTextUtil
+                    .betweenRoundBrackets
+                    .find(match)
+                    ?.value
+                check(!value.isNullOrEmpty())
+                append(
+                    tag = tag,
                     annotation = "", // todo
                     textStyle = styles(tag),
-                    text = annotated.text.substring(range),
+                    text = value,
                 )
-                if (index == tags.lastIndex) {
-                    val text = annotated.text.substring(range.last + 1)
-                    println("$index] last index text: $text")
+                val it = split[i]
+                if (it.isNotEmpty()) {
                     append(
-                        color = normal.color,
-                        fontSize = normal.fontSize,
-                        text = text,
+                        textStyle = normal,
+                        text = it,
                     )
                 }
             }
@@ -148,9 +110,9 @@ internal fun ClickableText(
     ClickableText(
         modifier = modifier,
         style = style,
-        text = text,
+        text = annotated,
         onClick = { offset ->
-            onClick(text.getStringAnnotations(offset, offset).singleOrNull()?.tag)
+            onClick(annotated.getStringAnnotations(offset, offset).singleOrNull()?.tag)
         }
     )
 }

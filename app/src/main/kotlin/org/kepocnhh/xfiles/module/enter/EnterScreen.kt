@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,6 +44,7 @@ import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
 import sp.ax.jc.dialogs.Dialog
+import java.util.regex.Pattern
 import javax.crypto.SecretKey
 
 internal object EnterScreen {
@@ -224,30 +228,42 @@ private fun EnterScreenPortrait(
                 )
             when (exists) {
                 true -> {
-                    ClickableText(
-                        modifier = modifier,
-                        annotated = App.Theme.strings.databaseExists,
-                        style = TextStyle(textAlign = TextAlign.Center),
-                        styles = { tag ->
-                            when (tag) {
-                                Strings.Tags.DELETE -> TextStyle(
-                                    color = Colors.primary,
-                                    fontSize = 16.sp,
-                                )
-                                else -> TextStyle(
-                                    color = App.Theme.colors.foreground,
-                                    fontSize = 16.sp,
-                                )
-                            }
-                        },
-                        onClick = { tag ->
-                            when (tag) {
-                                Strings.Tags.DELETE -> {
-                                    deleteDialogState.value = true
+                    Column(modifier = modifier) {
+                        BasicText(
+                            modifier = Modifier.fillMaxWidth(),
+                            style = TextStyle(
+                                color = App.Theme.colors.foreground,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center,
+                            ),
+                            text = App.Theme.strings.databaseExists,
+                        )
+                        Spacer(modifier = Modifier.height(App.Theme.sizes.s))
+                        ClickableText(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = App.Theme.strings.databaseDelete,
+                            style = TextStyle(textAlign = TextAlign.Center),
+                            styles = { tag ->
+                                when (tag) {
+                                    Strings.Tags.DELETE -> TextStyle(
+                                        color = Colors.primary,
+                                        fontSize = 16.sp,
+                                    )
+                                    else -> TextStyle(
+                                        color = App.Theme.colors.foreground,
+                                        fontSize = 16.sp,
+                                    )
                                 }
-                            }
-                        },
-                    )
+                            },
+                            onClick = { tag ->
+                                when (tag) {
+                                    Strings.Tags.DELETE -> {
+                                        deleteDialogState.value = true
+                                    }
+                                }
+                            },
+                        )
+                    }
                 }
                 false -> {
                     BasicText(
