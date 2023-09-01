@@ -31,6 +31,8 @@ import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.util.compose.toPaddings
+import sp.ax.jc.dialogs.DialogStyle
+import sp.ax.jc.dialogs.LocalDialogStyle
 import kotlin.time.Duration.Companion.milliseconds
 
 internal class App : Application() {
@@ -71,12 +73,13 @@ internal class App : Application() {
             themeState: ThemeState,
             content: @Composable () -> Unit,
         ) {
+            val colors = when (themeState.colorsType) {
+                ColorsType.DARK -> Colors.Dark
+                ColorsType.LIGHT -> Colors.Light
+                ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.Dark else Colors.Light
+            }
             CompositionLocalProvider(
-                LocalColors provides when (themeState.colorsType) {
-                    ColorsType.DARK -> Colors.Dark
-                    ColorsType.LIGHT -> Colors.Light
-                    ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.Dark else Colors.Light
-                },
+                LocalColors provides colors,
                 LocalDurations provides Durations(
                     animation = 250.milliseconds,
                 ),
@@ -105,6 +108,10 @@ internal class App : Application() {
                         }
                     }
                 },
+                LocalDialogStyle provides DialogStyle(
+                    background = colors.background,
+                    foreground = colors.foreground,
+                ),
                 content = content,
             )
         }
