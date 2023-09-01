@@ -8,10 +8,13 @@ import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.router.RouterScreen
+import java.security.Security
 
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val algs = Security.getAlgorithms("Cipher")
+        println("algs: $algs")
         setContent {
             BackHandler {
                 finish()

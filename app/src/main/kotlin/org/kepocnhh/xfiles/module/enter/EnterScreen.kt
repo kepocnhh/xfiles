@@ -310,34 +310,34 @@ private fun EnterScreenPortrait(
                     radius = App.Theme.sizes.xs,
                 )
             }
-        }
-        val maxOffset = 16.dp
-        val offsetState = remember { mutableStateOf(maxOffset / 2) }
-        LaunchedEffect(offsetState.value, error) {
-            if (error) {
-                withContext(Dispatchers.Default) {
-                    delay(16)
+            val maxOffset = 16.dp
+            val offsetState = remember { mutableStateOf(maxOffset / 2) }
+            LaunchedEffect(offsetState.value, error) {
+                if (error) {
+                    withContext(Dispatchers.Default) {
+                        delay(16)
+                    }
+                    offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
+                } else {
+                    offsetState.value = maxOffset / 2
                 }
-                offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
-            } else {
-                offsetState.value = maxOffset / 2
             }
-        }
-        BasicText(
-            modifier = Modifier
-                .padding(
-                    bottom = App.Theme.sizes.l,
-                    top = App.Theme.sizes.l,
+            BasicText(
+                modifier = Modifier
+                    .padding(
+                        bottom = App.Theme.sizes.l,
+                        top = App.Theme.sizes.l,
+                    )
+                    .align(Alignment.BottomCenter)
+                    .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
+                text = "*".repeat(pinState.value.length),
+                style = TextStyle(
+                    color = if (error) App.Theme.colors.error else App.Theme.colors.foreground,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 24.sp,
                 )
-                .align(Alignment.CenterHorizontally)
-                .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
-            text = "*".repeat(pinState.value.length),
-            style = TextStyle(
-                color = if (error) App.Theme.colors.error else App.Theme.colors.foreground,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 24.sp,
             )
-        )
+        }
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),

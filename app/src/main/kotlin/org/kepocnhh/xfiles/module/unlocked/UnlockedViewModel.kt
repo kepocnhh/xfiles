@@ -1,7 +1,5 @@
 package org.kepocnhh.xfiles.module.unlocked
 
-import android.util.Base64
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,25 +18,17 @@ import org.kepocnhh.xfiles.util.security.decrypt
 import org.kepocnhh.xfiles.util.security.encrypt
 import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getSecureRandom
-import java.io.File
 import java.security.KeyFactory
-import java.security.KeyPair
 import java.security.Signature
-import java.security.spec.PKCS8EncodedKeySpec
-import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.PBEKeySpec
 
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         class OnCopy(val secret: String) : Broadcast
         class OnShow(val secret: String) : Broadcast
     }
-
-    private val algorithm = "PBEWITHHMACSHA256ANDAES_256" // todo
 
     private val _data = MutableStateFlow<Map<String, String>?>(null)
     val data = _data.asStateFlow()
@@ -56,9 +46,8 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     private fun decrypt(key: SecretKey): ByteArray {
         val jsonObject = JSONObject(injection.files.readText("sym.json"))
-        val iv = jsonObject.getString("iv").let { Base64.decode(it, Base64.DEFAULT) }
-        val cipher = Cipher.getInstance(algorithm)
-        val params = IvParameterSpec(iv)
+        val cipher = Cipher.getInstance(jsonObject.getString("algorithm"))
+        val params = IvParameterSpec(jsonObject.getString("iv").base64())
         val encrypted = injection.files.readBytes("db.json.enc")
         return cipher.decrypt(key, params, encrypted)
     }
@@ -67,9 +56,9 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         key: SecretKey,
         decrypted: ByteArray,
     ) {
-        val mata = JSONObject(injection.files.readText("sym.json"))
-        val cipher = Cipher.getInstance(algorithm)
-        val params = IvParameterSpec(mata.getString("iv").base64())
+        val jsonObject = JSONObject(injection.files.readText("sym.json"))
+        val cipher = Cipher.getInstance(jsonObject.getString("algorithm"))
+        val params = IvParameterSpec(jsonObject.getString("iv").base64())
         val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
             KeyFactory.getInstance("DSA").generateKeyPair(
                 public = json.getString("public").base64(),
