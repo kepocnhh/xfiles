@@ -310,6 +310,7 @@ private fun EnterScreenPortrait(
             modifier = Modifier
                 .fillMaxWidth(),
             enabled = exists != null,
+            visibleDelete = pinState.value.isNotEmpty(),
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,

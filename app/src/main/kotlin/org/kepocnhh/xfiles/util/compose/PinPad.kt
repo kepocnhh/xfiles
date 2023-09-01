@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 
 @Composable
@@ -94,6 +95,7 @@ internal fun PinPad(
     rowHeight: Dp,
     textStyle: TextStyle,
     enabled: Boolean = true,
+    visibleDelete: Boolean = true,
     onClick: (Char) -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -159,7 +161,7 @@ internal fun PinPad(
                     .fillMaxHeight()
                     .weight(1f)
                     .let {
-                        if (enabled) {
+                        if (enabled && visibleDelete) {
                             it.clickable {
                                 onDelete()
                             }
@@ -168,14 +170,20 @@ internal fun PinPad(
                         }
                     },
             ) {
-                Image(
+                AnimatedFadeVisibility(
                     modifier = Modifier
-                        .size(rowHeight / 1.5f)
                         .align(Alignment.Center),
-                    painter = painterResource(id = R.drawable.cross),
-                    contentDescription = "delete",
-                    colorFilter = ColorFilter.tint(textStyle.color),
-                )
+                    visible = visibleDelete,
+                    duration = App.Theme.durations.animation,
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(rowHeight / 1.5f),
+                        painter = painterResource(id = R.drawable.cross),
+                        contentDescription = "delete",
+                        colorFilter = ColorFilter.tint(textStyle.color),
+                    )
+                }
             }
         }
     }
