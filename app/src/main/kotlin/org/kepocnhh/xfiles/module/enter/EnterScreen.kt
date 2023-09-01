@@ -191,9 +191,6 @@ private fun EnterScreenLandscape(
                 onDelete = {
                     pinState.value = ""
                 },
-                onDeleteLong = {
-                    deleteDialogState.value = true
-                }
             )
         }
     }
@@ -314,9 +311,6 @@ private fun EnterScreenPortrait(
             onDelete = {
                 pinState.value = ""
             },
-            onDeleteLong = {
-                // todo
-            }
         )
     }
 }
