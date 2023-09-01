@@ -237,16 +237,15 @@ private fun EnterScreenPortrait(
                             text = App.Theme.strings.databaseExists,
                         )
                         Spacer(modifier = Modifier.height(App.Theme.sizes.s))
+                        val tag = "databaseDelete"
                         ClickableText(
                             modifier = Modifier.fillMaxWidth(),
-                            text = App.Theme.strings.databaseDelete,
+                            text = App.Theme.strings.databaseDelete(tag),
                             style = textStyle,
-                            styles = mapOf(
-                                Strings.Tags.DELETE to TextStyle(Colors.primary),
-                            ),
-                            onClick = { tag ->
-                                when (tag) {
-                                    Strings.Tags.DELETE -> {
+                            styles = mapOf(tag to TextStyle(Colors.primary)),
+                            onClick = {
+                                when (it) {
+                                    tag -> {
                                         deleteDialogState.value = true
                                     }
                                 }
