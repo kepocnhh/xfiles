@@ -14,10 +14,7 @@ import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-
-private fun Float.ct(k: Float): Float {
-    return (this % k + k) % k
-}
+import org.kepocnhh.xfiles.util.ct
 
 @Composable
 internal fun Squares(

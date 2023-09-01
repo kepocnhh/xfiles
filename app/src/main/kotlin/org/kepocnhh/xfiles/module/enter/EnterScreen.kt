@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,9 +39,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.substring
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.Strings
@@ -51,9 +56,12 @@ import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.Squares
+import org.kepocnhh.xfiles.util.ct
 import sp.ax.jc.dialogs.Dialog
 import java.util.regex.Pattern
 import javax.crypto.SecretKey
+import kotlin.math.absoluteValue
+import kotlin.time.Duration.Companion.seconds
 
 internal object EnterScreen {
     sealed interface Broadcast {
@@ -67,6 +75,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
     val pinState = rememberSaveable { mutableStateOf("") }
+    val errorState = rememberSaveable { mutableStateOf(false) }
     val deleteDialogState = remember { mutableStateOf(false) }
     if (deleteDialogState.value) {
         Dialog(
@@ -105,11 +114,19 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
-                    pinState.value = ""
-                    context.showToast("on unlock error...")
-                    // todo
+                    errorState.value = true
                 }
             }
+        }
+    }
+    val duration = App.Theme.durations.animation * 2
+    LaunchedEffect(errorState.value) {
+        if (errorState.value) {
+            withContext(Dispatchers.Default) {
+                delay(duration)
+            }
+            pinState.value = ""
+            errorState.value = false
         }
     }
     when (LocalConfiguration.current.orientation) {
@@ -123,6 +140,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         else -> {
             EnterScreenPortrait(
                 exists = exists,
+                error = errorState.value,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
             )
@@ -207,6 +225,7 @@ private fun EnterScreenLandscape(
 @Composable
 private fun EnterScreenPortrait(
     exists: Boolean?,
+    error: Boolean,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
 ) {
@@ -254,7 +273,7 @@ private fun EnterScreenPortrait(
                         modifier = Modifier.fillMaxWidth(),
                         text = App.Theme.strings.databaseDelete(tag),
                         style = textStyle,
-                        styles = mapOf(tag to TextStyle(Colors.primary)),
+                        styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
                         onClick = {
                             when (it) {
                                 tag -> {
@@ -292,16 +311,29 @@ private fun EnterScreenPortrait(
                 )
             }
         }
+        val maxOffset = 16.dp
+        val offsetState = remember { mutableStateOf(maxOffset / 2) }
+        LaunchedEffect(offsetState.value, error) {
+            if (error) {
+                withContext(Dispatchers.Default) {
+                    delay(16)
+                }
+                offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
+            } else {
+                offsetState.value = maxOffset / 2
+            }
+        }
         BasicText(
             modifier = Modifier
                 .padding(
                     bottom = App.Theme.sizes.l,
                     top = App.Theme.sizes.l,
                 )
-                .align(Alignment.CenterHorizontally),
+                .align(Alignment.CenterHorizontally)
+                .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
             text = "*".repeat(pinState.value.length),
             style = TextStyle(
-                color = App.Theme.colors.foreground,
+                color = if (error) App.Theme.colors.error else App.Theme.colors.foreground,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 24.sp,
             )
@@ -309,7 +341,7 @@ private fun EnterScreenPortrait(
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
-            enabled = exists != null,
+            enabled = exists != null && !error,
             visibleDelete = pinState.value.isNotEmpty(),
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(

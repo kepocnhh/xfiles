@@ -262,7 +262,7 @@ private fun AddItemScreenLandscape(
                 RoundedButton(
                     margin = PaddingValues(16.dp),
                     padding = PaddingValues(8.dp),
-                    backgroundColor = Colors.primary,
+                    backgroundColor = App.Theme.colors.primary,
                     corners = 16.dp,
                     text = "ok",
                     textColor = Colors.white,
@@ -375,7 +375,7 @@ private fun AddItemScreenPortrait(
             RoundedButton(
                 margin = PaddingValues(16.dp),
                 padding = PaddingValues(16.dp),
-                backgroundColor = Colors.primary,
+                backgroundColor = App.Theme.colors.primary,
                 corners = 32.dp,
                 text = "OK",
                 textColor = Colors.white,
