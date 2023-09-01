@@ -58,7 +58,7 @@ internal fun ClickableText(
     modifier: Modifier = Modifier,
     text: String,
     style: TextStyle = TextStyle.Default,
-    styles: @Composable (String?) -> TextStyle,
+    styles: Map<String, TextStyle>,
     onClick: (String?) -> Unit
 ) {
     val split = ClickableTextUtil.regexTags.split(text)
@@ -71,13 +71,9 @@ internal fun ClickableText(
     val annotated: AnnotatedString = if (first == null) {
         AnnotatedString.Builder().toAnnotatedString()
     } else {
-        val normal = styles(null)
         buildAnnotatedString {
             if (first.isNotEmpty()) {
-                append(
-                    textStyle = normal,
-                    text = first,
-                )
+                append(first)
             }
             for (i in 1 until split.size) {
                 val match = matches[i - 1]
@@ -94,15 +90,12 @@ internal fun ClickableText(
                 append(
                     tag = tag,
                     annotation = "", // todo
-                    textStyle = styles(tag),
+                    textStyle = styles[tag] ?: style,
                     text = value,
                 )
                 val it = split[i]
                 if (it.isNotEmpty()) {
-                    append(
-                        textStyle = normal,
-                        text = it,
-                    )
+                    append(it)
                 }
             }
         }

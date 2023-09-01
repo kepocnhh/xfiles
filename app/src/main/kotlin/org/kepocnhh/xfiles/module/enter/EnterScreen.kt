@@ -226,32 +226,24 @@ private fun EnterScreenPortrait(
             when (exists) {
                 true -> {
                     Column(modifier = modifier) {
+                        val textStyle = TextStyle(
+                            color = App.Theme.colors.foreground,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                        )
                         BasicText(
                             modifier = Modifier.fillMaxWidth(),
-                            style = TextStyle(
-                                color = App.Theme.colors.foreground,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                            ),
+                            style = textStyle,
                             text = App.Theme.strings.databaseExists,
                         )
                         Spacer(modifier = Modifier.height(App.Theme.sizes.s))
                         ClickableText(
                             modifier = Modifier.fillMaxWidth(),
                             text = App.Theme.strings.databaseDelete,
-                            style = TextStyle(textAlign = TextAlign.Center),
-                            styles = { tag ->
-                                when (tag) {
-                                    Strings.Tags.DELETE -> TextStyle(
-                                        color = Colors.primary,
-                                        fontSize = 16.sp,
-                                    )
-                                    else -> TextStyle(
-                                        color = App.Theme.colors.foreground,
-                                        fontSize = 16.sp,
-                                    )
-                                }
-                            },
+                            style = textStyle,
+                            styles = mapOf(
+                                Strings.Tags.DELETE to TextStyle(Colors.primary),
+                            ),
                             onClick = { tag ->
                                 when (tag) {
                                     Strings.Tags.DELETE -> {
