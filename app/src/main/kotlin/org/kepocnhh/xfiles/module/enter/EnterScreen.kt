@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles.module.enter
 
 import android.content.res.Configuration
 import android.view.View
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,7 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
@@ -26,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -40,9 +45,11 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.util.android.showToast
+import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
+import org.kepocnhh.xfiles.util.compose.Squares
 import sp.ax.jc.dialogs.Dialog
 import java.util.regex.Pattern
 import javax.crypto.SecretKey
@@ -264,12 +271,21 @@ private fun EnterScreenPortrait(
                         text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
                     )
                 }
-                null -> {
-                    BasicText(
-                        modifier = Modifier.align(Alignment.Center),
-                        text = "loading...", // todo
-                    )
+                else -> {
+                    // noop
                 }
+            }
+            AnimatedFadeVisibility(
+                modifier = Modifier.align(Alignment.Center),
+                visible = exists == null,
+                duration = App.Theme.durations.animation,
+            ) {
+                Squares(
+                    color = App.Theme.colors.foreground,
+                    width = App.Theme.sizes.l,
+                    padding = App.Theme.sizes.s,
+                    radius = App.Theme.sizes.xs,
+                )
             }
         }
         BasicText(

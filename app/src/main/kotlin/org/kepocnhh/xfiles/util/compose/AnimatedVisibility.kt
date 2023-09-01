@@ -80,3 +80,21 @@ internal fun AnimatedHVisibilityShadow(
         content = content,
     )
 }
+
+@Composable
+internal fun AnimatedFadeVisibility(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    label: String = "AnimatedFadeVisibility",
+    duration: Duration,
+    content: @Composable AnimatedVisibilityScope.() -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        label = label,
+        enter = fadeIn(tween(duration.inWholeMilliseconds.toInt())),
+        exit = fadeOut(tween(duration.inWholeMilliseconds.toInt())),
+        content = content,
+    )
+}
