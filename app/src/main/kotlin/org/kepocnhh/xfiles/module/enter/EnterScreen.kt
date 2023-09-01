@@ -46,6 +46,7 @@ import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
@@ -230,50 +231,53 @@ private fun EnterScreenPortrait(
                     start = App.Theme.sizes.s,
                     end = App.Theme.sizes.s,
                 )
-            when (exists) {
-                true -> {
-                    Column(modifier = modifier) {
-                        val textStyle = TextStyle(
-                            color = App.Theme.colors.foreground,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                        )
-                        BasicText(
-                            modifier = Modifier.fillMaxWidth(),
-                            style = textStyle,
-                            text = App.Theme.strings.databaseExists,
-                        )
-                        Spacer(modifier = Modifier.height(App.Theme.sizes.s))
-                        val tag = "databaseDelete"
-                        ClickableText(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = App.Theme.strings.databaseDelete(tag),
-                            style = textStyle,
-                            styles = mapOf(tag to TextStyle(Colors.primary)),
-                            onClick = {
-                                when (it) {
-                                    tag -> {
-                                        deleteDialogState.value = true
-                                    }
-                                }
-                            },
-                        )
-                    }
-                }
-                false -> {
+            AnimatedHVisibility(
+                modifier = modifier,
+                visible = exists == true,
+                duration = App.Theme.durations.animation,
+                initialOffsetX = { it },
+            ) {
+                Column {
+                    val textStyle = TextStyle(
+                        color = App.Theme.colors.foreground,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                    )
                     BasicText(
-                        modifier = modifier,
-                        style = TextStyle(
-                            color = App.Theme.colors.foreground,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                        ),
-                        text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
+                        modifier = Modifier.fillMaxWidth(),
+                        style = textStyle,
+                        text = App.Theme.strings.databaseExists,
+                    )
+                    Spacer(modifier = Modifier.height(App.Theme.sizes.s))
+                    val tag = "databaseDelete"
+                    ClickableText(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = App.Theme.strings.databaseDelete(tag),
+                        style = textStyle,
+                        styles = mapOf(tag to TextStyle(Colors.primary)),
+                        onClick = {
+                            when (it) {
+                                tag -> {
+                                    deleteDialogState.value = true
+                                }
+                            }
+                        },
                     )
                 }
-                else -> {
-                    // noop
-                }
+            }
+            AnimatedHVisibility(
+                modifier = modifier,
+                visible = exists == false,
+                duration = App.Theme.durations.animation,
+            ) {
+                BasicText(
+                    style = TextStyle(
+                        color = App.Theme.colors.foreground,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                    ),
+                    text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
+                )
             }
             AnimatedFadeVisibility(
                 modifier = Modifier.align(Alignment.Center),
