@@ -6,6 +6,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import org.bouncycastle.asn1.x509.DSAParameter
+import org.bouncycastle.crypto.digests.SHA256Digest
+import org.bouncycastle.crypto.params.DSAParameterGenerationParameters
+import org.bouncycastle.jcajce.provider.asymmetric.DSA
+import org.bouncycastle.jcajce.provider.digest.SHA256
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.module.app.Injection
@@ -110,21 +116,30 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 //            val x = BigInteger(1, w)
 //            val c = x.mod(q.shiftLeft(1))
 //            val p = x.subtract(c.subtract(BigInteger.ONE))
-            val l1 = BigInteger(L, certainty, random)
+//            val l1 = BigInteger(L, certainty, random)
 //            val lm = l1.subtract(BigInteger.ONE).mod(q) // lm = (l1 - 1) % q
-            val ld = l1.subtract(BigInteger.ONE).div(q) // ld = (l1 - 1) / q
+//            val ld = l1.subtract(BigInteger.ONE).div(q) // ld = (l1 - 1) / q
             // ld * q = l1 - 1
             // ld * q + 1 = p
 //            val p = ld * l1.subtract(BigInteger.ONE) // p = ld * (l1 - 1)
-            val p = ld.multiply(q).add(BigInteger.ONE) // p = ld * q + 1
-//            val p = BigInteger(L, certainty, random)
+//            val p = ld.multiply(q).add(BigInteger.ONE) // p = ld * q + 1
+            // p = q * c + m + 1
+            val f = BigInteger(L, certainty, random)
+            val c = f
+                .subtract(BigInteger.ONE)
+                .divide(q)
+                .multiply(q)
+            if (c.testBit(0)) continue
+            val p = c.add(BigInteger.ONE)
+            println("\ttmp(f): $f")
             println("\ttmp(p): $p")
+            if (!p.isProbablePrime(certainty)) continue
             println("\ttmp(p): bit length: ${p.bitLength()}")
             if (p.bitLength() != L) continue
             println("\tp-1: ${p.subtract(BigInteger.ONE)}")
             println("\t(p-1)%q: ${p.subtract(BigInteger.ONE).mod(q)}")
             if (p.subtract(BigInteger.ONE).mod(q) != m) continue
-            if (p.isProbablePrime(certainty)) return p
+            return p
 //            if (p.subtract(BigInteger.ONE).mod(q) == BigInteger.ZERO) {
 //                return p
 //            }
@@ -210,14 +225,20 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 //            L = 2048, N = 256
 //            L = 3072, N = 256
 //            strength must be from 512 - 4096 and a multiple of 1024 above 1024
-            val primes = 1024 * 1
-//            val primes = 1024 * 2
-            generator.initialize(primes, random)
-            val subPrimes = 160 // must be 160 for primes = 1024
-//            val subPrimes = 256 // must be 224 or 256 for primes = 2048
             val certainty = 20
 //            val certainty = 100
+//            val primes = 1024 * 1
+            val primes = 1024 * 2
+//            val subPrimes = 160 // must be 160 for primes = 1024
+            val subPrimes = 256 // must be 224 or 256 for primes = 2048
+            val params = org.bouncycastle.crypto.generators.DSAParametersGenerator(SHA256Digest()).let {
+//                it.init(primes, certainty, random)
+                it.init(DSAParameterGenerationParameters(primes, subPrimes, certainty, random))
+                it.generateParameters()
+            }
+//            generator.initialize(primes, random)
 //            generator.initialize(getSpec(L = primes, N = subPrimes, certainty = certainty, random))
+            generator.initialize(DSAParameterSpec(params.p, params.q, params.g))
             generator.generateKeyPair().also {
                 val private = it.private
                 check(private is DSAPrivateKey)
@@ -228,6 +249,14 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                         base: [${private.params.g.bitLength()}] ${private.params.g}
                     """.trimIndent()
                 )
+                val L = private.params.p.bitLength()
+                val N = private.params.q.bitLength()
+                check(setOf(1024, 2048, 3072).contains(L))
+                when (L) {
+                    1024 -> check(N == 160)
+                    2048 -> check(N == 224 || N == 256)
+                    3072 -> check(N == 256)
+                }
             }
         }
         println("generate key pair: ${System.currentTimeMillis().milliseconds - startTime}")
