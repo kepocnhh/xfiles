@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Dimensions
@@ -30,6 +31,7 @@ import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.LoggerFactory
+import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
@@ -126,6 +128,15 @@ internal class App : Application() {
                 default = Dispatchers.Default,
             ),
             files = FinalEncryptedFileProvider(context = this),
+            local = FinalLocalDataProvider(
+                context = this,
+                defaults = Defaults(
+                    themeState = ThemeState(
+                        colorsType = ColorsType.AUTO,
+                        language = Language.AUTO,
+                    )
+                )
+            ),
         )
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {

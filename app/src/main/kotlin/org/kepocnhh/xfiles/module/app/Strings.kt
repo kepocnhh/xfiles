@@ -7,4 +7,8 @@ internal interface Strings {
     val yes: String
     val databaseExists: String
     fun databaseDelete(tag: String): String
+    val colors: String
+    val dark: String
+    val light: String
+    val auto: String
 }
