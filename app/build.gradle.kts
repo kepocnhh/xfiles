@@ -10,8 +10,8 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
 }
 
-val code = 4
-version = "0.1.0"
+val code = 5
+version = "0.1.1"
 
 plugins {
     id("com.android.application")
