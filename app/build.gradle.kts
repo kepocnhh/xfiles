@@ -174,7 +174,6 @@ dependencies {
     implementation("androidx.security:security-crypto:1.0.0")
     implementation("com.github.kepocnhh:ComposeClicks:0.2.1-SNAPSHOT")
     implementation("com.github.kepocnhh:ComposeDialogs:0.1.0-SNAPSHOT")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
 }

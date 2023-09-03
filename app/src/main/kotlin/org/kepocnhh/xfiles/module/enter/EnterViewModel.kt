@@ -6,12 +6,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import org.bouncycastle.asn1.x509.DSAParameter
-import org.bouncycastle.crypto.digests.SHA256Digest
-import org.bouncycastle.crypto.params.DSAParameterGenerationParameters
-import org.bouncycastle.jcajce.provider.asymmetric.DSA
-import org.bouncycastle.jcajce.provider.digest.SHA256
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.module.app.Injection
@@ -25,14 +19,17 @@ import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getCipherAlgorithm
 import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.math.BigInteger
+import java.security.AlgorithmParameterGenerator
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.Security
 import java.security.Signature
+import java.security.interfaces.DSAKeyPairGenerator
 import java.security.interfaces.DSAParams
 import java.security.interfaces.DSAPrivateKey
+import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.DSAParameterSpec
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -210,14 +207,21 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             salt = ByteArray(bits / 8).also(random::nextBytes),
             iv = ByteArray(blockSize).also(random::nextBytes),
 //            iterations = 2.0.pow(10).toInt(),
-            iterations = 2.0.pow(16).toInt(),
-//            iterations = 2.0.pow(20).toInt(),
-//            iterations = 1_048_576,
+            iterations = 2.0.pow(16).toInt(), // 65_536
+//            iterations = 2.0.pow(17).toInt(), // 131_072
+//            iterations = 2.0.pow(20).toInt(), // 1_048_576
+//            iterations = 1_048_576, // 2^20
             bits = bits,
         )
         println("create meta: ${System.currentTimeMillis().milliseconds - startTime}")
         injection.files.writeBytes("sym.json", meta.toJson().toString().toByteArray())
 //        val primes = Cipher.getMaxAllowedKeyLength("DSA")
+//        val algorithms = Security.getAlgorithms("AlgorithmParameterGenerator")
+//        println("algorithms: $algorithms")
+//        TODO()
+//        AlgorithmParameterSpec
+//        DSAParameterSpec
+//        DSAKeyPairGenerator
         val pair = KeyPairGenerator.getInstance("DSA").let { generator ->
 //            generator.initialize(1024, random)
 //            L = 1024, N = 160
@@ -231,14 +235,20 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             val primes = 1024 * 2
 //            val subPrimes = 160 // must be 160 for primes = 1024
             val subPrimes = 256 // must be 224 or 256 for primes = 2048
-            val params = org.bouncycastle.crypto.generators.DSAParametersGenerator(SHA256Digest()).let {
-//                it.init(primes, certainty, random)
-                it.init(DSAParameterGenerationParameters(primes, subPrimes, certainty, random))
+            val params = AlgorithmParameterGenerator.getInstance(generator.algorithm).let {
+                it.init(primes, random)
                 it.generateParameters()
             }
+//            val params = DSAParametersGenerator(SHA256Digest()).let {
+//                it.init(DSAParameterGenerationParameters(primes, subPrimes, certainty, random))
+//                it.generateParameters()
+//            }
+            println("generate params: ${System.currentTimeMillis().milliseconds - startTime}")
 //            generator.initialize(primes, random)
 //            generator.initialize(getSpec(L = primes, N = subPrimes, certainty = certainty, random))
-            generator.initialize(DSAParameterSpec(params.p, params.q, params.g))
+//            generator.initialize(DSAParameterSpec(params.p, params.q, params.g))
+            generator.initialize(params.getParameterSpec(DSAParameterSpec::class.java))
+            println("generator initialize: ${System.currentTimeMillis().milliseconds - startTime}")
             generator.generateKeyPair().also {
                 val private = it.private
                 check(private is DSAPrivateKey)
@@ -320,11 +330,11 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     private fun unlock(pin: String): SecretKey {
         val startTime = System.currentTimeMillis().milliseconds // todo
-        val chars = hash(pin = pin).base64().toCharArray()
+        val hash = hash(pin = pin).base64()
         val meta = JSONObject(injection.files.readText("sym.json")).toKeyMeta()
         val cipher = Cipher.getInstance(meta.algorithm)
         val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
-            val spec = PBEKeySpec(chars, meta.salt, meta.iterations, meta.bits)
+            val spec = PBEKeySpec(hash.toCharArray(), meta.salt, meta.iterations, meta.bits)
             factory.generateSecret(spec)
         }
         println("generate secret key: ${System.currentTimeMillis().milliseconds - startTime}")
