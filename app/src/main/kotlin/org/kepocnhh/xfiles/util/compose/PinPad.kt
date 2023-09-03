@@ -27,7 +27,7 @@ import org.kepocnhh.xfiles.R
 @Composable
 private fun PinRow(
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    enabled: Boolean,
     first: Char,
     second: Char,
     third: Char,
@@ -96,8 +96,9 @@ internal fun PinPad(
     textStyle: TextStyle,
     enabled: Boolean = true,
     visibleDelete: Boolean = true,
-    onClick: (Char) -> Unit,
     onDelete: () -> Unit,
+    onSettings: () -> Unit,
+    onClick: (Char) -> Unit,
 ) {
     Column(modifier = modifier) {
         PinRow(
@@ -132,12 +133,29 @@ internal fun PinPad(
                 .fillMaxWidth()
                 .height(rowHeight),
         ) {
-            Spacer(
+            Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .wrapContentHeight(),
-            )
+                    .let {
+                        if (enabled) {
+                            it.clickable {
+                                onSettings()
+                            }
+                        } else {
+                            it
+                        }
+                    },
+            ) {
+                Image(
+                    modifier = Modifier
+                        .size(rowHeight / 2)
+                        .align(Alignment.Center),
+                    painter = painterResource(id = R.drawable.gear),
+                    contentDescription = "delete",
+                    colorFilter = ColorFilter.tint(textStyle.color),
+                )
+            }
             val char = '0'
             BasicText(
                 modifier = Modifier
@@ -178,7 +196,7 @@ internal fun PinPad(
                 ) {
                     Image(
                         modifier = Modifier
-                            .size(rowHeight / 1.5f),
+                            .size(rowHeight / 2),
                         painter = painterResource(id = R.drawable.cross),
                         contentDescription = "delete",
                         colorFilter = ColorFilter.tint(textStyle.color),

@@ -217,6 +217,9 @@ private fun EnterScreenLandscape(
                 onDelete = {
                     pinState.value = ""
                 },
+                onSettings = {
+                    TODO()
+                }
             )
         }
     }
@@ -343,6 +346,12 @@ private fun EnterScreenPortrait(
                 .fillMaxWidth(),
             enabled = exists != null && !error,
             visibleDelete = pinState.value.isNotEmpty(),
+            onDelete = {
+                pinState.value = ""
+            },
+            onSettings = {
+                         // todo
+            },
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,
@@ -351,9 +360,6 @@ private fun EnterScreenPortrait(
             ),
             onClick = { char ->
                 pinState.value += char
-            },
-            onDelete = {
-                pinState.value = ""
             },
         )
     }
