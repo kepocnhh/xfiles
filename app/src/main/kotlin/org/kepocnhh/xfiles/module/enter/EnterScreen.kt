@@ -4,12 +4,15 @@ import android.content.res.Configuration
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,7 +54,9 @@ import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHOpen
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
@@ -77,6 +82,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf(false) }
     val deleteDialogState = remember { mutableStateOf(false) }
+    val settingsState = remember { mutableStateOf(false) }
     if (deleteDialogState.value) {
         Dialog(
             App.Theme.strings.yes to {
@@ -135,6 +141,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 exists = exists,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
+                settingsState = settingsState,
             )
         }
         else -> {
@@ -143,8 +150,44 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 error = errorState.value,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
+                settingsState = settingsState,
             )
         }
+    }
+    val orientation = LocalConfiguration.current.orientation
+    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
+        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
+        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
+        else -> error("Layout direction $i is not supported!")
+    }
+    val width = LocalConfiguration.current.screenWidthDp.dp
+    val targetWidth = when (orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            LocalConfiguration.current.screenHeightDp.dp + App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)
+        }
+        Configuration.ORIENTATION_PORTRAIT -> width
+        else -> TODO()
+    }
+    val colorShadow = when (orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> Colors.black.copy(alpha = 0.75f)
+        Configuration.ORIENTATION_PORTRAIT -> Colors.black
+        else -> TODO()
+    }
+    AnimatedHOpen(
+        visible = settingsState.value,
+        width = width,
+        targetWidth = targetWidth,
+        duration = App.Theme.durations.animation,
+        colorShadow = colorShadow,
+        onShadow = {
+            settingsState.value = false
+        },
+    ) {
+        SettingsScreen(
+            onBack = {
+                settingsState.value = false
+            },
+        )
     }
 }
 
@@ -153,6 +196,7 @@ private fun EnterScreenLandscape(
     exists: Boolean?,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
+    settingsState: MutableState<Boolean>,
 ) {
     val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
         View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
@@ -218,7 +262,7 @@ private fun EnterScreenLandscape(
                     pinState.value = ""
                 },
                 onSettings = {
-                    TODO()
+                    settingsState.value = true
                 }
             )
         }
@@ -231,6 +275,7 @@ private fun EnterScreenPortrait(
     error: Boolean,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
+    settingsState: MutableState<Boolean>,
 ) {
     Column(
         modifier = Modifier
@@ -350,7 +395,7 @@ private fun EnterScreenPortrait(
                 pinState.value = ""
             },
             onSettings = {
-                         // todo
+                settingsState.value = true
             },
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
