@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 
@@ -24,6 +25,16 @@ internal class ThemeViewModel(private val injection: Injection) : AbstractViewMo
         injection.launch {
             _state.value = withContext(injection.contexts.default) {
                 injection.local.themeState.copy(colorsType = value).also {
+                    injection.local.themeState = it
+                }
+            }
+        }
+    }
+
+    fun setLanguage(value: Language) {
+        injection.launch {
+            _state.value = withContext(injection.contexts.default) {
+                injection.local.themeState.copy(language = value).also {
                     injection.local.themeState = it
                 }
             }

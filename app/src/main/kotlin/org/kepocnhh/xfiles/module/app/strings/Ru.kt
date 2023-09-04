@@ -14,4 +14,7 @@ internal object Ru : Strings {
     override val dark = "Тёмные"
     override val light = "Светлые"
     override val auto = "Автоматически"
+    override val language = "Язык"
+    override val english = "Английский"
+    override val russian = "Русский"
 }

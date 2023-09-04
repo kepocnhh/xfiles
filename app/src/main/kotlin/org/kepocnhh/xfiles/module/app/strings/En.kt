@@ -14,4 +14,7 @@ internal object En : Strings {
     override val dark = "Dark"
     override val light = "Light"
     override val auto = "Auto"
+    override val language = "Language"
+    override val english = "English"
+    override val russian = "Russian"
 }

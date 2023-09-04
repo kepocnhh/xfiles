@@ -11,4 +11,7 @@ internal interface Strings {
     val dark: String
     val light: String
     val auto: String
+    val language: String
+    val english: String
+    val russian: String
 }
