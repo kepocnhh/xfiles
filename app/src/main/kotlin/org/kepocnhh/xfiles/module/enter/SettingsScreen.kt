@@ -55,6 +55,19 @@ internal fun SettingsScreen(onBack: () -> Unit) {
 }
 
 @Composable
+private fun getColors(colorsType: ColorsType): Colors {
+    return when (colorsType) {
+        ColorsType.DARK -> Colors.Dark
+        ColorsType.LIGHT -> Colors.Light
+        ColorsType.AUTO -> if (isSystemInDarkTheme()) {
+            Colors.Dark
+        } else {
+            Colors.Light
+        }
+    }
+}
+
+@Composable
 private fun getIcon(colorsType: ColorsType): Int {
     return when (colorsType) {
         ColorsType.DARK -> R.drawable.moon
@@ -77,13 +90,12 @@ private fun getText(colorsType: ColorsType): String {
 }
 
 @Composable
-private fun ColorRow(
-    colors: Colors,
-    icon: Int,
-    text: String,
+private fun SettingsColorRow(
+    colorsType: ColorsType,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val colors = getColors(colorsType)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,7 +108,7 @@ private fun ColorRow(
                 .padding(start = App.Theme.sizes.small)
                 .size(App.Theme.sizes.medium)
                 .align(Alignment.CenterStart),
-            painter = painterResource(id = icon),
+            painter = painterResource(id = getIcon(colorsType)),
             contentDescription = "colors:row:icon",
             colorFilter = ColorFilter.tint(colors.foreground),
         )
@@ -106,7 +118,7 @@ private fun ColorRow(
                 color = colors.foreground,
                 fontSize = 14.sp,
             ),
-            text = text,
+            text = getText(colorsType),
         )
         if (selected) {
             Image(
@@ -186,36 +198,20 @@ private fun SettingsColors() {
                         bottom = App.Theme.sizes.medium,
                     ),
             ) {
-                ColorRow(
-                    colors = Colors.Light,
-                    icon = R.drawable.sun,
-                    text = App.Theme.strings.light,
-                    selected = theme.colorsType == ColorsType.LIGHT,
-                    onClick = {
-                        themeViewModel.setColorsType(ColorsType.LIGHT)
-                        dialogState.value = false
-                    }
-                )
-                ColorRow(
-                    colors = Colors.Dark,
-                    icon = R.drawable.moon,
-                    text = App.Theme.strings.dark,
-                    selected = theme.colorsType == ColorsType.DARK,
-                    onClick = {
-                        themeViewModel.setColorsType(ColorsType.DARK)
-                        dialogState.value = false
-                    }
-                )
-                ColorRow(
-                    colors = Colors.Dark,
-                    icon = getIcon(ColorsType.AUTO),
-                    text = App.Theme.strings.auto,
-                    selected = theme.colorsType == ColorsType.AUTO,
-                    onClick = {
-                        themeViewModel.setColorsType(ColorsType.AUTO)
-                        dialogState.value = false
-                    }
-                )
+                setOf(
+                    ColorsType.LIGHT,
+                    ColorsType.DARK,
+                    ColorsType.AUTO,
+                ).forEach { colorsType ->
+                    SettingsColorRow(
+                        colorsType = colorsType,
+                        selected = theme.colorsType == colorsType,
+                        onClick = {
+                            themeViewModel.setColorsType(colorsType)
+                            dialogState.value = false
+                        }
+                    )
+                }
             }
         }
     }
