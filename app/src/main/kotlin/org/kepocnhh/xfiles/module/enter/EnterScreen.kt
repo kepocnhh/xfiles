@@ -4,12 +4,16 @@ import android.content.res.Configuration
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,11 +55,16 @@ import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.Strings
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHOpen
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.Squares
+import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
+import org.kepocnhh.xfiles.util.compose.screenHeight
+import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.ct
 import sp.ax.jc.dialogs.Dialog
 import java.util.regex.Pattern
@@ -77,6 +86,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf(false) }
     val deleteDialogState = remember { mutableStateOf(false) }
+    val settingsState = remember { mutableStateOf(false) }
     if (deleteDialogState.value) {
         Dialog(
             App.Theme.strings.yes to {
@@ -84,7 +94,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 deleteDialogState.value = false
             },
             message = "delete?",
-            onDismissRequest = { deleteDialogState.value = false }
+            onDismissRequest = { deleteDialogState.value = false },
         )
     }
     LaunchedEffect(Unit) {
@@ -135,6 +145,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 exists = exists,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
+                settingsState = settingsState,
             )
         }
         else -> {
@@ -143,8 +154,40 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 error = errorState.value,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
+                settingsState = settingsState,
             )
         }
+    }
+    val orientation = LocalConfiguration.current.orientation
+    val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
+    val width = LocalConfiguration.current.screenWidth(App.Theme.dimensions.insets)
+    val targetWidth = when (orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            LocalConfiguration.current.screenHeight(App.Theme.dimensions.insets) + App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)
+        }
+        Configuration.ORIENTATION_PORTRAIT -> width
+        else -> TODO()
+    }
+    val colorShadow = when (orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> Colors.black.copy(alpha = 0.75f)
+        Configuration.ORIENTATION_PORTRAIT -> Colors.black
+        else -> TODO()
+    }
+    AnimatedHOpen(
+        visible = settingsState.value,
+        width = width,
+        targetWidth = targetWidth,
+        duration = App.Theme.durations.animation,
+        colorShadow = colorShadow,
+        onShadow = {
+            settingsState.value = false
+        },
+    ) {
+        SettingsScreen(
+            onBack = {
+                settingsState.value = false
+            },
+        )
     }
 }
 
@@ -153,6 +196,7 @@ private fun EnterScreenLandscape(
     exists: Boolean?,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
+    settingsState: MutableState<Boolean>,
 ) {
     val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
         View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
@@ -217,6 +261,9 @@ private fun EnterScreenLandscape(
                 onDelete = {
                     pinState.value = ""
                 },
+                onSettings = {
+                    settingsState.value = true
+                }
             )
         }
     }
@@ -228,6 +275,7 @@ private fun EnterScreenPortrait(
     error: Boolean,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
+    settingsState: MutableState<Boolean>,
 ) {
     Column(
         modifier = Modifier
@@ -247,8 +295,8 @@ private fun EnterScreenPortrait(
                 .fillMaxWidth()
                 .align(Alignment.Center)
                 .padding(
-                    start = App.Theme.sizes.s,
-                    end = App.Theme.sizes.s,
+                    start = App.Theme.sizes.small,
+                    end = App.Theme.sizes.small,
                 )
             AnimatedHVisibility(
                 modifier = modifier,
@@ -267,7 +315,7 @@ private fun EnterScreenPortrait(
                         style = textStyle,
                         text = App.Theme.strings.databaseExists,
                     )
-                    Spacer(modifier = Modifier.height(App.Theme.sizes.s))
+                    Spacer(modifier = Modifier.height(App.Theme.sizes.small))
                     val tag = "databaseDelete"
                     ClickableText(
                         modifier = Modifier.fillMaxWidth(),
@@ -305,8 +353,8 @@ private fun EnterScreenPortrait(
             ) {
                 Squares(
                     color = App.Theme.colors.foreground,
-                    width = App.Theme.sizes.l,
-                    padding = App.Theme.sizes.s,
+                    width = App.Theme.sizes.large,
+                    padding = App.Theme.sizes.small,
                     radius = App.Theme.sizes.xs,
                 )
             }
@@ -325,8 +373,8 @@ private fun EnterScreenPortrait(
             BasicText(
                 modifier = Modifier
                     .padding(
-                        bottom = App.Theme.sizes.l,
-                        top = App.Theme.sizes.l,
+                        bottom = App.Theme.sizes.large,
+                        top = App.Theme.sizes.large,
                     )
                     .align(Alignment.BottomCenter)
                     .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
@@ -343,6 +391,12 @@ private fun EnterScreenPortrait(
                 .fillMaxWidth(),
             enabled = exists != null && !error,
             visibleDelete = pinState.value.isNotEmpty(),
+            onDelete = {
+                pinState.value = ""
+            },
+            onSettings = {
+                settingsState.value = true
+            },
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,
@@ -351,9 +405,6 @@ private fun EnterScreenPortrait(
             ),
             onClick = { char ->
                 pinState.value += char
-            },
-            onDelete = {
-                pinState.value = ""
             },
         )
     }
