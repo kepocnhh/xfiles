@@ -295,8 +295,8 @@ private fun EnterScreenPortrait(
                 .fillMaxWidth()
                 .align(Alignment.Center)
                 .padding(
-                    start = App.Theme.sizes.s,
-                    end = App.Theme.sizes.s,
+                    start = App.Theme.sizes.small,
+                    end = App.Theme.sizes.small,
                 )
             AnimatedHVisibility(
                 modifier = modifier,
@@ -315,7 +315,7 @@ private fun EnterScreenPortrait(
                         style = textStyle,
                         text = App.Theme.strings.databaseExists,
                     )
-                    Spacer(modifier = Modifier.height(App.Theme.sizes.s))
+                    Spacer(modifier = Modifier.height(App.Theme.sizes.small))
                     val tag = "databaseDelete"
                     ClickableText(
                         modifier = Modifier.fillMaxWidth(),
@@ -353,8 +353,8 @@ private fun EnterScreenPortrait(
             ) {
                 Squares(
                     color = App.Theme.colors.foreground,
-                    width = App.Theme.sizes.l,
-                    padding = App.Theme.sizes.s,
+                    width = App.Theme.sizes.large,
+                    padding = App.Theme.sizes.small,
                     radius = App.Theme.sizes.xs,
                 )
             }
@@ -373,8 +373,8 @@ private fun EnterScreenPortrait(
             BasicText(
                 modifier = Modifier
                     .padding(
-                        bottom = App.Theme.sizes.l,
-                        top = App.Theme.sizes.l,
+                        bottom = App.Theme.sizes.large,
+                        top = App.Theme.sizes.large,
                     )
                     .align(Alignment.BottomCenter)
                     .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
