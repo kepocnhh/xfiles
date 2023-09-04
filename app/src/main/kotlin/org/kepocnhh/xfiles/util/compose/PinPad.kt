@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -149,7 +150,7 @@ internal fun PinPad(
             ) {
                 Image(
                     modifier = Modifier
-                        .size(rowHeight / 2)
+                        .size(App.Theme.sizes.medium)
                         .align(Alignment.Center),
                     painter = painterResource(id = R.drawable.gear),
                     contentDescription = "delete",
@@ -196,10 +197,11 @@ internal fun PinPad(
                 ) {
                     Image(
                         modifier = Modifier
-                            .size(rowHeight / 2),
+                            .size(App.Theme.sizes.medium),
                         painter = painterResource(id = R.drawable.cross),
                         contentDescription = "delete",
                         colorFilter = ColorFilter.tint(textStyle.color),
+                        contentScale = ContentScale.Fit,
                     )
                 }
             }

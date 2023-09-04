@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -107,17 +108,12 @@ private fun ColorRow(
             ),
             text = text,
         )
-        AnimatedFadeVisibility(
-            modifier = Modifier
-                .padding(end = App.Theme.sizes.small)
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd),
-            visible = selected,
-            duration = App.Theme.durations.animation,
-        ) {
+        if (selected) {
             Image(
                 modifier = Modifier
-                    .size(App.Theme.sizes.small),
+                    .padding(end = App.Theme.sizes.small)
+                    .size(App.Theme.sizes.medium)
+                    .align(Alignment.CenterEnd),
                 painter = painterResource(id = R.drawable.check),
                 contentDescription = "colors:row:check",
                 colorFilter = ColorFilter.tint(colors.foreground),
