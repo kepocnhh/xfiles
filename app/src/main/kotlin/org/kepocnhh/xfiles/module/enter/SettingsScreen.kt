@@ -2,8 +2,10 @@ package org.kepocnhh.xfiles.module.enter
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +19,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
 
@@ -57,6 +62,23 @@ private fun SettingsColors() {
                 dialogState.value = true
             }
     ) {
+        val icon = when (theme.colorsType) {
+            ColorsType.DARK -> R.drawable.moon
+            ColorsType.LIGHT -> R.drawable.sun
+            ColorsType.AUTO -> if (isSystemInDarkTheme()) {
+                R.drawable.moon
+            } else {
+                R.drawable.sun
+            }
+        }
+        Image(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = App.Theme.sizes.s),
+            painter = painterResource(id = icon),
+            contentDescription = "colors:icon",
+            colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
+        )
         BasicText(
             modifier = Modifier.align(Alignment.Center),
             style = TextStyle(
@@ -78,7 +100,7 @@ private fun SettingsColors() {
                 ColorsType.DARK -> App.Theme.strings.dark
                 ColorsType.LIGHT -> App.Theme.strings.light
                 ColorsType.AUTO -> App.Theme.strings.auto
-            }
+            },
         )
     }
     if (dialogState.value) {
