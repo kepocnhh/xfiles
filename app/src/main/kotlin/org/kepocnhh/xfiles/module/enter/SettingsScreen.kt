@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +39,7 @@ import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 
 @Composable
 internal fun SettingsScreen(onBack: () -> Unit) {
@@ -237,11 +239,13 @@ private fun SettingsScreenPortrait() {
 
 @Composable
 private fun SettingsScreenLandscape() {
+    val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(App.Theme.colors.background),
+            .background(App.Theme.colors.background)
+            .padding(end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)),
     ) {
-        TODO()
+        Columns(modifier = Modifier.align(Alignment.Center))
     }
 }

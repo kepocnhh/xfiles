@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,6 +62,9 @@ import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.Squares
+import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
+import org.kepocnhh.xfiles.util.compose.screenHeight
+import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.ct
 import sp.ax.jc.dialogs.Dialog
 import java.util.regex.Pattern
@@ -90,7 +94,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 deleteDialogState.value = false
             },
             message = "delete?",
-            onDismissRequest = { deleteDialogState.value = false }
+            onDismissRequest = { deleteDialogState.value = false },
         )
     }
     LaunchedEffect(Unit) {
@@ -155,15 +159,11 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         }
     }
     val orientation = LocalConfiguration.current.orientation
-    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
-        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
-        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
-        else -> error("Layout direction $i is not supported!")
-    }
-    val width = LocalConfiguration.current.screenWidthDp.dp
+    val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
+    val width = LocalConfiguration.current.screenWidth(App.Theme.dimensions.insets)
     val targetWidth = when (orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
-            LocalConfiguration.current.screenHeightDp.dp + App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)
+            LocalConfiguration.current.screenHeight(App.Theme.dimensions.insets) + App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)
         }
         Configuration.ORIENTATION_PORTRAIT -> width
         else -> TODO()

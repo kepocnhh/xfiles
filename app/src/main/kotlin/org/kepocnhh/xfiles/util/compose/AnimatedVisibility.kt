@@ -154,56 +154,6 @@ internal fun AnimatedHOpen(
 }
 
 @Composable
-internal fun AnimatedHOpenOld(
-    openState: MutableState<Boolean>,
-    modifier: Modifier = Modifier,
-    colorShadow: Color = Color.Black,
-    width: Dp,
-    shadowWidth: Dp = width,
-    targetWidth: Dp,
-    duration: Duration,
-    content: @Composable () -> Unit,
-) {
-    val animatable = remember { Animatable(initialValue = 1f) }
-    val targetValue = if (openState.value) 0f else 1f
-    LaunchedEffect(openState.value) {
-        animatable.animateTo(
-            targetValue = targetValue,
-            animationSpec = tween(
-                durationMillis = duration.inWholeMilliseconds.toInt(),
-                easing = LinearEasing,
-            ),
-        )
-    }
-    if (animatable.value == 1f) return
-    Box(modifier = modifier) {
-        val alpha = (1 - animatable.value).absoluteValue
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(shadowWidth)
-                .background(colorShadow.copy(alpha = alpha))
-                .clickable {
-                    if (openState.value) openState.value = false
-                },
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(targetWidth)
-                .offset(x = width * animatable.value + (width - targetWidth))
-                .clickable(
-                    interactionSource = MutableInteractionSource(),
-                    indication = null,
-                    onClick = {},
-                ),
-        ) {
-            content()
-        }
-    }
-}
-
-@Composable
 internal fun AnimatedFadeVisibility(
     visible: Boolean,
     modifier: Modifier = Modifier,
