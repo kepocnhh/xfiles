@@ -57,8 +57,9 @@ private class KeyPairGeneratorProviderImpl(
 
 private class AlgorithmParameterGeneratorProviderImpl(
     private val delegate: AlgorithmParameterGenerator,
+    private val random: SecureRandom,
 ) : AlgorithmParameterGeneratorProvider {
-    override fun generate(size: Int, random: SecureRandom): AlgorithmParameters {
+    override fun generate(size: Int): AlgorithmParameters {
         delegate.init(size, random)
         return delegate.generateParameters()
     }
@@ -66,8 +67,9 @@ private class AlgorithmParameterGeneratorProviderImpl(
 
 private class SignatureProviderImpl(
     private val delegate: Signature,
+    private val random: SecureRandom,
 ) : SignatureProvider {
-    override fun sign(key: PrivateKey, random: SecureRandom, decrypted: ByteArray): ByteArray {
+    override fun sign(key: PrivateKey, decrypted: ByteArray): ByteArray {
         delegate.initSign(key, random)
         delegate.update(decrypted)
         return delegate.sign()
@@ -106,11 +108,11 @@ internal class FinalSecurityProvider : SecurityProvider {
     }
 
     override fun getAlgorithmParameterGenerator(algorithm: String): AlgorithmParameterGeneratorProvider {
-        return AlgorithmParameterGeneratorProviderImpl(AlgorithmParameterGenerator.getInstance(algorithm, provider))
+        return AlgorithmParameterGeneratorProviderImpl(AlgorithmParameterGenerator.getInstance(algorithm, provider), getSecureRandom())
     }
 
     override fun getSignature(algorithm: String): SignatureProvider {
-        return SignatureProviderImpl(Signature.getInstance(algorithm, provider))
+        return SignatureProviderImpl(Signature.getInstance(algorithm, provider), getSecureRandom())
     }
 
     override fun getSecretKeyFactory(algorithm: String): SecretKeyFactoryProvider {

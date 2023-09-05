@@ -88,7 +88,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 //            val primes = 1024 * 1
             val primes = 1024 * 2
             val params = injection.security.getAlgorithmParameterGenerator("DSA")
-                .generate(primes, random)
+                .generate(primes)
             generator.generate(params.getParameterSpec(DSAParameterSpec::class.java)).also {
                 val private = it.private
                 check(private is DSAPrivateKey)
@@ -128,7 +128,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 injection.files.writeBytes("asym.json", json.toString().toByteArray())
             }
         injection.security.getSignature("SHA256WithDSA").also { signature ->
-            val sign = signature.sign(pair.private, random, decrypted = decrypted)
+            val sign = signature.sign(pair.private, decrypted = decrypted)
             injection.files.writeBytes("db.json.sig", sign)
             println("signature sign: ${System.currentTimeMillis().milliseconds - startTime}")
         }
