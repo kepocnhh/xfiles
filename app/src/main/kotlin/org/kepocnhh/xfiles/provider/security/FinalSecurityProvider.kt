@@ -5,7 +5,10 @@ import java.security.AlgorithmParameters
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
+import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.SecureRandom
+import java.security.Signature
 import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -58,6 +61,22 @@ private class AlgorithmParameterGeneratorProviderImpl(
     }
 }
 
+private class SignatureProviderImpl(
+    private val delegate: Signature,
+) : SignatureProvider {
+    override fun sign(key: PrivateKey, random: SecureRandom, decrypted: ByteArray): ByteArray {
+        delegate.initSign(key, random)
+        delegate.update(decrypted)
+        return delegate.sign()
+    }
+
+    override fun verify(key: PublicKey, decrypted: ByteArray, sig: ByteArray): Boolean {
+        delegate.initVerify(key)
+        delegate.update(decrypted)
+        return delegate.verify(sig)
+    }
+}
+
 internal class FinalSecurityProvider : SecurityProvider {
     companion object {
         private const val provider = "BC"
@@ -77,5 +96,9 @@ internal class FinalSecurityProvider : SecurityProvider {
 
     override fun getAlgorithmParameterGenerator(algorithm: String): AlgorithmParameterGeneratorProvider {
         return AlgorithmParameterGeneratorProviderImpl(AlgorithmParameterGenerator.getInstance(algorithm, provider))
+    }
+
+    override fun getSignature(algorithm: String): SignatureProvider {
+        return SignatureProviderImpl(Signature.getInstance(algorithm, provider))
     }
 }

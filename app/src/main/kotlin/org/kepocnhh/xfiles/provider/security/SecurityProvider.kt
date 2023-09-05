@@ -5,4 +5,5 @@ internal interface SecurityProvider {
     fun getCipher(transformation: String): CipherProvider
     fun getKeyPairGenerator(algorithm: String): KeyPairGeneratorProvider
     fun getAlgorithmParameterGenerator(algorithm: String): AlgorithmParameterGeneratorProvider
+    fun getSignature(algorithm: String): SignatureProvider
 }

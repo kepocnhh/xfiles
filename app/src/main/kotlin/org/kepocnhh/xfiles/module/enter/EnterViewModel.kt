@@ -17,7 +17,6 @@ import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getCipherAlgorithm
 import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.security.KeyFactory
-import java.security.Signature
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
 import javax.crypto.SecretKey
@@ -130,12 +129,9 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             .also { json ->
                 injection.files.writeBytes("asym.json", json.toString().toByteArray())
             }
-        Signature.getInstance("SHA256WithDSA").also { signature ->
-            signature.initSign(pair.private, random)
-            println("init sign: ${System.currentTimeMillis().milliseconds - startTime}")
-            signature.update(decrypted)
-            println("signature update: ${System.currentTimeMillis().milliseconds - startTime}")
-            injection.files.writeBytes("db.json.sig", signature.sign())
+        injection.security.getSignature("SHA256WithDSA").also { signature ->
+            val sign = signature.sign(pair.private, random, decrypted = decrypted)
+            injection.files.writeBytes("db.json.sig", sign)
             println("signature sign: ${System.currentTimeMillis().milliseconds - startTime}")
         }
         return key
@@ -193,12 +189,12 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         println("generate key pair: ${System.currentTimeMillis().milliseconds - startTime}")
         val decrypted = cipher.decrypt(key, params, injection.files.readBytes("db.json.enc"))
         println("decrypt: ${System.currentTimeMillis().milliseconds - startTime}")
-        Signature.getInstance("SHA256WithDSA").also { signature ->
-            signature.initVerify(pair.public)
-            println("init verify: ${System.currentTimeMillis().milliseconds - startTime}")
-            signature.update(decrypted)
-            println("signature update: ${System.currentTimeMillis().milliseconds - startTime}")
-            val verified = signature.verify(injection.files.readBytes("db.json.sig"))
+        injection.security.getSignature("SHA256WithDSA").also { signature ->
+            val verified = signature.verify(
+                key = pair.public,
+                decrypted = decrypted,
+                sig = injection.files.readBytes("db.json.sig"),
+            )
             println("signature verify: ${System.currentTimeMillis().milliseconds - startTime}")
             check(verified)
         }
