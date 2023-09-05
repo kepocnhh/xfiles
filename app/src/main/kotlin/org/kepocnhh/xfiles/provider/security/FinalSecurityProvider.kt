@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.provider.security
 
+import android.os.Build
 import java.security.AlgorithmParameterGenerator
 import java.security.AlgorithmParameters
 import java.security.KeyPair
@@ -114,5 +115,13 @@ internal class FinalSecurityProvider : SecurityProvider {
 
     override fun getSecretKeyFactory(algorithm: String): SecretKeyFactoryProvider {
         return SecretKeyFactoryProviderImpl(SecretKeyFactory.getInstance(algorithm, provider))
+    }
+
+    override fun getSecureRandom(): SecureRandom {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            SecureRandom.getInstanceStrong()
+        } else {
+            SecureRandom.getInstance("SHA1PRNG", "AndroidOpenSSL")
+        }
     }
 }

@@ -15,7 +15,6 @@ import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getCipherAlgorithm
-import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.security.KeyFactory
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
@@ -62,7 +61,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     private fun create(pin: String): SecretKey {
         val startTime = System.currentTimeMillis().milliseconds // todo
         val hash = hash(pin = pin).base64()
-        val random = getSecureRandom()
+        val random = injection.security.getSecureRandom()
 //        val bits = 8 * 8 // 64
 //        val bits = 8 * 16 // 128
         val bits = 8 * 32 // 256 bits (32 octets)

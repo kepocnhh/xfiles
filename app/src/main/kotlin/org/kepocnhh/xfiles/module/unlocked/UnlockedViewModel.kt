@@ -17,7 +17,6 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.decrypt
 import org.kepocnhh.xfiles.util.security.encrypt
 import org.kepocnhh.xfiles.util.security.generateKeyPair
-import org.kepocnhh.xfiles.util.security.getSecureRandom
 import java.security.KeyFactory
 import java.security.Signature
 import javax.crypto.Cipher
@@ -66,7 +65,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             )
         }
         injection.files.writeBytes("db.json.enc", cipher.encrypt(key, params, decrypted))
-        val random = getSecureRandom()
+        val random = injection.security.getSecureRandom()
         Signature.getInstance("SHA256WithDSA").also { signature ->
             signature.initSign(pair.private, random)
             signature.update(decrypted)
