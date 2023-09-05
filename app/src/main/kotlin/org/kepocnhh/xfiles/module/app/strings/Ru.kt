@@ -4,6 +4,8 @@ import org.kepocnhh.xfiles.module.app.Strings
 
 internal object Ru : Strings {
     override val yes: String = "Да"
+
+    override val noDatabase = "Базы данных пока нет. Введите пин-код, чтобы создать новую защищенную базу данных."
     override val databaseExists = "База данных существует. Введите пинкод чтобы разблокировать."
 
     override fun databaseDelete(tag: String): String {
@@ -17,4 +19,8 @@ internal object Ru : Strings {
     override val language = "Язык"
     override val english = "Английский"
     override val russian = "Русский"
+
+    override val dialogs = Strings.Dialogs(
+        databaseDelete = "Хотите удалить базу данных? Это не может быть отменено.",
+    )
 }
