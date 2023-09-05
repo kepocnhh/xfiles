@@ -17,4 +17,8 @@ internal object Ru : Strings {
     override val language = "Язык"
     override val english = "Английский"
     override val russian = "Русский"
+
+    override val dialogs = Strings.Dialogs(
+        databaseDelete = "Хотите удалить базу данных? Это не может быть отменено.",
+    )
 }

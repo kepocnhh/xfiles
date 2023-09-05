@@ -92,7 +92,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 viewModel.deleteFile()
                 deleteDialogState.value = false
             },
-            message = "delete?",
+            message = App.Theme.strings.dialogs.databaseDelete,
             onDismissRequest = { deleteDialogState.value = false },
         )
     }

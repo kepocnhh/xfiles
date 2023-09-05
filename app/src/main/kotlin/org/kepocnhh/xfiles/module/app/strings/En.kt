@@ -17,4 +17,8 @@ internal object En : Strings {
     override val language = "Language"
     override val english = "English"
     override val russian = "Russian"
+
+    override val dialogs = Strings.Dialogs(
+        databaseDelete = "Do you want to delete the database? It cannot be undone.",
+    )
 }

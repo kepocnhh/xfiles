@@ -14,4 +14,10 @@ internal interface Strings {
     val language: String
     val english: String
     val russian: String
+
+    val dialogs: Dialogs
+
+    data class Dialogs(
+        val databaseDelete: String,
+    )
 }
