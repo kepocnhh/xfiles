@@ -336,6 +336,7 @@ private fun EnterScreenLandscape(
                     .width(parent.maxHeight)
                     .align(Alignment.CenterVertically),
                 enabled = exists != null,
+                visibleDelete = pinState.value.isNotEmpty(),
                 rowHeight = 64.dp,
                 textStyle = TextStyle(
                     textAlign = TextAlign.Center,
