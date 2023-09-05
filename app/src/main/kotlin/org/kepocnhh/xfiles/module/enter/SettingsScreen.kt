@@ -389,10 +389,29 @@ private fun SettingsLanguage() {
 }
 
 @Composable
+private fun SettingsCipher() {
+    // Cipher
+    // SecretKeyFactory
+    // KeyPairGenerator
+    // Signature
+    BasicText(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(App.Theme.sizes.xxxl),
+        style = TextStyle(
+            color = App.Theme.colors.foreground,
+            fontSize = 14.sp,
+        ),
+        text = "Cipher: ...",
+    )
+}
+
+@Composable
 private fun Columns(modifier: Modifier) {
     Column(modifier = modifier) {
         SettingsColors()
         SettingsLanguage()
+        SettingsCipher()
     }
 }
 

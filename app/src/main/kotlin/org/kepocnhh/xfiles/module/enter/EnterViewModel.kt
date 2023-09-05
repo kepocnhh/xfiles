@@ -63,7 +63,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     }
 
     private fun hash(pin: String): ByteArray {
-        val md = MessageDigest.getInstance("SHA-512")
+        val md = injection.security.getMessageDigest("SHA-512")
         return md.digest(pin.toByteArray())
     }
 
@@ -125,8 +125,8 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
         println("generate key pair: ${System.currentTimeMillis().milliseconds - startTime}")
         val decrypted = "{}".toByteArray()
-        val cipher = Cipher.getInstance(meta.algorithm)
-        val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+        val cipher = injection.security.getCipher(meta.algorithm)
+        val key = SecretKeyFactory.getInstance(meta.algorithm).let { factory ->
             val spec = PBEKeySpec(hash.toCharArray(), meta.salt, meta.iterations, meta.bits)
             factory.generateSecret(spec)
         }
@@ -186,8 +186,8 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val startTime = System.currentTimeMillis().milliseconds // todo
         val hash = hash(pin = pin).base64()
         val meta = JSONObject(injection.files.readText("sym.json")).toKeyMeta()
-        val cipher = Cipher.getInstance(meta.algorithm)
-        val key = SecretKeyFactory.getInstance(cipher.algorithm).let { factory ->
+        val cipher = injection.security.getCipher(meta.algorithm)
+        val key = SecretKeyFactory.getInstance(meta.algorithm).let { factory ->
             val spec = PBEKeySpec(hash.toCharArray(), meta.salt, meta.iterations, meta.bits)
             factory.generateSecret(spec)
         }
