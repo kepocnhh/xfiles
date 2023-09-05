@@ -252,7 +252,7 @@ private fun EnterScreenInfo(
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center,
                 ),
-                text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
+                text = App.Theme.strings.noDatabase,
             )
         }
         AnimatedFadeVisibility(

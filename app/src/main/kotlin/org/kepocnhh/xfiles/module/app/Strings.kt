@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 @Immutable
 internal interface Strings {
     val yes: String
+    val noDatabase: String
     val databaseExists: String
     fun databaseDelete(tag: String): String
     val colors: String
