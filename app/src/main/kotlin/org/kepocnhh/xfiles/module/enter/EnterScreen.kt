@@ -80,7 +80,6 @@ internal object EnterScreen {
 
 @Composable
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
-    val context = LocalContext.current
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
     val pinState = rememberSaveable { mutableStateOf("") }
@@ -143,6 +142,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         Configuration.ORIENTATION_LANDSCAPE -> {
             EnterScreenLandscape(
                 exists = exists,
+                error = errorState.value,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
                 settingsState = settingsState,
@@ -192,8 +192,115 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
 }
 
 @Composable
+private fun EnterScreenInfo(
+    modifier: Modifier,
+    exists: Boolean?,
+    error: Boolean,
+    deleteDialogState: MutableState<Boolean>,
+    pinState: MutableState<String>,
+) {
+    Box(modifier = modifier) {
+        val modifier2 = Modifier
+            .fillMaxWidth()
+            .align(Alignment.Center)
+            .padding(
+                start = App.Theme.sizes.small,
+                end = App.Theme.sizes.small,
+            )
+        AnimatedHVisibility(
+            modifier = modifier2,
+            visible = exists == true,
+            duration = App.Theme.durations.animation,
+            initialOffsetX = { it },
+        ) {
+            Column {
+                val textStyle = TextStyle(
+                    color = App.Theme.colors.foreground,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                )
+                BasicText(
+                    modifier = Modifier.fillMaxWidth(),
+                    style = textStyle,
+                    text = App.Theme.strings.databaseExists,
+                )
+                Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+                val tag = "databaseDelete"
+                ClickableText(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = App.Theme.strings.databaseDelete(tag),
+                    style = textStyle,
+                    styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
+                    onClick = {
+                        when (it) {
+                            tag -> {
+                                deleteDialogState.value = true
+                            }
+                        }
+                    },
+                )
+            }
+        }
+        AnimatedHVisibility(
+            modifier = modifier2,
+            visible = exists == false,
+            duration = App.Theme.durations.animation,
+        ) {
+            BasicText(
+                style = TextStyle(
+                    color = App.Theme.colors.foreground,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                ),
+                text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
+            )
+        }
+        AnimatedFadeVisibility(
+            modifier = Modifier.align(Alignment.Center),
+            visible = exists == null,
+            duration = App.Theme.durations.animation,
+        ) {
+            Squares(
+                color = App.Theme.colors.foreground,
+                width = App.Theme.sizes.large,
+                padding = App.Theme.sizes.small,
+                radius = App.Theme.sizes.xs,
+            )
+        }
+        val maxOffset = 16.dp
+        val offsetState = remember { mutableStateOf(maxOffset / 2) }
+        LaunchedEffect(offsetState.value, error) {
+            if (error) {
+                withContext(Dispatchers.Default) {
+                    delay(16)
+                }
+                offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
+            } else {
+                offsetState.value = maxOffset / 2
+            }
+        }
+        BasicText(
+            modifier = Modifier
+                .padding(
+                    bottom = App.Theme.sizes.large,
+                    top = App.Theme.sizes.large,
+                )
+                .align(Alignment.BottomCenter)
+                .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
+            text = "*".repeat(pinState.value.length),
+            style = TextStyle(
+                color = if (error) App.Theme.colors.error else App.Theme.colors.foreground,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 24.sp,
+            )
+        )
+    }
+}
+
+@Composable
 private fun EnterScreenLandscape(
     exists: Boolean?,
+    error: Boolean,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
@@ -214,36 +321,15 @@ private fun EnterScreenLandscape(
                     end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
                 ),
         ) {
-            Column(
+            EnterScreenInfo(
                 modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-            ) {
-                val text = when (exists) {
-                    true -> "exists"
-                    false -> "does not exist"
-                    null -> "loading..."
-                }
-                BasicText(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally),
-                    text = text,
-                )
-                BasicText(
-                    modifier = Modifier
-                        .padding(
-                            bottom = 32.dp,
-                            top = 32.dp,
-                        )
-                        .align(Alignment.CenterHorizontally),
-                    text = "*".repeat(pinState.value.length),
-                    style = TextStyle(
-                        color = App.Theme.colors.foreground,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 24.sp,
-                    )
-                )
-            }
+                    .fillMaxHeight()
+                    .weight(1f),
+                exists = exists,
+                error = error,
+                pinState = pinState,
+                deleteDialogState = deleteDialogState,
+            )
             PinPad(
                 modifier = Modifier
                     .width(parent.maxHeight)
@@ -286,106 +372,15 @@ private fun EnterScreenPortrait(
                 bottom = App.Theme.dimensions.insets.calculateBottomPadding(),
             ),
     ) {
-        Box(
+        EnterScreenInfo(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-        ) {
-            val modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-                .padding(
-                    start = App.Theme.sizes.small,
-                    end = App.Theme.sizes.small,
-                )
-            AnimatedHVisibility(
-                modifier = modifier,
-                visible = exists == true,
-                duration = App.Theme.durations.animation,
-                initialOffsetX = { it },
-            ) {
-                Column {
-                    val textStyle = TextStyle(
-                        color = App.Theme.colors.foreground,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                    BasicText(
-                        modifier = Modifier.fillMaxWidth(),
-                        style = textStyle,
-                        text = App.Theme.strings.databaseExists,
-                    )
-                    Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-                    val tag = "databaseDelete"
-                    ClickableText(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = App.Theme.strings.databaseDelete(tag),
-                        style = textStyle,
-                        styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
-                        onClick = {
-                            when (it) {
-                                tag -> {
-                                    deleteDialogState.value = true
-                                }
-                            }
-                        },
-                    )
-                }
-            }
-            AnimatedHVisibility(
-                modifier = modifier,
-                visible = exists == false,
-                duration = App.Theme.durations.animation,
-            ) {
-                BasicText(
-                    style = TextStyle(
-                        color = App.Theme.colors.foreground,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center,
-                    ),
-                    text = "There is no database yet. Enter the pin code to create a new secure database.", // todo
-                )
-            }
-            AnimatedFadeVisibility(
-                modifier = Modifier.align(Alignment.Center),
-                visible = exists == null,
-                duration = App.Theme.durations.animation,
-            ) {
-                Squares(
-                    color = App.Theme.colors.foreground,
-                    width = App.Theme.sizes.large,
-                    padding = App.Theme.sizes.small,
-                    radius = App.Theme.sizes.xs,
-                )
-            }
-            val maxOffset = 16.dp
-            val offsetState = remember { mutableStateOf(maxOffset / 2) }
-            LaunchedEffect(offsetState.value, error) {
-                if (error) {
-                    withContext(Dispatchers.Default) {
-                        delay(16)
-                    }
-                    offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
-                } else {
-                    offsetState.value = maxOffset / 2
-                }
-            }
-            BasicText(
-                modifier = Modifier
-                    .padding(
-                        bottom = App.Theme.sizes.large,
-                        top = App.Theme.sizes.large,
-                    )
-                    .align(Alignment.BottomCenter)
-                    .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
-                text = "*".repeat(pinState.value.length),
-                style = TextStyle(
-                    color = if (error) App.Theme.colors.error else App.Theme.colors.foreground,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 24.sp,
-                )
-            )
-        }
+                .weight(1f),
+            exists = exists,
+            error = error,
+            pinState = pinState,
+            deleteDialogState = deleteDialogState,
+        )
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
