@@ -13,19 +13,13 @@ import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
-import org.kepocnhh.xfiles.util.security.decrypt
-import org.kepocnhh.xfiles.util.security.encrypt
 import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getCipherAlgorithm
 import org.kepocnhh.xfiles.util.security.getSecureRandom
-import java.security.AlgorithmParameterGenerator
 import java.security.KeyFactory
-import java.security.KeyPairGenerator
-import java.security.MessageDigest
 import java.security.Signature
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
-import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
@@ -88,7 +82,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         )
         println("create meta: ${System.currentTimeMillis().milliseconds - startTime}")
         injection.files.writeBytes("sym.json", meta.toJson().toString().toByteArray())
-        val pair = KeyPairGenerator.getInstance("DSA").let { generator ->
+        val pair = injection.security.getKeyPairGenerator("DSA").let { generator ->
 //            L = 1024, N = 160
 //            L = 2048, N = 224
 //            L = 2048, N = 256
@@ -96,14 +90,9 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 //            strength must be from 512 - 4096 and a multiple of 1024 above 1024
 //            val primes = 1024 * 1
             val primes = 1024 * 2
-            val params = AlgorithmParameterGenerator.getInstance(generator.algorithm).let {
-                it.init(primes, random)
-                it.generateParameters()
-            }
-            println("generate params: ${System.currentTimeMillis().milliseconds - startTime}")
-            generator.initialize(params.getParameterSpec(DSAParameterSpec::class.java))
-            println("generator initialize: ${System.currentTimeMillis().milliseconds - startTime}")
-            generator.generateKeyPair().also {
+            val params = injection.security.getAlgorithmParameterGenerator("DSA")
+                .generate(primes, random)
+            generator.generate(params.getParameterSpec(DSAParameterSpec::class.java)).also {
                 val private = it.private
                 check(private is DSAPrivateKey)
                 println(
