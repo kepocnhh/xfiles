@@ -52,6 +52,16 @@ internal fun getCipherAlgorithm(): String {
     // AES-256 | 32       | 16         |
     // --------------------------------+
     //
+    val services = mutableListOf<String>()
+    for (provider in Security.getProviders()) {
+//        println("Provider: $provider")
+        for (service in provider.services) {
+//            println("\tservice: ${service.type} ${service.algorithm}")
+//            println("$provider / ${service.type} / ${service.algorithm}")
+            services.add("$provider / ${service.type} / ${service.algorithm}")
+        }
+    }
+    println(services.sorted().joinToString(separator = "\n"))
 //    println("algorithms: " + Security.getAlgorithms("SecretKeyFactory"))
     /*
     AES

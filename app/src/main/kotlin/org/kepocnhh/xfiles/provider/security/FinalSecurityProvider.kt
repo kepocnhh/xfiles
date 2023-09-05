@@ -93,7 +93,7 @@ internal class FinalSecurityProvider : SecurityProvider {
     }
 
     override fun getMessageDigest(algorithm: String): MessageDigestProvider {
-        return MessageDigestProviderImpl(MessageDigest.getInstance(algorithm))
+        return MessageDigestProviderImpl(MessageDigest.getInstance(algorithm, "AndroidOpenSSL"))
     }
 
     override fun getCipher(transformation: String): CipherProvider {
