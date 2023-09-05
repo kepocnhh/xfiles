@@ -20,7 +20,6 @@ import java.security.KeyFactory
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
 import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import kotlin.math.pow
@@ -114,9 +113,9 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         println("generate key pair: ${System.currentTimeMillis().milliseconds - startTime}")
         val decrypted = "{}".toByteArray()
         val cipher = injection.security.getCipher(meta.algorithm)
-        val key = SecretKeyFactory.getInstance(meta.algorithm).let { factory ->
+        val key = injection.security.getSecretKeyFactory(meta.algorithm).let { factory ->
             val spec = PBEKeySpec(hash.toCharArray(), meta.salt, meta.iterations, meta.bits)
-            factory.generateSecret(spec)
+            factory.generate(spec)
         }
         println("generate secret key: ${System.currentTimeMillis().milliseconds - startTime}")
         val params = IvParameterSpec(meta.iv)
@@ -172,9 +171,9 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val hash = hash(pin = pin).base64()
         val meta = JSONObject(injection.files.readText("sym.json")).toKeyMeta()
         val cipher = injection.security.getCipher(meta.algorithm)
-        val key = SecretKeyFactory.getInstance(meta.algorithm).let { factory ->
+        val key = injection.security.getSecretKeyFactory(meta.algorithm).let { factory ->
             val spec = PBEKeySpec(hash.toCharArray(), meta.salt, meta.iterations, meta.bits)
-            factory.generateSecret(spec)
+            factory.generate(spec)
         }
         println("generate secret key: ${System.currentTimeMillis().milliseconds - startTime}")
         val params = IvParameterSpec(meta.iv)

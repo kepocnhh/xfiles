@@ -10,8 +10,10 @@ import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.Signature
 import java.security.spec.AlgorithmParameterSpec
+import java.security.spec.KeySpec
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 
 private class MessageDigestProviderImpl(
     private val delegate: MessageDigest,
@@ -77,6 +79,14 @@ private class SignatureProviderImpl(
     }
 }
 
+private class SecretKeyFactoryProviderImpl(
+    private val delegate: SecretKeyFactory,
+) : SecretKeyFactoryProvider {
+    override fun generate(params: KeySpec): SecretKey {
+        return delegate.generateSecret(params)
+    }
+}
+
 internal class FinalSecurityProvider : SecurityProvider {
     companion object {
         private const val provider = "BC"
@@ -100,5 +110,9 @@ internal class FinalSecurityProvider : SecurityProvider {
 
     override fun getSignature(algorithm: String): SignatureProvider {
         return SignatureProviderImpl(Signature.getInstance(algorithm, provider))
+    }
+
+    override fun getSecretKeyFactory(algorithm: String): SecretKeyFactoryProvider {
+        return SecretKeyFactoryProviderImpl(SecretKeyFactory.getInstance(algorithm, provider))
     }
 }

@@ -6,4 +6,5 @@ internal interface SecurityProvider {
     fun getKeyPairGenerator(algorithm: String): KeyPairGeneratorProvider
     fun getAlgorithmParameterGenerator(algorithm: String): AlgorithmParameterGeneratorProvider
     fun getSignature(algorithm: String): SignatureProvider
+    fun getSecretKeyFactory(algorithm: String): SecretKeyFactoryProvider
 }
