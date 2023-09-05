@@ -3,11 +3,11 @@ package org.kepocnhh.xfiles.provider.security
 import java.security.SecureRandom
 
 internal interface SecurityProvider {
-    fun getMessageDigest(algorithm: String): MessageDigestProvider
-    fun getCipher(transformation: String): CipherProvider
-    fun getKeyPairGenerator(algorithm: String): KeyPairGeneratorProvider
-    fun getAlgorithmParameterGenerator(algorithm: String): AlgorithmParameterGeneratorProvider
-    fun getSignature(algorithm: String): SignatureProvider
-    fun getSecretKeyFactory(algorithm: String): SecretKeyFactoryProvider
+    fun getMessageDigest(): MessageDigestProvider
+    fun getCipher(): CipherProvider
+    fun getKeyPairGenerator(): KeyPairGeneratorProvider
+    fun getAlgorithmParameterGenerator(): AlgorithmParameterGeneratorProvider
+    fun getSignature(): SignatureProvider
+    fun getSecretKeyFactory(): SecretKeyFactoryProvider
     fun getSecureRandom(): SecureRandom
 }

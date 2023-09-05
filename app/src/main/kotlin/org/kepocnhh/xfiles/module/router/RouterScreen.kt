@@ -15,7 +15,7 @@ import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import javax.crypto.SecretKey
 
 @Composable
-internal fun RouterScreen() {
+internal fun RouterScreen(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -26,13 +26,16 @@ internal fun RouterScreen() {
             visible = keyState.value == null,
             duration = App.Theme.durations.animation,
         ) {
-            EnterScreen { broadcast ->
-                when (broadcast) {
-                    is EnterScreen.Broadcast.Unlock -> {
-                        keyState.value = broadcast.key
+            EnterScreen(
+                onBack = onBack,
+                broadcast = { broadcast ->
+                    when (broadcast) {
+                        is EnterScreen.Broadcast.Unlock -> {
+                            keyState.value = broadcast.key
+                        }
                     }
-                }
-            }
+                },
+            )
         }
         AnimatedHVisibility(
             visible = keyState.value != null,

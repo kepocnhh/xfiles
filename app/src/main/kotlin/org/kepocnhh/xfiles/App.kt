@@ -138,7 +138,7 @@ internal class App : Application() {
                     )
                 )
             ),
-            security = FinalSecurityProvider(),
+            security = ::FinalSecurityProvider,
         )
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {

@@ -1,6 +1,8 @@
 package org.kepocnhh.xfiles.provider.security
 
 import android.os.Build
+import org.kepocnhh.xfiles.entity.SecurityService
+import org.kepocnhh.xfiles.entity.SecurityServices
 import java.security.AlgorithmParameterGenerator
 import java.security.AlgorithmParameters
 import java.security.KeyPair
@@ -57,9 +59,8 @@ private class KeyPairGeneratorProviderImpl(
 
 private class AlgorithmParameterGeneratorProviderImpl(
     private val delegate: AlgorithmParameterGenerator,
-    private val random: SecureRandom,
 ) : AlgorithmParameterGeneratorProvider {
-    override fun generate(size: Int): AlgorithmParameters {
+    override fun generate(size: Int, random: SecureRandom): AlgorithmParameters {
         delegate.init(size, random)
         return delegate.generateParameters()
     }
@@ -67,9 +68,8 @@ private class AlgorithmParameterGeneratorProviderImpl(
 
 private class SignatureProviderImpl(
     private val delegate: Signature,
-    private val random: SecureRandom,
 ) : SignatureProvider {
-    override fun sign(key: PrivateKey, decrypted: ByteArray): ByteArray {
+    override fun sign(key: PrivateKey, random: SecureRandom, decrypted: ByteArray): ByteArray {
         delegate.initSign(key, random)
         delegate.update(decrypted)
         return delegate.sign()
@@ -90,40 +90,45 @@ private class SecretKeyFactoryProviderImpl(
     }
 }
 
-internal class FinalSecurityProvider : SecurityProvider {
-    companion object {
-        private const val provider = "BC"
+internal class FinalSecurityProvider(
+    private val services: SecurityServices,
+) : SecurityProvider {
+    override fun getMessageDigest(): MessageDigestProvider {
+        val service = services.hash
+        return MessageDigestProviderImpl(MessageDigest.getInstance(service.algorithm, service.provider))
     }
 
-    override fun getMessageDigest(algorithm: String): MessageDigestProvider {
-        return MessageDigestProviderImpl(MessageDigest.getInstance(algorithm, "AndroidOpenSSL"))
+    override fun getCipher(): CipherProvider {
+        val service = services.cipher
+        return CipherProviderImpl(Cipher.getInstance(service.algorithm, service.provider))
     }
 
-    override fun getCipher(transformation: String): CipherProvider {
-        return CipherProviderImpl(Cipher.getInstance(transformation, provider))
+    override fun getKeyPairGenerator(): KeyPairGeneratorProvider {
+        val service = services.asymmetric
+        return KeyPairGeneratorProviderImpl(KeyPairGenerator.getInstance(service.algorithm, service.provider))
     }
 
-    override fun getKeyPairGenerator(algorithm: String): KeyPairGeneratorProvider {
-        return KeyPairGeneratorProviderImpl(KeyPairGenerator.getInstance(algorithm, provider))
+    override fun getAlgorithmParameterGenerator(): AlgorithmParameterGeneratorProvider {
+        val service = services.asymmetric
+        return AlgorithmParameterGeneratorProviderImpl(AlgorithmParameterGenerator.getInstance(service.algorithm, service.provider))
     }
 
-    override fun getAlgorithmParameterGenerator(algorithm: String): AlgorithmParameterGeneratorProvider {
-        return AlgorithmParameterGeneratorProviderImpl(AlgorithmParameterGenerator.getInstance(algorithm, provider), getSecureRandom())
+    override fun getSignature(): SignatureProvider {
+        val service = services.signature
+        return SignatureProviderImpl(Signature.getInstance(service.algorithm, service.provider))
     }
 
-    override fun getSignature(algorithm: String): SignatureProvider {
-        return SignatureProviderImpl(Signature.getInstance(algorithm, provider), getSecureRandom())
-    }
-
-    override fun getSecretKeyFactory(algorithm: String): SecretKeyFactoryProvider {
-        return SecretKeyFactoryProviderImpl(SecretKeyFactory.getInstance(algorithm, provider))
+    override fun getSecretKeyFactory(): SecretKeyFactoryProvider {
+        val service = services.symmetric
+        return SecretKeyFactoryProviderImpl(SecretKeyFactory.getInstance(service.algorithm, service.provider))
     }
 
     override fun getSecureRandom(): SecureRandom {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             SecureRandom.getInstanceStrong()
         } else {
-            SecureRandom.getInstance("SHA1PRNG", "AndroidOpenSSL")
+            val service = services.random
+            SecureRandom.getInstance(service.algorithm, service.provider)
         }
     }
 }

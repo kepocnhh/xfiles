@@ -14,12 +14,8 @@ import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
-import org.kepocnhh.xfiles.util.security.decrypt
-import org.kepocnhh.xfiles.util.security.encrypt
 import org.kepocnhh.xfiles.util.security.generateKeyPair
 import java.security.KeyFactory
-import java.security.Signature
-import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
@@ -45,7 +41,8 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     private fun decrypt(key: SecretKey): ByteArray {
         val jsonObject = JSONObject(injection.files.readText("sym.json"))
-        val cipher = Cipher.getInstance(jsonObject.getString("algorithm"))
+        val services = injection.local.services ?: TODO()
+        val cipher = injection.security(services).getCipher()
         val params = IvParameterSpec(jsonObject.getString("iv").base64())
         val encrypted = injection.files.readBytes("db.json.enc")
         return cipher.decrypt(key, params, encrypted)
@@ -56,7 +53,8 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         decrypted: ByteArray,
     ) {
         val jsonObject = JSONObject(injection.files.readText("sym.json"))
-        val cipher = Cipher.getInstance(jsonObject.getString("algorithm"))
+        val services = injection.local.services ?: TODO()
+        val cipher = injection.security(services).getCipher()
         val params = IvParameterSpec(jsonObject.getString("iv").base64())
         val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
             KeyFactory.getInstance("DSA").generateKeyPair(
@@ -65,11 +63,9 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             )
         }
         injection.files.writeBytes("db.json.enc", cipher.encrypt(key, params, decrypted))
-        val random = injection.security.getSecureRandom()
-        Signature.getInstance("SHA256WithDSA").also { signature ->
-            signature.initSign(pair.private, random)
-            signature.update(decrypted)
-            injection.files.writeBytes("db.json.sig", signature.sign())
+        val random = injection.security(services).getSecureRandom()
+        injection.security(services).getSignature().also { signature ->
+            injection.files.writeBytes("db.json.sig", signature.sign(pair.private, random, decrypted = decrypted))
         }
     }
 
