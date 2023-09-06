@@ -171,6 +171,7 @@ internal fun SettingsDSAStrengthRow(
 
 @Composable
 internal fun SettingsDSA(
+    editable: Boolean,
     strength: SecuritySettings.DSAKeyLength,
     onSelectKeyLength: (SecuritySettings.DSAKeyLength) -> Unit,
 ) {
@@ -179,7 +180,7 @@ internal fun SettingsDSA(
         modifier = Modifier
             .fillMaxWidth()
             .height(SettingsScreen.LocalSizes.current.rowHeight)
-            .clickable {
+            .clickable(enabled = editable) {
                 dialogState.value = true
             },
     ) {
@@ -300,6 +301,7 @@ internal fun SettingsPBEIterationsRow(
 
 @Composable
 internal fun SettingsPBE(
+    editable: Boolean,
     iterations: SecuritySettings.PBEIterations,
     onSelectIterations: (SecuritySettings.PBEIterations) -> Unit,
 ) {
@@ -308,7 +310,7 @@ internal fun SettingsPBE(
         modifier = Modifier
             .fillMaxWidth()
             .height(SettingsScreen.LocalSizes.current.rowHeight)
-            .clickable {
+            .clickable(enabled = editable) {
                 dialogState.value = true
             },
     ) {
@@ -381,7 +383,7 @@ internal fun SettingsPBE(
 }
 
 @Composable
-internal fun SettingsCipher() {
+internal fun SettingsCipher(editable: Boolean) {
     val viewModel = App.viewModel<SettingsViewModel>()
     val cipher by viewModel.cipher.collectAsState(null)
     if (cipher == null) {
@@ -396,12 +398,14 @@ internal fun SettingsCipher() {
         if (settings != null) {
             SettingsAES(keyLength = settings.aesKeyLength)
             SettingsPBE(
+                editable = editable,
                 iterations = settings.pbeIterations,
                 onSelectIterations = {
                     viewModel.setSettings(settings.copy(pbeIterations = it))
                 },
             )
             SettingsDSA(
+                editable = editable,
                 strength = settings.dsaKeyLength,
                 onSelectKeyLength = {
                     viewModel.setSettings(settings.copy(dsaKeyLength = it))

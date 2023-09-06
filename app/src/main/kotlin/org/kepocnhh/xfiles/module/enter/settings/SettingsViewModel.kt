@@ -15,6 +15,9 @@ internal class SettingsViewModel(private val injection: Injection) : AbstractVie
     private val _settings = MutableStateFlow<SecuritySettings?>(null)
     val settings = _settings.asStateFlow()
 
+    private val _databaseExists = MutableStateFlow<Boolean?>(null)
+    val databaseExists = _databaseExists.asStateFlow()
+
     fun requestCipher() {
         injection.launch {
             _cipher.value = withContext(injection.contexts.default) {
@@ -37,6 +40,14 @@ internal class SettingsViewModel(private val injection: Injection) : AbstractVie
                 value.also {
                     injection.local.securitySettings = it
                 }
+            }
+        }
+    }
+
+    fun requestDatabase() {
+        injection.launch {
+            _databaseExists.value = withContext(injection.contexts.default) {
+                injection.files.exists("db.json.enc")
             }
         }
     }

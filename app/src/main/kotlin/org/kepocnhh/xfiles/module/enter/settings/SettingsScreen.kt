@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,13 +45,19 @@ internal fun SettingsScreen(onBack: () -> Unit) {
 
 @Composable
 private fun Columns(modifier: Modifier, sizes: SettingsScreen.Sizes) {
+    val viewModel = App.viewModel<SettingsViewModel>()
     CompositionLocalProvider(
         SettingsScreen.LocalSizes provides sizes,
     ) {
         Column(modifier = modifier) {
             SettingsColors()
             SettingsLanguage()
-            SettingsCipher()
+            val exists = viewModel.databaseExists.collectAsState(null).value
+            if (exists == null) {
+                viewModel.requestDatabase()
+            } else {
+                SettingsCipher(editable = !exists)
+            }
         }
     }
 }
