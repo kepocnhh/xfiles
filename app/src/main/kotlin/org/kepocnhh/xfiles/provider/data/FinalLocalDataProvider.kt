@@ -6,6 +6,7 @@ import org.kepocnhh.xfiles.BuildConfig
 import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecurityServices
+import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
@@ -86,5 +87,29 @@ internal class FinalLocalDataProvider(
                     .put("random", value.random)
                     .commit()
             }
+        }
+
+    override var securitySettings: SecuritySettings
+        get() {
+            return SecuritySettings(
+                aes = SecuritySettings.AES(
+                    iterations = preferences
+                        .getString("aes:iterations", null)
+                        ?.let(SecuritySettings.AES.Iterations::valueOf)
+                        ?: defaults.securitySettings.aes.iterations,
+                ),
+                des = SecuritySettings.DES(
+                    strength = preferences
+                        .getString("des:strength", null)
+                        ?.let(SecuritySettings.DES.Strength::valueOf)
+                        ?: defaults.securitySettings.des.strength,
+                ),
+            )
+        }
+        set(value) {
+            preferences.edit()
+                .putString("aes:iterations", value.aes.iterations.name)
+                .putString("des:strength", value.des.strength.name)
+                .commit()
         }
 }

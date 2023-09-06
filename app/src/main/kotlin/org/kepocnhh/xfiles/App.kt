@@ -1,6 +1,7 @@
 package org.kepocnhh.xfiles
 
 import android.app.Application
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -15,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.xfiles.entity.Defaults
+import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Dimensions
@@ -122,6 +124,11 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        val iterations = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            SecuritySettings.AES.Iterations.NUMBER_2_16
+        } else {
+            SecuritySettings.AES.Iterations.NUMBER_2_20
+        }
         val injection = Injection(
             loggers = _loggerFactory,
             contexts = Contexts(
@@ -135,8 +142,14 @@ internal class App : Application() {
                     themeState = ThemeState(
                         colorsType = ColorsType.AUTO,
                         language = Language.AUTO,
-                    )
-                )
+                    ),
+                    securitySettings = SecuritySettings(
+                        aes = SecuritySettings.AES(iterations = iterations),
+                        des = SecuritySettings.DES(
+                            strength = SecuritySettings.DES.Strength.NUMBER_1024_2,
+                        ),
+                    ),
+                ),
             ),
             security = ::FinalSecurityProvider,
         )
