@@ -11,11 +11,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
+
+internal object SettingsScreen {
+    val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
+
+    data class Sizes(val rowHeight: Dp)
+}
 
 @Composable
 internal fun SettingsScreen(onBack: () -> Unit) {
@@ -33,11 +42,15 @@ internal fun SettingsScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun Columns(modifier: Modifier) {
-    Column(modifier = modifier) {
-        SettingsColors()
-        SettingsLanguage()
-        SettingsCipher()
+private fun Columns(modifier: Modifier, sizes: SettingsScreen.Sizes) {
+    CompositionLocalProvider(
+        SettingsScreen.LocalSizes provides sizes,
+    ) {
+        Column(modifier = modifier) {
+            SettingsColors()
+            SettingsLanguage()
+            SettingsCipher()
+        }
     }
 }
 
@@ -48,7 +61,10 @@ private fun SettingsScreenPortrait() {
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
-        Columns(modifier = Modifier.align(Alignment.Center))
+        Columns(
+            modifier = Modifier.align(Alignment.Center),
+            sizes = SettingsScreen.Sizes(rowHeight = App.Theme.sizes.xxxl),
+        )
     }
 }
 
@@ -61,6 +77,9 @@ private fun SettingsScreenLandscape() {
             .background(App.Theme.colors.background)
             .padding(end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)),
     ) {
-        Columns(modifier = Modifier.align(Alignment.Center))
+        Columns(
+            modifier = Modifier.align(Alignment.Center),
+            sizes = SettingsScreen.Sizes(rowHeight = App.Theme.sizes.xl),
+        )
     }
 }

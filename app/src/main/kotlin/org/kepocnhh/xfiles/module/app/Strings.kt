@@ -8,11 +8,9 @@ internal interface Strings {
     val noDatabase: String
     val databaseExists: String
     fun databaseDelete(tag: String): String
-    val colors: String
     val dark: String
     val light: String
     val auto: String
-    val language: String
     val english: String
     val russian: String
 
@@ -20,5 +18,18 @@ internal interface Strings {
 
     data class Dialogs(
         val databaseDelete: String,
+    )
+
+    val settings: Settings
+
+    data class Settings(
+        val colors: String,
+        val language: String,
+        val cipher: String,
+        val aes: String,
+        val pbe: String,
+        val dsa: String,
+        val keyLength: String,
+        val iterations: String,
     )
 }

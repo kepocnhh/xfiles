@@ -127,10 +127,10 @@ internal fun SettingsLanguage() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(App.Theme.sizes.xxxl)
+            .height(SettingsScreen.LocalSizes.current.rowHeight)
             .clickable {
                 dialogState.value = true
-            }
+            },
     ) {
         Image(
             modifier = Modifier
@@ -146,7 +146,7 @@ internal fun SettingsLanguage() {
                 color = App.Theme.colors.foreground,
                 fontSize = 14.sp,
             ),
-            text = App.Theme.strings.language,
+            text = App.Theme.strings.settings.language,
         )
         BasicText(
             modifier = Modifier

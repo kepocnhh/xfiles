@@ -1,22 +1,23 @@
 package org.kepocnhh.xfiles.entity
 
 internal data class SecuritySettings(
-    val aes: AES,
-    val des: DES,
+    val aesKeyLength: AESKeyLength,
+    val pbeIterations: PBEIterations,
+    val dsaKeyLength: DSAKeyLength,
 ) {
-    data class AES(val iterations: Iterations) {
-        enum class Iterations {
-            NUMBER_2_10,
-            NUMBER_2_16,
-            NUMBER_2_20,
-        }
+    enum class AESKeyLength {
+        BITS_256,
     }
 
-    data class DES(val strength: Strength) {
-        enum class Strength {
-            NUMBER_1024_1,
-            NUMBER_1024_2,
-            NUMBER_1024_3,
-        }
+    enum class PBEIterations {
+        NUMBER_2_10,
+        NUMBER_2_16,
+        NUMBER_2_20,
+    }
+
+    enum class DSAKeyLength {
+        BITS_1024_1,
+        BITS_1024_2,
+        BITS_1024_3,
     }
 }

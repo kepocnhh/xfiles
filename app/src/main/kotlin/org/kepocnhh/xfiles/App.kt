@@ -124,10 +124,10 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        val iterations = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            SecuritySettings.AES.Iterations.NUMBER_2_16
+        val pbeIterations = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            SecuritySettings.PBEIterations.NUMBER_2_16
         } else {
-            SecuritySettings.AES.Iterations.NUMBER_2_20
+            SecuritySettings.PBEIterations.NUMBER_2_20
         }
         val injection = Injection(
             loggers = _loggerFactory,
@@ -144,10 +144,9 @@ internal class App : Application() {
                         language = Language.AUTO,
                     ),
                     securitySettings = SecuritySettings(
-                        aes = SecuritySettings.AES(iterations = iterations),
-                        des = SecuritySettings.DES(
-                            strength = SecuritySettings.DES.Strength.NUMBER_1024_2,
-                        ),
+                        pbeIterations = pbeIterations,
+                        aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
+                        dsaKeyLength = SecuritySettings.DSAKeyLength.BITS_1024_2,
                     ),
                 ),
             ),

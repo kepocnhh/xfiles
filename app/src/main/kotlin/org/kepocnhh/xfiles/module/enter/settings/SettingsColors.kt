@@ -122,7 +122,7 @@ internal fun SettingsColors() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(App.Theme.sizes.xxxl)
+            .height(SettingsScreen.LocalSizes.current.rowHeight)
             .clickable {
                 dialogState.value = true
             }
@@ -142,7 +142,7 @@ internal fun SettingsColors() {
                 color = App.Theme.colors.foreground,
                 fontSize = 14.sp,
             ),
-            text = App.Theme.strings.colors,
+            text = App.Theme.strings.settings.colors,
         )
         BasicText(
             modifier = Modifier

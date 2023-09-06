@@ -92,24 +92,25 @@ internal class FinalLocalDataProvider(
     override var securitySettings: SecuritySettings
         get() {
             return SecuritySettings(
-                aes = SecuritySettings.AES(
-                    iterations = preferences
-                        .getString("aes:iterations", null)
-                        ?.let(SecuritySettings.AES.Iterations::valueOf)
-                        ?: defaults.securitySettings.aes.iterations,
-                ),
-                des = SecuritySettings.DES(
-                    strength = preferences
-                        .getString("des:strength", null)
-                        ?.let(SecuritySettings.DES.Strength::valueOf)
-                        ?: defaults.securitySettings.des.strength,
-                ),
+                aesKeyLength = preferences
+                    .getString("aesKeyLength", null)
+                    ?.let(SecuritySettings.AESKeyLength::valueOf)
+                    ?: defaults.securitySettings.aesKeyLength,
+                dsaKeyLength = preferences
+                    .getString("dsaKeyLength", null)
+                    ?.let(SecuritySettings.DSAKeyLength::valueOf)
+                    ?: defaults.securitySettings.dsaKeyLength,
+                pbeIterations = preferences
+                    .getString("pbeIterations", null)
+                    ?.let(SecuritySettings.PBEIterations::valueOf)
+                    ?: defaults.securitySettings.pbeIterations,
             )
         }
         set(value) {
             preferences.edit()
-                .putString("aes:iterations", value.aes.iterations.name)
-                .putString("des:strength", value.des.strength.name)
+                .putString("aesKeyLength", value.aesKeyLength.name)
+                .putString("dsaKeyLength", value.dsaKeyLength.name)
+                .putString("pbeIterations", value.pbeIterations.name)
                 .commit()
         }
 }
