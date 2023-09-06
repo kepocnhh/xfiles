@@ -24,7 +24,7 @@ internal class MainActivity : AppCompatActivity() {
                 null -> themeViewModel.requestThemeState()
                 else -> {
                     App.Theme.Composition(themeState = themeState) {
-                        RouterScreen()
+                        RouterScreen(onBack = ::finish)
                     }
                 }
             }

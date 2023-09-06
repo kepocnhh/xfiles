@@ -12,15 +12,24 @@ internal object Ru : Strings {
         return "Или вы можете [$tag](удалить) базу данных."
     }
 
-    override val colors = "Цвета"
     override val dark = "Тёмные"
     override val light = "Светлые"
     override val auto = "Автоматически"
-    override val language = "Язык"
     override val english = "Английский"
     override val russian = "Русский"
 
     override val dialogs = Strings.Dialogs(
         databaseDelete = "Хотите удалить базу данных? Это не может быть отменено.",
+    )
+
+    override val settings = Strings.Settings(
+        colors = "Цвета",
+        language = "Язык",
+        cipher = "Шифр",
+        aes = "AES",
+        dsa = "DSA",
+        pbe = "PBE",
+        keyLength = "Длина ключа",
+        iterations = "Количество итераций",
     )
 }

@@ -12,4 +12,8 @@ private class AndroidLogger(private val tag: String) : Logger {
     override fun debug(message: String) {
         Log.d(tag, message)
     }
+
+    override fun warning(message: String) {
+        Log.w(tag, message)
+    }
 }

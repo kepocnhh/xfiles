@@ -12,15 +12,24 @@ internal object En : Strings {
         return "Or you can [$tag](delete) the base."
     }
 
-    override val colors = "Colors"
     override val dark = "Dark"
     override val light = "Light"
     override val auto = "Auto"
-    override val language = "Language"
     override val english = "English"
     override val russian = "Russian"
 
     override val dialogs = Strings.Dialogs(
         databaseDelete = "Do you want to delete the database? It cannot be undone.",
+    )
+
+    override val settings = Strings.Settings(
+        colors = "Colors",
+        language = "Language",
+        cipher = "Cipher",
+        aes = "AES",
+        dsa = "DSA",
+        pbe = "PBE",
+        keyLength = "Key length",
+        iterations = "Iterations",
     )
 }

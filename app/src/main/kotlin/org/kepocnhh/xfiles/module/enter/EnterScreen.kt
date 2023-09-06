@@ -53,6 +53,7 @@ import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.Strings
+import org.kepocnhh.xfiles.module.enter.settings.SettingsScreen
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHOpen
@@ -76,14 +77,19 @@ internal object EnterScreen {
     sealed interface Broadcast {
         class Unlock(val key: SecretKey) : Broadcast
     }
+
+    enum class Error {
+        UNLOCK,
+        SECURITY,
+    }
 }
 
 @Composable
-internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
+internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) -> Unit) {
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
     val pinState = rememberSaveable { mutableStateOf("") }
-    val errorState = rememberSaveable { mutableStateOf(false) }
+    val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
     val settingsState = remember { mutableStateOf(false) }
     if (deleteDialogState.value) {
@@ -124,26 +130,49 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                     broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
-                    errorState.value = true
+                    errorState.value = EnterScreen.Error.UNLOCK
+                }
+                EnterViewModel.Broadcast.OnSecurityError -> {
+                    errorState.value = EnterScreen.Error.SECURITY
                 }
             }
         }
     }
     val duration = App.Theme.durations.animation * 2
+    if (errorState.value == EnterScreen.Error.SECURITY) {
+        Dialog(
+            // todo
+            "ok" to {
+                onBack()
+            },
+            message = "foo bar", // todo
+            onDismissRequest = {
+                               // todo
+            },
+        )
+    }
     LaunchedEffect(errorState.value) {
-        if (errorState.value) {
-            withContext(Dispatchers.Default) {
-                delay(duration)
+        when (errorState.value) {
+            EnterScreen.Error.UNLOCK -> {
+                withContext(Dispatchers.Default) {
+                    delay(duration)
+                }
+                pinState.value = ""
+                errorState.value = null
             }
-            pinState.value = ""
-            errorState.value = false
+            EnterScreen.Error.SECURITY -> {
+                // noop
+            }
+            null -> {
+                // noop
+            }
         }
     }
     when (LocalConfiguration.current.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
             EnterScreenLandscape(
                 exists = exists,
-                error = errorState.value,
+                errorState = errorState,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
                 settingsState = settingsState,
@@ -152,7 +181,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         else -> {
             EnterScreenPortrait(
                 exists = exists,
-                error = errorState.value,
+                errorState = errorState,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
                 settingsState = settingsState,
@@ -196,7 +225,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
 private fun EnterScreenInfo(
     modifier: Modifier,
     exists: Boolean?,
-    error: Boolean,
+    errorState: MutableState<EnterScreen.Error?>,
     deleteDialogState: MutableState<Boolean>,
     pinState: MutableState<String>,
 ) {
@@ -270,14 +299,20 @@ private fun EnterScreenInfo(
         }
         val maxOffset = 16.dp
         val offsetState = remember { mutableStateOf(maxOffset / 2) }
-        LaunchedEffect(offsetState.value, error) {
-            if (error) {
-                withContext(Dispatchers.Default) {
-                    delay(16)
+        LaunchedEffect(offsetState.value, errorState.value) {
+            when (errorState.value) {
+                EnterScreen.Error.UNLOCK -> {
+                    withContext(Dispatchers.Default) {
+                        delay(16)
+                    }
+                    offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
                 }
-                offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
-            } else {
-                offsetState.value = maxOffset / 2
+                EnterScreen.Error.SECURITY -> {
+                    // noop
+                }
+                null -> {
+                    offsetState.value = maxOffset / 2
+                }
             }
         }
         BasicText(
@@ -290,7 +325,7 @@ private fun EnterScreenInfo(
                 .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
             text = "*".repeat(pinState.value.length),
             style = TextStyle(
-                color = if (error) App.Theme.colors.error else App.Theme.colors.foreground,
+                color = if (errorState.value == EnterScreen.Error.UNLOCK) App.Theme.colors.error else App.Theme.colors.foreground,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 24.sp,
             )
@@ -301,7 +336,7 @@ private fun EnterScreenInfo(
 @Composable
 private fun EnterScreenLandscape(
     exists: Boolean?,
-    error: Boolean,
+    errorState: MutableState<EnterScreen.Error?>,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
@@ -327,7 +362,7 @@ private fun EnterScreenLandscape(
                     .fillMaxHeight()
                     .weight(1f),
                 exists = exists,
-                error = error,
+                errorState = errorState,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
             )
@@ -335,7 +370,8 @@ private fun EnterScreenLandscape(
                 modifier = Modifier
                     .width(parent.maxHeight)
                     .align(Alignment.CenterVertically),
-                enabled = exists != null,
+                enabled = exists != null && errorState.value == null,
+                visibleDelete = pinState.value.isNotEmpty(),
                 rowHeight = 64.dp,
                 textStyle = TextStyle(
                     textAlign = TextAlign.Center,
@@ -359,7 +395,7 @@ private fun EnterScreenLandscape(
 @Composable
 private fun EnterScreenPortrait(
     exists: Boolean?,
-    error: Boolean,
+    errorState: MutableState<EnterScreen.Error?>,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
@@ -378,14 +414,14 @@ private fun EnterScreenPortrait(
                 .fillMaxWidth()
                 .weight(1f),
             exists = exists,
-            error = error,
+            errorState = errorState,
             pinState = pinState,
             deleteDialogState = deleteDialogState,
         )
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
-            enabled = exists != null && !error,
+            enabled = exists != null && errorState.value == null,
             visibleDelete = pinState.value.isNotEmpty(),
             onDelete = {
                 pinState.value = ""

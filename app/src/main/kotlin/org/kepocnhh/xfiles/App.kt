@@ -1,6 +1,7 @@
 package org.kepocnhh.xfiles
 
 import android.app.Application
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -15,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.xfiles.entity.Defaults
+import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Dimensions
@@ -32,6 +34,7 @@ import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
+import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
@@ -121,6 +124,11 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        val pbeIterations = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            SecuritySettings.PBEIterations.NUMBER_2_16
+        } else {
+            SecuritySettings.PBEIterations.NUMBER_2_20
+        }
         val injection = Injection(
             loggers = _loggerFactory,
             contexts = Contexts(
@@ -134,9 +142,15 @@ internal class App : Application() {
                     themeState = ThemeState(
                         colorsType = ColorsType.AUTO,
                         language = Language.AUTO,
-                    )
-                )
+                    ),
+                    securitySettings = SecuritySettings(
+                        pbeIterations = pbeIterations,
+                        aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
+                        dsaKeyLength = SecuritySettings.DSAKeyLength.BITS_1024_2,
+                    ),
+                ),
             ),
+            security = ::FinalSecurityProvider,
         )
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {
