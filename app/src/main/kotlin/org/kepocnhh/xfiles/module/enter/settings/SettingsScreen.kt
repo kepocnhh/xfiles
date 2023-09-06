@@ -37,7 +37,6 @@ private fun Columns(modifier: Modifier) {
     Column(modifier = modifier) {
         SettingsColors()
         SettingsLanguage()
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
         SettingsCipher()
     }
 }

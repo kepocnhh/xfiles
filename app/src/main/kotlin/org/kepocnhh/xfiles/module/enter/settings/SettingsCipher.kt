@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,6 +36,7 @@ private fun SettingsCipher(cipher: SecurityService?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(App.Theme.sizes.xxxl)
             .padding(start = App.Theme.sizes.small, end = App.Theme.sizes.small),
     ) {
         BasicText(
@@ -43,7 +45,7 @@ private fun SettingsCipher(cipher: SecurityService?) {
                 color = App.Theme.colors.foreground,
                 fontSize = 14.sp,
             ),
-            text = "Cipher:", // todo
+            text = "Cipher", // todo
         )
         BasicText(
             modifier = Modifier.align(Alignment.CenterEnd),
@@ -70,6 +72,14 @@ private fun getNumber(value: SecuritySettings.AES.Iterations): Int {
         SecuritySettings.AES.Iterations.NUMBER_2_10 -> 2.0.pow(10).toInt()
         SecuritySettings.AES.Iterations.NUMBER_2_16 -> 2.0.pow(16).toInt()
         SecuritySettings.AES.Iterations.NUMBER_2_20 -> 2.0.pow(20).toInt()
+    }
+}
+
+private fun getNumber(value: SecuritySettings.DES.Strength): Int {
+    return when (value) {
+        SecuritySettings.DES.Strength.NUMBER_1024_1 -> 1024 * 1
+        SecuritySettings.DES.Strength.NUMBER_1024_2 -> 1024 * 2
+        SecuritySettings.DES.Strength.NUMBER_1024_3 -> 1024 * 3
     }
 }
 
@@ -121,24 +131,46 @@ internal fun SettingsAESRow(
 }
 
 @Composable
-internal fun SettingsAES(
-    settings: SecuritySettings.AES,
-    onSelectIterations: (SecuritySettings.AES.Iterations) -> Unit,
+internal fun SettingsDESRow(
+    value: SecuritySettings.DES.Strength,
+    selected: Boolean,
+    onClick: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = App.Theme.sizes.small, end = App.Theme.sizes.small),
+            .height(App.Theme.sizes.xxxl)
+            .background(App.Theme.colors.background)
+            .clickable(onClick = onClick),
     ) {
         BasicText(
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier.align(Alignment.Center),
             style = TextStyle(
                 color = App.Theme.colors.foreground,
                 fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
             ),
-            text = "AES params:", // todo
+            text = getNumber(value).toString(),
         )
+        if (selected) {
+            Image(
+                modifier = Modifier
+                    .padding(end = App.Theme.sizes.small)
+                    .size(App.Theme.sizes.medium)
+                    .align(Alignment.CenterEnd),
+                painter = painterResource(id = R.drawable.check),
+                contentDescription = "settings:des:row:check",
+                colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
+            )
+        }
     }
+}
+
+@Composable
+internal fun SettingsAES(
+    settings: SecuritySettings.AES,
+    onSelectIterations: (SecuritySettings.AES.Iterations) -> Unit,
+) {
     val dialogState = remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -156,16 +188,15 @@ internal fun SettingsAES(
                 color = App.Theme.colors.foreground,
                 fontSize = 14.sp,
             ),
-            text = "Iterations", // todo
+            text = "AES", // todo
         )
         BasicText(
             modifier = Modifier.align(Alignment.Center),
             style = TextStyle(
                 color = App.Theme.colors.foreground,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
             ),
-            text = getPretty(settings.iterations),
+            text = "Iterations", // todo
         )
         BasicText(
             modifier = Modifier
@@ -176,7 +207,7 @@ internal fun SettingsAES(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             ),
-            text = getNumber(settings.iterations).toString(),
+            text = getPretty(settings.iterations),
         )
     }
     if (dialogState.value) {
@@ -217,6 +248,87 @@ internal fun SettingsAES(
 }
 
 @Composable
+internal fun SettingsDES(
+    settings: SecuritySettings.DES,
+    onSelectStrength: (SecuritySettings.DES.Strength) -> Unit,
+) {
+    val dialogState = remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(App.Theme.sizes.xxxl)
+            .clickable {
+                dialogState.value = true
+            },
+    ) {
+        BasicText(
+            modifier = Modifier
+                .padding(start = App.Theme.sizes.small)
+                .align(Alignment.CenterStart),
+            style = TextStyle(
+                color = App.Theme.colors.foreground,
+                fontSize = 14.sp,
+            ),
+            text = "DES", // todo
+        )
+        BasicText(
+            modifier = Modifier.align(Alignment.Center),
+            style = TextStyle(
+                color = App.Theme.colors.foreground,
+                fontSize = 14.sp,
+            ),
+            text = "Strength", // todo
+        )
+        BasicText(
+            modifier = Modifier
+                .padding(end = App.Theme.sizes.small)
+                .align(Alignment.CenterEnd),
+            style = TextStyle(
+                color = App.Theme.colors.foreground,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+            ),
+            text = getNumber(settings.strength).toString(),
+        )
+    }
+    if (dialogState.value) {
+        Dialog(
+            onDismissRequest = {
+                dialogState.value = false
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = App.Theme.colors.background,
+                        shape = RoundedCornerShape(App.Theme.sizes.medium),
+                    )
+                    .padding(
+                        top = App.Theme.sizes.medium,
+                        bottom = App.Theme.sizes.medium,
+                    ),
+            ) {
+                setOf(
+                    SecuritySettings.DES.Strength.NUMBER_1024_1,
+                    SecuritySettings.DES.Strength.NUMBER_1024_2,
+                    SecuritySettings.DES.Strength.NUMBER_1024_3,
+                ).forEach { value ->
+                    SettingsDESRow(
+                        value = value,
+                        selected = settings.strength == value,
+                        onClick = {
+                            onSelectStrength(value)
+                            dialogState.value = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 internal fun SettingsCipher() {
     val viewModel = App.viewModel<SettingsViewModel>()
     val cipher by viewModel.cipher.collectAsState(null)
@@ -233,11 +345,19 @@ internal fun SettingsCipher() {
     Column {
         SettingsCipher(cipher)
         if (settings != null) {
+//            Spacer(modifier = Modifier.height(App.Theme.sizes.small))
             SettingsAES(
                 settings = settings.aes,
                 onSelectIterations = {
                     viewModel.setSettings(settings.copy(aes = settings.aes.copy(iterations = it)))
-                }
+                },
+            )
+//            Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+            SettingsDES(
+                settings = settings.des,
+                onSelectStrength = {
+                    viewModel.setSettings(settings.copy(des = settings.des.copy(strength = it)))
+                },
             )
         }
     }
