@@ -3,6 +3,7 @@ package org.kepocnhh.xfiles.module.enter.settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
+import org.kepocnhh.xfiles.util.compose.ColorIndication
 
 @Composable
 private fun getColors(colorsType: ColorsType): Colors {
@@ -77,7 +79,11 @@ private fun SettingsColorRow(
             .fillMaxWidth()
             .height(App.Theme.sizes.xxxl)
             .background(colors.background)
-            .clickable(onClick = onClick),
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ColorIndication(color = colors.foreground),
+                onClick = onClick,
+            ),
     ) {
         Image(
             modifier = Modifier

@@ -8,12 +8,15 @@ import android.os.PersistableBundle
 import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -43,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.modifier.modifierLocalMapOf
@@ -54,10 +58,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
+import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.dialogs.Dialog
@@ -84,7 +90,7 @@ internal fun UnlockedScreen(
             TODO()
         }
         Configuration.ORIENTATION_PORTRAIT -> {
-            UnlockedScreenPortrait(keys = setOf("foo", "bar", "baz"))
+            UnlockedScreenPortrait()
         }
         else -> error("Orientation $orientation is not supported!")
     }
@@ -102,7 +108,11 @@ private fun ButtonsRow(
                 .size(App.Theme.sizes.xxxl)
                 .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
                 .clip(RoundedCornerShape(App.Theme.sizes.large))
-                .clickable(onClick = onAdd),
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ColorIndication(color = App.Theme.colors.background),
+                    onClick = onAdd,
+                ),
         ) {
             Image(
                 modifier = Modifier
@@ -119,7 +129,11 @@ private fun ButtonsRow(
                 .size(App.Theme.sizes.xxxl)
                 .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
                 .clip(RoundedCornerShape(App.Theme.sizes.large))
-                .clickable(onClick = onAdd),
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ColorIndication(color = App.Theme.colors.background),
+                    onClick = onLock,
+                ),
         ) {
             Image(
                 modifier = Modifier
@@ -134,9 +148,7 @@ private fun ButtonsRow(
 }
 
 @Composable
-private fun UnlockedScreenPortrait(
-    keys: Set<String>?,
-) {
+private fun UnlockedScreenPortrait() {
     Box(
         modifier = Modifier
             .fillMaxSize()
