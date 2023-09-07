@@ -5,6 +5,7 @@ import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecurityServices
 import java.security.AlgorithmParameterGenerator
 import java.security.AlgorithmParameters
+import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
@@ -14,6 +15,8 @@ import java.security.SecureRandom
 import java.security.Signature
 import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.KeySpec
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -90,6 +93,17 @@ private class SecretKeyFactoryProviderImpl(
     }
 }
 
+private class KeyFactoryProviderImpl(
+    private val delegate: KeyFactory,
+) : KeyFactoryProvider {
+    override fun generate(public: ByteArray, private: ByteArray): KeyPair {
+        return KeyPair(
+            delegate.generatePublic(X509EncodedKeySpec(public)),
+            delegate.generatePrivate(PKCS8EncodedKeySpec(private)),
+        )
+    }
+}
+
 internal class FinalSecurityProvider(
     private val services: SecurityServices,
 ) : SecurityProvider {
@@ -130,5 +144,10 @@ internal class FinalSecurityProvider(
             val service = services.random
             SecureRandom.getInstance(service.algorithm, service.provider)
         }
+    }
+
+    override fun getKeyFactory(): KeyFactoryProvider {
+        val service = services.asymmetric
+        return KeyFactoryProviderImpl(KeyFactory.getInstance(service.algorithm, service.provider))
     }
 }

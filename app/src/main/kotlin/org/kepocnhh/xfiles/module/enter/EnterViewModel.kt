@@ -127,7 +127,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             ivDB = ByteArray(blockSize).also(random::nextBytes),
             ivPrivate = ByteArray(blockSize).also(random::nextBytes),
         )
-        injection.files.writeBytes("sym.json", meta.toJson().toString().toByteArray())
+        injection.files.writeBytes(injection.pathNames.symmetric, meta.toJson().toString().toByteArray())
         val pair = injection.security(services).getKeyPairGenerator().let { generator ->
             val params = injection.security(services).getAlgorithmParameterGenerator()
                 .generate(
@@ -145,18 +145,18 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val key = injection.security(services)
             .getSecretKeyFactory()
             .generate(PBEKeySpec(hash.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
-        injection.files.writeBytes("db.json.enc", cipher.encrypt(key, IvParameterSpec(meta.ivDB), decrypted))
+        injection.files.writeBytes(injection.pathNames.dataBase, cipher.encrypt(key, IvParameterSpec(meta.ivDB), decrypted))
         val private = cipher.encrypt(key, IvParameterSpec(meta.ivPrivate), pair.private.encoded)
         JSONObject()
             .put("public", pair.public.encoded.base64())
             .put("private", private.base64())
             .also { json ->
-                injection.files.writeBytes("asym.json", json.toString().toByteArray())
+                injection.files.writeBytes(injection.pathNames.asymmetric, json.toString().toByteArray())
             }
         val sign = injection.security(services)
             .getSignature()
             .sign(pair.private, random, decrypted = decrypted)
-        injection.files.writeBytes("db.json.sig", sign)
+        injection.files.writeBytes(injection.pathNames.dataBaseSignature, sign)
         return key
     }
 
@@ -174,7 +174,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         injection.launch {
             _exists.value = null
             withContext(injection.contexts.default) {
-                injection.files.delete("db.json.enc")
+                injection.files.delete(injection.pathNames.dataBase)
             }
             _exists.value = false
         }
@@ -194,13 +194,13 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val hash = md.digest(pin.toByteArray()).base64()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val pbeIterations = SecurityUtil.getValue(securitySettings.pbeIterations)
-        val meta = JSONObject(injection.files.readText("sym.json")).toKeyMeta()
+        val meta = JSONObject(injection.files.readText(injection.pathNames.symmetric)).toKeyMeta()
         val cipher = injection.security(services).getCipher()
         val key = injection.security(services)
             .getSecretKeyFactory()
             .generate(PBEKeySpec(hash.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
-        val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
-            KeyFactory.getInstance("DSA").generateKeyPair(
+        val pair = JSONObject(injection.files.readText(injection.pathNames.asymmetric)).let { json ->
+            injection.security(services).getKeyFactory().generate(
                 public = json.getString("public").base64(),
                 private = cipher.decrypt(
                     key = key,
