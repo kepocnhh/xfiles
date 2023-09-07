@@ -1,6 +1,5 @@
 package org.kepocnhh.xfiles.module.enter
 
-import android.util.Base64
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,10 +16,8 @@ import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.SecurityUtil
-import org.kepocnhh.xfiles.util.security.generateKeyPair
 import org.kepocnhh.xfiles.util.security.getServiceOrNull
 import org.kepocnhh.xfiles.util.security.requireService
-import java.security.KeyFactory
 import java.security.NoSuchAlgorithmException
 import java.security.Provider
 import java.security.interfaces.DSAParams
@@ -29,8 +26,6 @@ import java.security.spec.DSAParameterSpec
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
-import kotlin.math.pow
-import kotlin.time.Duration.Companion.milliseconds
 
 internal class EnterViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
@@ -89,7 +84,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 },
                 onSuccess = {
                     _exists.value = withContext(injection.contexts.default) {
-                        injection.files.exists("db.json.enc")
+                        injection.files.exists(injection.pathNames.dataBase)
                     }
                 },
             )
@@ -212,14 +207,14 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val decrypted = cipher.decrypt(
             key = key,
             params = IvParameterSpec(meta.ivDB),
-            encrypted = injection.files.readBytes("db.json.enc"),
+            encrypted = injection.files.readBytes(injection.pathNames.dataBase),
         )
         val verified = injection.security(services)
             .getSignature()
             .verify(
                 key = pair.public,
                 decrypted = decrypted,
-                sig = injection.files.readBytes("db.json.sig"),
+                sig = injection.files.readBytes(injection.pathNames.dataBaseSignature),
             )
         check(verified)
         return key
