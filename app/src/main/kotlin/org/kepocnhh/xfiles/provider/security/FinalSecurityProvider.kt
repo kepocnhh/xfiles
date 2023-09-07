@@ -41,10 +41,10 @@ private class CipherProviderImpl(
     override fun decrypt(
         key: SecretKey,
         params: AlgorithmParameterSpec,
-        decrypted: ByteArray
+        encrypted: ByteArray
     ): ByteArray {
         delegate.init(Cipher.DECRYPT_MODE, key, params)
-        return delegate.doFinal(decrypted)
+        return delegate.doFinal(encrypted)
     }
 }
 
