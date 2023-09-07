@@ -15,12 +15,13 @@ import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
+import org.kepocnhh.xfiles.util.security.SecurityUtil
 import org.kepocnhh.xfiles.util.security.generateKeyPair
+import org.kepocnhh.xfiles.util.security.getServiceOrNull
+import org.kepocnhh.xfiles.util.security.requireService
 import java.security.KeyFactory
 import java.security.NoSuchAlgorithmException
-import java.security.NoSuchProviderException
 import java.security.Provider
-import java.security.Security
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
 import javax.crypto.SecretKey
@@ -43,39 +44,10 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     private val _exists = MutableStateFlow<Boolean?>(null)
     val exists = _exists.asStateFlow()
 
-    private fun getProvider(name: String): Provider {
-        return Security.getProviders().firstOrNull { it.name == name } ?: throw NoSuchProviderException("No such provider \"$name\"!")
-    }
-
-    private fun Provider.getAlgorithm(type: String, algorithm: String): Provider.Service {
-        return services.firstOrNull {
-            it.type.equals(type, ignoreCase = true) && it.algorithm.equals(algorithm, ignoreCase = true)
-        } ?: throw NoSuchAlgorithmException("No such algorithm $name:$type:$algorithm!")
-    }
-
-    private fun Provider.getAlgorithm(type: String, algorithms: Set<String>): Provider.Service {
-        return services.firstOrNull {
-            it.type == type && algorithms.any { algorithm -> it.algorithm.equals(algorithm, ignoreCase = true) }
-        } ?: throw NoSuchAlgorithmException("No such algorithm $name:$type:$algorithms!")
-    }
-
-    private fun Provider.getSecurityService(type: String, algorithms: Set<String>): SecurityService {
+    private fun Provider.Service.toSecurityService(): SecurityService {
         return SecurityService(
-            provider = name,
-            algorithm = getAlgorithm(
-                type = type,
-                algorithms = algorithms,
-            ).algorithm,
-        )
-    }
-
-    private fun Provider.getSecurityService(type: String, algorithm: String): SecurityService {
-        return SecurityService(
-            provider = name,
-            algorithm = getAlgorithm(
-                type = type,
-                algorithm = algorithm,
-            ).algorithm,
+            provider = provider.name,
+            algorithm = algorithm,
         )
     }
 
@@ -84,22 +56,25 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             val result = withContext(injection.contexts.default) {
                 runCatching {
                     if (injection.local.services == null) {
-                        val provider = getProvider("BC")
-                        val cipher = provider.getSecurityService(
-                            type = "Cipher",
-                            algorithms = setOf(
-                                "PBEWITHHMACSHA256ANDAES_256",
-                                "PBEWITHSHA256AND256BITAES-CBC-BC",
-                            ),
+                        val provider = SecurityUtil.requireProvider("BC")
+                        val ciphers = setOf(
+                            "PBEWITHHMACSHA256ANDAES_256",
+                            "PBEWITHSHA256AND256BITAES-CBC-BC",
                         )
-                        val platform = getProvider("AndroidOpenSSL")
+                        val cipher = ciphers.firstNotNullOfOrNull {
+                            provider.getServiceOrNull(
+                                type = "Cipher",
+                                algorithm = it,
+                            )
+                        }?.toSecurityService() ?: throw NoSuchAlgorithmException("No such algorithms ${provider.name}:Cipher:$ciphers!")
+                        val platform = SecurityUtil.requireProvider("AndroidOpenSSL")
                         injection.local.services = SecurityServices(
                             cipher = cipher,
-                            symmetric = provider.getSecurityService(type = "SecretKeyFactory", algorithm = cipher.algorithm),
-                            asymmetric = provider.getSecurityService(type = "KeyPairGenerator", algorithm = "DSA"),
-                            signature = provider.getSecurityService(type = "Signature", algorithm = "SHA256WithDSA"),
-                            hash = platform.getSecurityService(type = "MessageDigest", algorithm = "SHA-512"),
-                            random = platform.getSecurityService(type = "SecureRandom", algorithm = "SHA1PRNG"),
+                            symmetric = provider.requireService(type = "SecretKeyFactory", algorithm = cipher.algorithm).toSecurityService(),
+                            asymmetric = provider.requireService(type = "KeyPairGenerator", algorithm = "DSA").toSecurityService(),
+                            signature = provider.requireService(type = "Signature", algorithm = "SHA256WithDSA").toSecurityService(),
+                            hash = platform.requireService(type = "MessageDigest", algorithm = "SHA-512").toSecurityService(),
+                            random = platform.requireService(type = "SecureRandom", algorithm = "SHA1PRNG").toSecurityService(),
                         )
                         logger.debug("services: " + injection.local.services)
                     }
