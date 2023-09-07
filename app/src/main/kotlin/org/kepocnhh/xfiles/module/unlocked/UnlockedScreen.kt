@@ -17,11 +17,14 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,9 +61,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
+import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.ColorIndication
@@ -155,6 +160,61 @@ private fun UnlockedScreenPortrait() {
             .background(App.Theme.colors.background),
     ) {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
+//        val items = listOf(
+//            EncryptedValue(id = "foo", title = "foo"),
+//            EncryptedValue(id = "bar", title = "bar"),
+//            EncryptedValue(id = "baz", title = "baz"),
+//        )
+        val items = (1..24).map {
+            EncryptedValue(id = "foo$it", title = "foo$it")
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = App.Theme.dimensions.insets.calculateStartPadding(layoutDirection),
+                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                )
+                .align(Alignment.Center),
+            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
+            contentPadding = PaddingValues(
+                top = App.Theme.dimensions.insets.calculateTopPadding() + App.Theme.sizes.small,
+                bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
+            ),
+        ) {
+            items(
+                count = items.size,
+                key = { items[it].id },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(
+                            start = App.Theme.sizes.small,
+                            end = App.Theme.sizes.small,
+                        )
+                        .fillMaxWidth()
+                        .height(App.Theme.sizes.xxxl)
+                        .border(
+                            width = 1.dp,
+                            color = App.Theme.colors.foreground,
+                            shape = RoundedCornerShape(App.Theme.sizes.small),
+                        )
+                        .padding(
+                            start = App.Theme.sizes.small,
+                            end = App.Theme.sizes.small,
+                        ),
+                ) {
+                    BasicText(
+                        modifier = Modifier.align(Alignment.CenterStart),
+                        text = items[it].title,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            color = App.Theme.colors.foreground,
+                        ),
+                    )
+                }
+            }
+        }
         ButtonsRow(
             modifier = Modifier
                 .padding(
