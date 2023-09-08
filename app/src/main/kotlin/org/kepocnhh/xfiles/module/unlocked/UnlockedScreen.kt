@@ -185,7 +185,7 @@ private fun UnlockedScreenPortrait() {
             items(
                 count = items.size,
                 key = { items[it].id },
-            ) {
+            ) { index ->
                 Box(
                     modifier = Modifier
                         .padding(
@@ -198,20 +198,54 @@ private fun UnlockedScreenPortrait() {
                             width = 1.dp,
                             color = App.Theme.colors.foreground,
                             shape = RoundedCornerShape(App.Theme.sizes.small),
-                        )
-                        .padding(
-                            start = App.Theme.sizes.small,
-                            end = App.Theme.sizes.small,
                         ),
                 ) {
                     BasicText(
-                        modifier = Modifier.align(Alignment.CenterStart),
-                        text = items[it].title,
+                        modifier = Modifier.padding(start = App.Theme.sizes.small).align(Alignment.CenterStart),
+                        text = items[index].title,
                         style = TextStyle(
                             fontSize = 14.sp,
                             color = App.Theme.colors.foreground,
                         ),
                     )
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(App.Theme.sizes.small))
+                            .clickable {
+                                // todo
+                            },
+                    )
+                    Row(
+                        modifier = Modifier.padding(end = App.Theme.sizes.small).align(Alignment.CenterEnd),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(App.Theme.sizes.xl)
+                                .background(
+                                    App.Theme.colors.background,
+                                    RoundedCornerShape(App.Theme.sizes.medium)
+                                )
+                                .clip(RoundedCornerShape(App.Theme.sizes.medium))
+                                .clickable {
+                                    // todo
+                                }
+                                .border(
+                                    width = 1.dp,
+                                    color = App.Theme.colors.foreground,
+                                    shape = RoundedCornerShape(App.Theme.sizes.medium),
+                                ),
+                        ) {
+                            Image(
+                                modifier = Modifier
+                                    .size(App.Theme.sizes.medium)
+                                    .align(Alignment.Center),
+                                painter = painterResource(id = R.drawable.plus),
+                                contentDescription = "unlocked:item:$index:foo", // todo
+                                colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
+                            )
+                        }
+                    }
                 }
             }
         }
