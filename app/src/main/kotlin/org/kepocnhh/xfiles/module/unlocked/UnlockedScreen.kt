@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.os.PersistableBundle
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -58,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -153,6 +155,101 @@ private fun ButtonsRow(
 }
 
 @Composable
+private fun EncryptedValueButton(
+    size: Dp,
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(
+                App.Theme.colors.background,
+                RoundedCornerShape(size / 2),
+            )
+            .clip(RoundedCornerShape(size / 2))
+            .clickable(onClick = onClick),
+    ) {
+        Image(
+            modifier = Modifier
+                .size(size / 2)
+                .align(Alignment.Center),
+            painter = painterResource(id = icon),
+            contentDescription = contentDescription,
+            colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
+        )
+    }
+}
+
+@Composable
+private fun EncryptedValueItem(value: EncryptedValue) {
+    val height = App.Theme.sizes.xxl
+    Box(
+        modifier = Modifier
+            .padding(
+                start = App.Theme.sizes.small,
+                end = App.Theme.sizes.small,
+            )
+            .fillMaxWidth()
+            .height(height),
+    ) {
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(App.Theme.sizes.large))
+                .background(App.Theme.colors.secondary)
+                .clickable {
+                    // todo
+                }
+                .wrapContentHeight(),
+        )
+        BasicText(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = height / 2),
+            text = value.title,
+            style = TextStyle(
+                fontSize = 14.sp,
+                color = App.Theme.colors.foreground,
+            ),
+        )
+        val buttonSize = App.Theme.sizes.large
+        Row(
+            modifier = Modifier
+                .padding(end = (height - buttonSize) / 2)
+                .align(Alignment.CenterEnd),
+            horizontalArrangement = Arrangement.spacedBy(App.Theme.sizes.xs),
+        ) {
+            EncryptedValueButton(
+                size = buttonSize,
+                icon = R.drawable.eye,
+                contentDescription = "unlocked:item:${value.id}:show",
+                onClick = {
+                    // todo
+                },
+            )
+            EncryptedValueButton(
+                size = buttonSize,
+                icon = R.drawable.copy,
+                contentDescription = "unlocked:item:${value.id}:copy",
+                onClick = {
+                    // todo
+                },
+            )
+            EncryptedValueButton(
+                size = buttonSize,
+                icon = R.drawable.cross,
+                contentDescription = "unlocked:item:${value.id}:delete",
+                onClick = {
+                    // todo
+                },
+            )
+        }
+    }
+}
+
+@Composable
 private fun UnlockedScreenPortrait() {
     Box(
         modifier = Modifier
@@ -186,64 +283,7 @@ private fun UnlockedScreenPortrait() {
                 count = items.size,
                 key = { items[it].id },
             ) { index ->
-                Box(
-                    modifier = Modifier
-                        .padding(
-                            start = App.Theme.sizes.small,
-                            end = App.Theme.sizes.small,
-                        )
-                        .fillMaxWidth()
-                        .height(App.Theme.sizes.xxxl),
-                ) {
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(App.Theme.sizes.large))
-                            .background(App.Theme.colors.secondary)
-                            .clickable {
-                                // todo
-                            }
-                            .wrapContentHeight(),
-                    )
-                    BasicText(
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = App.Theme.sizes.xxxl / 2),
-                        text = items[index].title,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            color = App.Theme.colors.foreground,
-                        ),
-                    )
-                    val padding = (App.Theme.sizes.xxxl - App.Theme.sizes.xl) / 2
-                    Row(
-                        modifier = Modifier
-                            .padding(end = padding)
-                            .align(Alignment.CenterEnd),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(App.Theme.sizes.xl)
-                                .background(
-                                    App.Theme.colors.background,
-                                    RoundedCornerShape(App.Theme.sizes.medium)
-                                )
-                                .clip(RoundedCornerShape(App.Theme.sizes.medium))
-                                .clickable {
-                                    // todo
-                                },
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .size(App.Theme.sizes.medium)
-                                    .align(Alignment.Center),
-                                painter = painterResource(id = R.drawable.plus),
-                                contentDescription = "unlocked:item:$index:foo", // todo
-                                colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
-                            )
-                        }
-                    }
-                }
+                EncryptedValueItem(value = items[index])
             }
         }
         ButtonsRow(

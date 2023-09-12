@@ -15,7 +15,6 @@ internal sealed class Colors(
         background = Color(0xff121212),
         foreground = white,
         primary = primary,
-//        secondary = Color(0xff444444),
         secondary = Color(0xff222222),
         error = error,
     )
@@ -24,7 +23,6 @@ internal sealed class Colors(
         background = white,
         foreground = black,
         primary = primary,
-//        secondary = Color(0xffbbbbbb),
         secondary = Color(0xffdddddd),
         error = error,
     )
