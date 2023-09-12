@@ -8,12 +8,15 @@ internal sealed class Colors(
     val background: Color,
     val foreground: Color,
     val primary: Color,
+    val secondary: Color,
     val error: Color,
 ) {
     object Dark : Colors(
         background = Color(0xff121212),
         foreground = white,
         primary = primary,
+//        secondary = Color(0xff444444),
+        secondary = Color(0xff222222),
         error = error,
     )
 
@@ -21,6 +24,8 @@ internal sealed class Colors(
         background = white,
         foreground = black,
         primary = primary,
+//        secondary = Color(0xffbbbbbb),
+        secondary = Color(0xffdddddd),
         error = error,
     )
 

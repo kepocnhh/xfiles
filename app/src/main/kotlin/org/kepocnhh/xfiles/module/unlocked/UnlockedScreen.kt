@@ -193,31 +193,33 @@ private fun UnlockedScreenPortrait() {
                             end = App.Theme.sizes.small,
                         )
                         .fillMaxWidth()
-                        .height(App.Theme.sizes.xxxl)
-                        .border(
-                            width = 1.dp,
-                            color = App.Theme.colors.foreground,
-                            shape = RoundedCornerShape(App.Theme.sizes.small),
-                        ),
+                        .height(App.Theme.sizes.xxxl),
                 ) {
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(App.Theme.sizes.large))
+                            .background(App.Theme.colors.secondary)
+                            .clickable {
+                                // todo
+                            }
+                            .wrapContentHeight(),
+                    )
                     BasicText(
-                        modifier = Modifier.padding(start = App.Theme.sizes.small).align(Alignment.CenterStart),
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(start = App.Theme.sizes.xxxl / 2),
                         text = items[index].title,
                         style = TextStyle(
                             fontSize = 14.sp,
                             color = App.Theme.colors.foreground,
                         ),
                     )
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(App.Theme.sizes.small))
-                            .clickable {
-                                // todo
-                            },
-                    )
+                    val padding = (App.Theme.sizes.xxxl - App.Theme.sizes.xl) / 2
                     Row(
-                        modifier = Modifier.padding(end = App.Theme.sizes.small).align(Alignment.CenterEnd),
+                        modifier = Modifier
+                            .padding(end = padding)
+                            .align(Alignment.CenterEnd),
                     ) {
                         Box(
                             modifier = Modifier
@@ -229,12 +231,7 @@ private fun UnlockedScreenPortrait() {
                                 .clip(RoundedCornerShape(App.Theme.sizes.medium))
                                 .clickable {
                                     // todo
-                                }
-                                .border(
-                                    width = 1.dp,
-                                    color = App.Theme.colors.foreground,
-                                    shape = RoundedCornerShape(App.Theme.sizes.medium),
-                                ),
+                                },
                         ) {
                             Image(
                                 modifier = Modifier
