@@ -72,11 +72,13 @@ import androidx.compose.ui.zIndex
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
+import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.ColorIndication
+import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.toPaddings
@@ -184,50 +186,26 @@ private fun ButtonsRow(
     onAdd: () -> Unit,
     onLock: () -> Unit,
 ) {
-    Row(modifier = modifier) {
-        Box(
-            modifier = Modifier
-                .size(App.Theme.sizes.xxxl)
-                .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
-                .clip(RoundedCornerShape(App.Theme.sizes.large))
-                .clickable(
-                    enabled = enabled,
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ColorIndication(color = App.Theme.colors.background),
-                    onClick = onAdd,
-                ),
-        ) {
-            Image(
-                modifier = Modifier
-                    .size(App.Theme.sizes.medium)
-                    .align(Alignment.Center),
-                painter = painterResource(id = R.drawable.plus),
-                contentDescription = "unlocked:add",
-                colorFilter = ColorFilter.tint(App.Theme.colors.background),
-            )
-        }
-        Spacer(modifier = Modifier.width(App.Theme.sizes.small))
-        Box(
-            modifier = Modifier
-                .size(App.Theme.sizes.xxxl)
-                .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
-                .clip(RoundedCornerShape(App.Theme.sizes.large))
-                .clickable(
-                    enabled = enabled,
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ColorIndication(color = App.Theme.colors.background),
-                    onClick = onLock,
-                ),
-        ) {
-            Image(
-                modifier = Modifier
-                    .size(App.Theme.sizes.medium)
-                    .align(Alignment.Center),
-                painter = painterResource(id = R.drawable.key),
-                contentDescription = "unlocked:lock",
-                colorFilter = ColorFilter.tint(App.Theme.colors.background),
-            )
-        }
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
+    ) {
+        FloatingActionButton(
+            enabled = enabled,
+            indication = ColorIndication(color = Colors.white),
+            icon = R.drawable.plus,
+            contentDescription = "unlocked:add",
+            onClick = onAdd,
+        )
+        FloatingActionButton(
+            color = App.Theme.colors.foreground,
+            enabled = enabled,
+            indication = ColorIndication(color = App.Theme.colors.background),
+            icon = R.drawable.key,
+            iconColor = App.Theme.colors.background,
+            contentDescription = "unlocked:lock",
+            onClick = onLock,
+        )
     }
 }
 
