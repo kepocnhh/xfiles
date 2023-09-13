@@ -108,7 +108,7 @@ private fun RoundedButton(
             .widthIn(min = 128.dp)
             .background(backgroundColor, RoundedCornerShape(corners))
             .clip(RoundedCornerShape(corners))
-            .onClick(onClick)
+            .onClick(enabled = true, onClick)
             .wrapContentHeight()
             .padding(padding),
         text = text,

@@ -29,6 +29,9 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     private val logger = injection.loggers.newLogger("[Unlocked]")
 
+    private val _loading = MutableStateFlow(true)
+    val loading = _loading.asStateFlow()
+
     private val _encrypteds = MutableStateFlow<List<EncryptedValue>?>(null)
     val encrypteds = _encrypteds.asStateFlow()
 

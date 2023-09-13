@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -76,6 +77,7 @@ import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
+import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
@@ -122,6 +124,7 @@ internal fun UnlockedScreen(
             viewModel.deleteValue(key, id = it.id)
         },
     )
+    val loading by viewModel.loading.collectAsState(true)
     val encrypteds by viewModel.encrypteds.collectAsState(null)
     if (encrypteds == null) viewModel.requestValues(key)
     BackHandler {
@@ -152,6 +155,7 @@ internal fun UnlockedScreen(
         }
         Configuration.ORIENTATION_PORTRAIT -> {
             UnlockedScreenPortrait(
+                loading = loading,
                 items = encrypteds,
                 onCopy = {
                     viewModel.requestToCopy(key, id = it.id)
@@ -227,6 +231,7 @@ private fun ButtonsRow(
 
 @Composable
 private fun EncryptedValueButton(
+    enabled: Boolean,
     size: Dp,
     @DrawableRes icon: Int,
     contentDescription: String,
@@ -240,7 +245,7 @@ private fun EncryptedValueButton(
                 RoundedCornerShape(size / 2),
             )
             .clip(RoundedCornerShape(size / 2))
-            .onClick(onClick),
+            .onClick(enabled = enabled, onClick),
     ) {
         Image(
             modifier = Modifier
@@ -255,12 +260,12 @@ private fun EncryptedValueButton(
 
 @Composable
 private fun EncryptedValueItem(
+    enabled: Boolean,
     value: EncryptedValue,
     onShow: () -> Unit,
     onCopy: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val context = LocalContext.current
     val height = App.Theme.sizes.xxxl
     Box(
         modifier = Modifier
@@ -299,18 +304,21 @@ private fun EncryptedValueItem(
             horizontalArrangement = Arrangement.spacedBy(App.Theme.sizes.xs),
         ) {
             EncryptedValueButton(
+                enabled = enabled,
                 size = buttonSize,
                 icon = R.drawable.eye,
                 contentDescription = "unlocked:item:${value.id}:show",
                 onClick = onShow,
             )
             EncryptedValueButton(
+                enabled = enabled,
                 size = buttonSize,
                 icon = R.drawable.copy,
                 contentDescription = "unlocked:item:${value.id}:copy",
                 onClick = onCopy,
             )
             EncryptedValueButton(
+                enabled = enabled,
                 size = buttonSize,
                 icon = R.drawable.cross,
                 contentDescription = "unlocked:item:${value.id}:delete",
@@ -323,6 +331,7 @@ private fun EncryptedValueItem(
 @Composable
 private fun Encrypteds(
     modifier: Modifier,
+    enabled: Boolean,
     items: List<EncryptedValue>,
     itemContent: @Composable (EncryptedValue) -> Unit,
 ) {
@@ -333,6 +342,7 @@ private fun Encrypteds(
             top = App.Theme.dimensions.insets.calculateTopPadding() + App.Theme.sizes.small,
             bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
         ),
+        userScrollEnabled = enabled,
     ) {
         items(
             count = items.size,
@@ -345,6 +355,7 @@ private fun Encrypteds(
 
 @Composable
 private fun UnlockedScreenPortrait(
+    loading: Boolean,
     items: List<EncryptedValue>?,
     onCopy: (EncryptedValue) -> Unit,
     onAdd: (Pair<String, String>) -> Unit,
@@ -358,9 +369,6 @@ private fun UnlockedScreenPortrait(
             .background(App.Theme.colors.background),
     ) {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
-//        val items = (1..24).map {
-//            EncryptedValue(id = "foo$it", title = "foo$it")
-//        }
         when {
             items == null -> {
                 // todo
@@ -373,22 +381,23 @@ private fun UnlockedScreenPortrait(
                 )
             }
             else -> {
+                val insets = LocalView.current.rootWindowInsets.toPaddings()
                 Encrypteds(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            start = App.Theme.dimensions.insets.calculateStartPadding(
-                                layoutDirection
-                            ),
-                            end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                            start = insets.calculateStartPadding(layoutDirection),
+                            end = insets.calculateEndPadding(layoutDirection),
                         )
                         .align(Alignment.Center),
+                    enabled = !loading,
                     items = items,
                     itemContent = { item ->
                         EncryptedValueItem(
+                            enabled = !loading,
                             value = item,
                             onShow = {
-                                context.showToast("show $item")
+                                context.showToast("show $item") // todo
                             },
                             onCopy = {
                                 onCopy(item)
@@ -408,7 +417,7 @@ private fun UnlockedScreenPortrait(
                     end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
                 )
                 .align(Alignment.BottomEnd),
-            enabled = items != null,
+            enabled = items != null && !loading,
             onAdd = {
                 val title = "foo${System.currentTimeMillis()}" // todo
                 val value = "${System.nanoTime()}" // todo
