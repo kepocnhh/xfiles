@@ -94,15 +94,50 @@ internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
+    val context = LocalContext.current
+    val viewModel = App.viewModel<UnlockedViewModel>()
+    val logger = App.newLogger(tag = "[Unlocked|Screen]")
+    val encrypteds by viewModel.encrypteds.collectAsState(null)
+    if (encrypteds == null) viewModel.requestValues(key)
     BackHandler {
         broadcast(UnlockedScreen.Broadcast.Lock)
+    }
+    LaunchedEffect(Unit) {
+        viewModel.broadcast.collect { broadcast ->
+            logger.debug("broadcast: $broadcast")
+            when (broadcast) {
+                is UnlockedViewModel.Broadcast.OnCopy -> {
+                    val clip = ClipData.newPlainText("secret", broadcast.secret)
+                    clip.description.extras = PersistableBundle().also {
+                        it.putBoolean("android.content.extra.IS_SENSITIVE", true)
+                    }
+                    val clipboardManager = context.getSystemService(ClipboardManager::class.java)
+                    if (clipboardManager != null) {
+                        clipboardManager.setPrimaryClip(clip)
+                        context.showToast("Copied.") // todo
+                    }
+                }
+                is UnlockedViewModel.Broadcast.OnShow -> TODO()
+            }
+        }
     }
     when (val orientation = LocalConfiguration.current.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
             TODO()
         }
         Configuration.ORIENTATION_PORTRAIT -> {
-            UnlockedScreenPortrait()
+            UnlockedScreenPortrait(
+                items = encrypteds,
+                onCopy = {
+                    viewModel.requestToCopy(key, id = it.id)
+                },
+                onAdd = { (title, value) ->
+                    viewModel.addValue(key, title = title, value = value)
+                },
+                onLock = {
+                    broadcast(UnlockedScreen.Broadcast.Lock)
+                }
+            )
         }
         else -> error("Orientation $orientation is not supported!")
     }
@@ -111,6 +146,7 @@ internal fun UnlockedScreen(
 @Composable
 private fun ButtonsRow(
     modifier: Modifier,
+    enabled: Boolean,
     onAdd: () -> Unit,
     onLock: () -> Unit,
 ) {
@@ -121,6 +157,7 @@ private fun ButtonsRow(
                 .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
                 .clip(RoundedCornerShape(App.Theme.sizes.large))
                 .clickable(
+                    enabled = enabled,
                     interactionSource = remember { MutableInteractionSource() },
                     indication = ColorIndication(color = App.Theme.colors.background),
                     onClick = onAdd,
@@ -142,6 +179,7 @@ private fun ButtonsRow(
                 .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
                 .clip(RoundedCornerShape(App.Theme.sizes.large))
                 .clickable(
+                    enabled = enabled,
                     interactionSource = remember { MutableInteractionSource() },
                     indication = ColorIndication(color = App.Theme.colors.background),
                     onClick = onLock,
@@ -213,9 +251,6 @@ private fun EncryptedValueItem(
 //                .onClick {
 //                    context.showToast("click ${value.title}") // todo
 //                }
-                .clickable {
-                    context.showToast("click ${value.title}") // todo
-                }
                 .wrapContentHeight(),
         )
         BasicText(
@@ -258,7 +293,35 @@ private fun EncryptedValueItem(
 }
 
 @Composable
-private fun UnlockedScreenPortrait() {
+private fun Encrypteds(
+    modifier: Modifier,
+    items: List<EncryptedValue>,
+    itemContent: @Composable (EncryptedValue) -> Unit,
+) {
+    LazyColumn(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
+        contentPadding = PaddingValues(
+            top = App.Theme.dimensions.insets.calculateTopPadding() + App.Theme.sizes.small,
+            bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
+        ),
+    ) {
+        items(
+            count = items.size,
+            key = { items[it].id },
+        ) { index ->
+            itemContent(items[index])
+        }
+    }
+}
+
+@Composable
+private fun UnlockedScreenPortrait(
+    items: List<EncryptedValue>?,
+    onCopy: (EncryptedValue) -> Unit,
+    onAdd: (Pair<String, String>) -> Unit,
+    onLock: () -> Unit,
+) {
     val context = LocalContext.current
     Box(
         modifier = Modifier
@@ -266,43 +329,45 @@ private fun UnlockedScreenPortrait() {
             .background(App.Theme.colors.background),
     ) {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
-//        val items = listOf(
-//            EncryptedValue(id = "foo", title = "foo"),
-//            EncryptedValue(id = "bar", title = "bar"),
-//            EncryptedValue(id = "baz", title = "baz"),
-//        )
-        val items = (1..24).map {
-            EncryptedValue(id = "foo$it", title = "foo$it")
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = App.Theme.dimensions.insets.calculateStartPadding(layoutDirection),
-                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+//        val items = (1..24).map {
+//            EncryptedValue(id = "foo$it", title = "foo$it")
+//        }
+        when {
+            items == null -> {
+                // todo
+            }
+            items.isEmpty() -> {
+                BasicText(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    text = "no items", // todo
                 )
-                .align(Alignment.Center),
-            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
-            contentPadding = PaddingValues(
-                top = App.Theme.dimensions.insets.calculateTopPadding() + App.Theme.sizes.small,
-                bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
-            ),
-        ) {
-            items(
-                count = items.size,
-                key = { items[it].id },
-            ) { index ->
-                val item = items[index]
-                EncryptedValueItem(
-                    value = item,
-                    onShow = {
-                        context.showToast("show ${item.title}") // todo
-                    },
-                    onCopy = {
-                        context.showToast("copy ${item.title}") // todo
-                    },
-                    onDelete = {
-                        context.showToast("delete ${item.title}") // todo
+            }
+            else -> {
+                Encrypteds(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = App.Theme.dimensions.insets.calculateStartPadding(
+                                layoutDirection
+                            ),
+                            end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                        )
+                        .align(Alignment.Center),
+                    items = items,
+                    itemContent = { item ->
+                        EncryptedValueItem(
+                            value = item,
+                            onShow = {
+                                context.showToast("show $item")
+                            },
+                            onCopy = {
+                                onCopy(item)
+                            },
+                            onDelete = {
+                                context.showToast("delete $item")
+                            },
+                        )
                     },
                 )
             }
@@ -314,12 +379,13 @@ private fun UnlockedScreenPortrait() {
                     end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
                 )
                 .align(Alignment.BottomEnd),
+            enabled = items != null,
             onAdd = {
-                // todo
+                val title = "foo${System.currentTimeMillis()}" // todo
+                val value = "${System.nanoTime()}" // todo
+                onAdd(title to value) // todo
             },
-            onLock = {
-                // todo
-            },
+            onLock = onLock,
         )
     }
 }
@@ -434,7 +500,7 @@ private fun UnlockedScreenDeprecated(
                 clickedState.value = null
             },
             "copy" to {
-                viewModel.requestToCopy(key, name = clicked)
+//                viewModel.requestToCopy(key, name = clicked) // todo
                 clickedState.value = null
             },
             onDismissRequest = {
