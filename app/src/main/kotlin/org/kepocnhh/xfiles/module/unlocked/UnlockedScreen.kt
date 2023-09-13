@@ -210,7 +210,10 @@ private fun EncryptedValueItem(
                 .fillMaxSize()
                 .clip(RoundedCornerShape(App.Theme.sizes.large))
                 .background(App.Theme.colors.secondary)
-                .onClick {
+//                .onClick {
+//                    context.showToast("click ${value.title}") // todo
+//                }
+                .clickable {
                     context.showToast("click ${value.title}") // todo
                 }
                 .wrapContentHeight(),
