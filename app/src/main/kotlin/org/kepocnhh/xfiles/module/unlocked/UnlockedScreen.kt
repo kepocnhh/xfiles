@@ -42,6 +42,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -132,7 +133,9 @@ internal fun UnlockedScreen(
     val encrypteds by viewModel.encrypteds.collectAsState(null)
     if (encrypteds == null) viewModel.requestValues(key)
     BackHandler {
-        broadcast(UnlockedScreen.Broadcast.Lock)
+        if (!loading) {
+            broadcast(UnlockedScreen.Broadcast.Lock)
+        }
     }
     LaunchedEffect(Unit) {
         viewModel.broadcast.collect { broadcast ->
@@ -176,6 +179,13 @@ internal fun UnlockedScreen(
             )
         }
         else -> error("Orientation $orientation is not supported!")
+    }
+    DisposableEffect(Unit) {
+        // todo
+        logger.debug("init")
+        onDispose {
+            logger.debug("on dispose")
+        }
     }
 }
 
@@ -390,11 +400,12 @@ private fun UnlockedScreenPortrait(
                 )
             }
         }
+        val insets = LocalView.current.rootWindowInsets.toPaddings()
         ButtonsRow(
             modifier = Modifier
                 .padding(
-                    bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small,
-                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
+                    bottom = insets.calculateBottomPadding() + App.Theme.sizes.small,
+                    end = insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
                 )
                 .align(Alignment.BottomEnd),
             enabled = items != null && !loading,

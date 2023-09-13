@@ -2,10 +2,10 @@ package org.kepocnhh.xfiles
 
 import android.app.Application
 import android.os.Build
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -14,6 +14,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.xfiles.entity.Defaults
@@ -33,11 +36,9 @@ import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
-import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
-import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
@@ -132,8 +133,8 @@ internal class App : Application() {
         } else {
             SecuritySettings.PBEIterations.NUMBER_2_20
         }
-        val injection = Injection(
-            loggers = _loggerFactory,
+        _injection = Injection(
+            loggers = FinalLoggerFactory,
             contexts = Contexts(
                 main = Dispatchers.Main,
                 default = Dispatchers.Default,
@@ -161,27 +162,48 @@ internal class App : Application() {
                 dataBaseSignature = "db.json.sig",
             )
         )
-        _viewModelFactory = object : ViewModelProvider.Factory {
-            override fun <U : ViewModel> create(modelClass: Class<U>): U {
-                return modelClass.getConstructor(Injection::class.java).newInstance(injection)
-            }
-        }
     }
 
     companion object {
-        private val _loggerFactory: LoggerFactory = FinalLoggerFactory
-        private var _viewModelFactory: ViewModelProvider.Factory? = null
+        private var _injection: Injection? = null
+        private val _viewModelFactory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return modelClass
+                    .getConstructor(Injection::class.java)
+                    .newInstance(checkNotNull(_injection))
+            }
+        }
 
         @Composable
         fun newLogger(tag: String): Logger {
             return remember(tag) {
-                _loggerFactory.newLogger(tag)
+                checkNotNull(_injection).loggers.newLogger(tag)
             }
         }
 
         @Composable
         inline fun <reified T : ViewModel> viewModel(): T {
-            return viewModel(factory = checkNotNull(_viewModelFactory))
+            val logger = newLogger("[App]") // todo
+            val owner = remember(T::class.java.name) {
+                object : ViewModelStoreOwner {
+                    override val viewModelStore = ViewModelStore()
+                }
+            }
+//            val owner = remember(T::class.java.name) { ViewModelProvider.Factory.from() }
+//            val owner = LocalViewModelStoreOwner.current ?: TODO()
+            val viewModel = viewModel<T>(
+                viewModelStoreOwner = owner,
+//                key = T::class.java.name + ":" + remember { System.nanoTime() }.toString(),
+                factory = _viewModelFactory,
+            )
+            DisposableEffect(Unit) {
+                logger.debug("${T::class.java.simpleName}:DisposableEffect:init")
+                onDispose {
+                    logger.debug("${T::class.java.simpleName}:DisposableEffect:onDispose")
+                    owner.viewModelStore.clear()
+                }
+            }
+            return viewModel
         }
     }
 }

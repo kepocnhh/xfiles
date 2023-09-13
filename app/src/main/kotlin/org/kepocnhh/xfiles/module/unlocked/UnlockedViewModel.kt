@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles.module.unlocked
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +24,7 @@ import java.security.KeyFactory
 import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+import kotlin.time.Duration.Companion.seconds
 
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
@@ -31,6 +33,16 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     private val logger = injection.loggers.newLogger("[Unlocked]")
+
+    init {
+        // todo
+        logger.debug("init")
+    }
+
+    override fun onCleared() {
+        // todo
+        logger.debug("on cleared")
+    }
 
 //    private val _loading = MutableStateFlow(true)
 //    val loading = _loading.asStateFlow()
@@ -123,6 +135,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     private fun loading(block: suspend () -> Unit) {
         injection.launch {
             _operations.value += 1
+            delay(2.seconds)
             block()
             _operations.value -= 1
         }
