@@ -11,12 +11,14 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -68,11 +71,13 @@ import androidx.compose.ui.zIndex
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
+import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import sp.ax.jc.clicks.clicks
+import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.math.roundToInt
@@ -169,7 +174,7 @@ private fun EncryptedValueButton(
                 RoundedCornerShape(size / 2),
             )
             .clip(RoundedCornerShape(size / 2))
-            .clickable(onClick = onClick),
+            .onClick(onClick),
     ) {
         Image(
             modifier = Modifier
@@ -183,8 +188,14 @@ private fun EncryptedValueButton(
 }
 
 @Composable
-private fun EncryptedValueItem(value: EncryptedValue) {
-    val height = App.Theme.sizes.xxl
+private fun EncryptedValueItem(
+    value: EncryptedValue,
+    onShow: () -> Unit,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val context = LocalContext.current
+    val height = App.Theme.sizes.xxxl
     Box(
         modifier = Modifier
             .padding(
@@ -199,8 +210,8 @@ private fun EncryptedValueItem(value: EncryptedValue) {
                 .fillMaxSize()
                 .clip(RoundedCornerShape(App.Theme.sizes.large))
                 .background(App.Theme.colors.secondary)
-                .clickable {
-                    // todo
+                .onClick {
+                    context.showToast("click ${value.title}") // todo
                 }
                 .wrapContentHeight(),
         )
@@ -225,25 +236,19 @@ private fun EncryptedValueItem(value: EncryptedValue) {
                 size = buttonSize,
                 icon = R.drawable.eye,
                 contentDescription = "unlocked:item:${value.id}:show",
-                onClick = {
-                    // todo
-                },
+                onClick = onShow,
             )
             EncryptedValueButton(
                 size = buttonSize,
                 icon = R.drawable.copy,
                 contentDescription = "unlocked:item:${value.id}:copy",
-                onClick = {
-                    // todo
-                },
+                onClick = onCopy,
             )
             EncryptedValueButton(
                 size = buttonSize,
                 icon = R.drawable.cross,
                 contentDescription = "unlocked:item:${value.id}:delete",
-                onClick = {
-                    // todo
-                },
+                onClick = onDelete,
             )
         }
     }
@@ -251,6 +256,7 @@ private fun EncryptedValueItem(value: EncryptedValue) {
 
 @Composable
 private fun UnlockedScreenPortrait() {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -283,7 +289,19 @@ private fun UnlockedScreenPortrait() {
                 count = items.size,
                 key = { items[it].id },
             ) { index ->
-                EncryptedValueItem(value = items[index])
+                val item = items[index]
+                EncryptedValueItem(
+                    value = item,
+                    onShow = {
+                        context.showToast("show ${item.title}") // todo
+                    },
+                    onCopy = {
+                        context.showToast("copy ${item.title}") // todo
+                    },
+                    onDelete = {
+                        context.showToast("delete ${item.title}") // todo
+                    },
+                )
             }
         }
         ButtonsRow(
