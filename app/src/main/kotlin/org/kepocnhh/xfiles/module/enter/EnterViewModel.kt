@@ -194,16 +194,6 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val key = injection.security(services)
             .getSecretKeyFactory()
             .generate(PBEKeySpec(hash.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
-        val pair = JSONObject(injection.files.readText(injection.pathNames.asymmetric)).let { json ->
-            injection.security(services).getKeyFactory().generate(
-                public = json.getString("public").base64(),
-                private = cipher.decrypt(
-                    key = key,
-                    params = IvParameterSpec(meta.ivPrivate),
-                    encrypted = json.getString("private").base64(),
-                ),
-            )
-        }
         val decrypted = cipher.decrypt(
             key = key,
             params = IvParameterSpec(meta.ivDB),
@@ -212,7 +202,13 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val verified = injection.security(services)
             .getSignature()
             .verify(
-                key = pair.public,
+                key = injection.security(services)
+                    .getKeyFactory()
+                    .generatePublic(
+                        bytes = JSONObject(injection.files.readText(injection.pathNames.asymmetric))
+                            .getString("public")
+                            .base64(),
+                    ),
                 decrypted = decrypted,
                 sig = injection.files.readBytes(injection.pathNames.dataBaseSignature),
             )

@@ -4,8 +4,11 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -29,8 +32,19 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     private val logger = injection.loggers.newLogger("[Unlocked]")
 
-    private val _loading = MutableStateFlow(true)
-    val loading = _loading.asStateFlow()
+//    private val _loading = MutableStateFlow(true)
+//    val loading = _loading.asStateFlow()
+
+    private val _operations = MutableStateFlow(0)
+    val loading = _operations
+        .map {
+            encrypteds.value == null || it > 0
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            true,
+        )
 
     private val _encrypteds = MutableStateFlow<List<EncryptedValue>?>(null)
     val encrypteds = _encrypteds.asStateFlow()
@@ -80,14 +94,6 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         val jsonAsym = JSONObject(injection.files.readText(injection.pathNames.asymmetric))
         val services = injection.local.services ?: TODO()
         val cipher = injection.security(services).getCipher()
-        val pair = injection.security(services).getKeyFactory().generate(
-            public = jsonAsym.getString("public").base64(),
-            private = cipher.decrypt(
-                key = key,
-                params = IvParameterSpec(jsonSym.getString("ivPrivate").base64()),
-                encrypted = jsonAsym.getString("private").base64(),
-            ),
-        )
         injection.files.writeBytes(
             pathname = injection.pathNames.dataBase,
             bytes = cipher.encrypt(
@@ -96,15 +102,34 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                 decrypted = decrypted,
             ),
         )
-        val random = injection.security(services).getSecureRandom()
-        val sig = injection.security(services)
-            .getSignature()
-            .sign(pair.private, random, decrypted = decrypted)
-        injection.files.writeBytes(injection.pathNames.dataBaseSignature, sig)
+        injection.files.writeBytes(
+            pathname = injection.pathNames.dataBaseSignature,
+            bytes = injection.security(services)
+                .getSignature()
+                .sign(
+                    key = injection.security(services).getKeyFactory().generatePrivate(
+                        bytes = cipher.decrypt(
+                            key = key,
+                            params = IvParameterSpec(jsonSym.getString("ivPrivate").base64()),
+                            encrypted = jsonAsym.getString("private").base64(),
+                        ),
+                    ),
+                    random = injection.security(services).getSecureRandom(),
+                    decrypted = decrypted,
+                ),
+        )
+    }
+
+    private fun loading(block: suspend () -> Unit) {
+        injection.launch {
+            _operations.value += 1
+            block()
+            _operations.value -= 1
+        }
     }
 
     fun requestValues(key: SecretKey) {
-        injection.launch {
+        loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8)).toList()
             }
@@ -121,8 +146,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     fun requestToCopy(key: SecretKey, id: String) {
-        logger.debug("request to copy...")
-        injection.launch {
+        loading {
             val value = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8))
                     .getJSONObject(id)
@@ -145,7 +169,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     fun addValue(key: SecretKey, title: String, value: String) {
         check(title.isNotBlank())
         check(value.isNotBlank())
-        injection.launch {
+        loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
                 jsonObject.put(
@@ -184,7 +208,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     fun deleteValue(key: SecretKey, id: String) {
-        injection.launch {
+        loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
                 if (!jsonObject.has(id)) TODO()

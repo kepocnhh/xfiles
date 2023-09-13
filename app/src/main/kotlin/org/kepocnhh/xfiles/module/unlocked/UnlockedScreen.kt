@@ -73,9 +73,11 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.util.android.showToast
+import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.ColorIndication
+import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.clicks.clicks
@@ -425,6 +427,18 @@ private fun UnlockedScreenPortrait(
             },
             onLock = onLock,
         )
+        AnimatedFadeVisibility(
+            modifier = Modifier.align(Alignment.Center),
+            visible = loading,
+            duration = App.Theme.durations.animation,
+        ) {
+            Squares(
+                color = App.Theme.colors.foreground,
+                width = App.Theme.sizes.large,
+                padding = App.Theme.sizes.small,
+                radius = App.Theme.sizes.xs,
+            )
+        }
     }
 }
 
