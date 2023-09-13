@@ -48,6 +48,15 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         return result
     }
 
+    private fun JSONObject.toList(): List<EncryptedValue> {
+        return keys().asSequence().map { id ->
+            EncryptedValue(
+                id = id,
+                title = getJSONObject(id).getString("title"),
+            )
+        }.toList()
+    }
+
     private fun decrypt(key: SecretKey): ByteArray {
         val jsonObject = JSONObject(injection.files.readText(injection.pathNames.symmetric))
         val services = injection.local.services ?: TODO()
@@ -94,13 +103,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     fun requestValues(key: SecretKey) {
         injection.launch {
             _encrypteds.value = withContext(injection.contexts.default) {
-                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
-                jsonObject.keys().asSequence().map { id ->
-                    EncryptedValue(
-                        id = id,
-                        title = jsonObject.getJSONObject(id).getString("title"),
-                    )
-                }.toList()
+                JSONObject(decrypt(key).toString(Charsets.UTF_8)).toList()
             }
         }
     }
@@ -141,8 +144,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         check(value.isNotBlank())
         injection.launch {
             _encrypteds.value = withContext(injection.contexts.default) {
-                val decrypted = decrypt(key)
-                val jsonObject = JSONObject(decrypted.toString(Charsets.UTF_8))
+                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
                 jsonObject.put(
                     generateSequence { UUID.randomUUID().toString() }
                         .firstOrNull { !jsonObject.has(it) }
@@ -153,12 +155,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
-                jsonObject.keys().asSequence().map { id ->
-                    EncryptedValue(
-                        id = id,
-                        title = jsonObject.getJSONObject(id).getString("title"),
-                    )
-                }.toList()
+                jsonObject.toList()
             }
         }
     }
@@ -183,6 +180,22 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
+    fun deleteValue(key: SecretKey, id: String) {
+        injection.launch {
+            _encrypteds.value = withContext(injection.contexts.default) {
+                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                if (!jsonObject.has(id)) TODO()
+                jsonObject.remove(id)
+                encrypt(
+                    key = key,
+                    decrypted = jsonObject.toString().toByteArray(),
+                )
+                jsonObject.toList()
+            }
+        }
+    }
+
+    @Deprecated(message = "deleteValue")
     fun deleteData(key: SecretKey, name: String) {
         println("delete: \"$name\"")
         if (name.trim().isEmpty()) TODO()

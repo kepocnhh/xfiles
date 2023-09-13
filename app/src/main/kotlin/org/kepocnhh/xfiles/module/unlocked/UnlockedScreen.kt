@@ -90,6 +90,24 @@ internal object UnlockedScreen {
 }
 
 @Composable
+internal fun DeletedDialog(
+    state: MutableState<EncryptedValue?>,
+    onConfirm: (EncryptedValue) -> Unit
+) {
+    val value = state.value ?: return
+    Dialog(
+        App.Theme.strings.yes to {
+            onConfirm(value)
+            state.value = null
+        },
+        onDismissRequest = {
+            state.value = null
+        },
+        message = "delete ${value.title}?", // todo
+    )
+}
+
+@Composable
 internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
@@ -97,6 +115,13 @@ internal fun UnlockedScreen(
     val context = LocalContext.current
     val viewModel = App.viewModel<UnlockedViewModel>()
     val logger = App.newLogger(tag = "[Unlocked|Screen]")
+    val deleteState = remember { mutableStateOf<EncryptedValue?>(null) }
+    DeletedDialog(
+        state = deleteState,
+        onConfirm = {
+            viewModel.deleteValue(key, id = it.id)
+        },
+    )
     val encrypteds by viewModel.encrypteds.collectAsState(null)
     if (encrypteds == null) viewModel.requestValues(key)
     BackHandler {
@@ -133,6 +158,9 @@ internal fun UnlockedScreen(
                 },
                 onAdd = { (title, value) ->
                     viewModel.addValue(key, title = title, value = value)
+                },
+                onDelete = {
+                    deleteState.value = it
                 },
                 onLock = {
                     broadcast(UnlockedScreen.Broadcast.Lock)
@@ -320,6 +348,7 @@ private fun UnlockedScreenPortrait(
     items: List<EncryptedValue>?,
     onCopy: (EncryptedValue) -> Unit,
     onAdd: (Pair<String, String>) -> Unit,
+    onDelete: (EncryptedValue) -> Unit,
     onLock: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -365,7 +394,7 @@ private fun UnlockedScreenPortrait(
                                 onCopy(item)
                             },
                             onDelete = {
-                                context.showToast("delete $item")
+                                onDelete(item)
                             },
                         )
                     },
