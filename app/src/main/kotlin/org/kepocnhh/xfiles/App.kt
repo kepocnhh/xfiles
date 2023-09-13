@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles
 
 import android.app.Application
 import android.os.Build
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -33,8 +34,10 @@ import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.LoggerFactory
+import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
+import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
@@ -151,6 +154,12 @@ internal class App : Application() {
                 ),
             ),
             security = ::FinalSecurityProvider,
+            pathNames = PathNames(
+                symmetric = "sym.json",
+                asymmetric = "asym.json",
+                dataBase = "db.json.enc",
+                dataBaseSignature = "db.json.sig",
+            )
         )
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {

@@ -43,7 +43,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         val jsonObject = JSONObject(injection.files.readText("sym.json"))
         val services = injection.local.services ?: TODO()
         val cipher = injection.security(services).getCipher()
-        val params = IvParameterSpec(jsonObject.getString("iv").base64())
+        val params = IvParameterSpec(jsonObject.getString("ivDB").base64())
         val encrypted = injection.files.readBytes("db.json.enc")
         return cipher.decrypt(key, params, encrypted)
     }
@@ -55,18 +55,22 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         val jsonObject = JSONObject(injection.files.readText("sym.json"))
         val services = injection.local.services ?: TODO()
         val cipher = injection.security(services).getCipher()
-        val params = IvParameterSpec(jsonObject.getString("iv").base64())
         val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
             KeyFactory.getInstance("DSA").generateKeyPair(
                 public = json.getString("public").base64(),
-                private = cipher.decrypt(key, params, json.getString("private").base64())
+                private = cipher.decrypt(
+                    key = key,
+                    params = IvParameterSpec(jsonObject.getString("ivPrivate").base64()),
+                    encrypted = json.getString("private").base64(),
+                )
             )
         }
-        injection.files.writeBytes("db.json.enc", cipher.encrypt(key, params, decrypted))
+        injection.files.writeBytes("db.json.enc", cipher.encrypt(key, IvParameterSpec(jsonObject.getString("ivDB").base64()), decrypted))
         val random = injection.security(services).getSecureRandom()
-        injection.security(services).getSignature().also { signature ->
-            injection.files.writeBytes("db.json.sig", signature.sign(pair.private, random, decrypted = decrypted))
-        }
+        val sig = injection.security(services)
+            .getSignature()
+            .sign(pair.private, random, decrypted = decrypted)
+        injection.files.writeBytes("db.json.sig", sig)
     }
 
     fun requestData(key: SecretKey) {

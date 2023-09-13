@@ -10,4 +10,5 @@ internal interface SecurityProvider {
     fun getSignature(): SignatureProvider
     fun getSecretKeyFactory(): SecretKeyFactoryProvider
     fun getSecureRandom(): SecureRandom
+    fun getKeyFactory(): KeyFactoryProvider
 }

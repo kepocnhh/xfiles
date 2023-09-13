@@ -7,27 +7,39 @@ import android.content.res.Configuration
 import android.os.PersistableBundle
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,19 +51,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.R
+import org.kepocnhh.xfiles.entity.EncryptedValue
+import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
+import org.kepocnhh.xfiles.util.compose.ColorIndication
+import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import sp.ax.jc.clicks.clicks
+import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.math.roundToInt
@@ -60,6 +86,241 @@ import kotlin.time.Duration.Companion.seconds
 internal object UnlockedScreen {
     sealed interface Broadcast {
         object Lock : Broadcast
+    }
+}
+
+@Composable
+internal fun UnlockedScreen(
+    key: SecretKey,
+    broadcast: (UnlockedScreen.Broadcast) -> Unit,
+) {
+    BackHandler {
+        broadcast(UnlockedScreen.Broadcast.Lock)
+    }
+    when (val orientation = LocalConfiguration.current.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            TODO()
+        }
+        Configuration.ORIENTATION_PORTRAIT -> {
+            UnlockedScreenPortrait()
+        }
+        else -> error("Orientation $orientation is not supported!")
+    }
+}
+
+@Composable
+private fun ButtonsRow(
+    modifier: Modifier,
+    onAdd: () -> Unit,
+    onLock: () -> Unit,
+) {
+    Row(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .size(App.Theme.sizes.xxxl)
+                .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
+                .clip(RoundedCornerShape(App.Theme.sizes.large))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ColorIndication(color = App.Theme.colors.background),
+                    onClick = onAdd,
+                ),
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(App.Theme.sizes.medium)
+                    .align(Alignment.Center),
+                painter = painterResource(id = R.drawable.plus),
+                contentDescription = "unlocked:add",
+                colorFilter = ColorFilter.tint(App.Theme.colors.background),
+            )
+        }
+        Spacer(modifier = Modifier.width(App.Theme.sizes.small))
+        Box(
+            modifier = Modifier
+                .size(App.Theme.sizes.xxxl)
+                .background(App.Theme.colors.foreground, RoundedCornerShape(App.Theme.sizes.large))
+                .clip(RoundedCornerShape(App.Theme.sizes.large))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ColorIndication(color = App.Theme.colors.background),
+                    onClick = onLock,
+                ),
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(App.Theme.sizes.medium)
+                    .align(Alignment.Center),
+                painter = painterResource(id = R.drawable.key),
+                contentDescription = "unlocked:lock",
+                colorFilter = ColorFilter.tint(App.Theme.colors.background),
+            )
+        }
+    }
+}
+
+@Composable
+private fun EncryptedValueButton(
+    size: Dp,
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(
+                App.Theme.colors.background,
+                RoundedCornerShape(size / 2),
+            )
+            .clip(RoundedCornerShape(size / 2))
+            .onClick(onClick),
+    ) {
+        Image(
+            modifier = Modifier
+                .size(size / 2)
+                .align(Alignment.Center),
+            painter = painterResource(id = icon),
+            contentDescription = contentDescription,
+            colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
+        )
+    }
+}
+
+@Composable
+private fun EncryptedValueItem(
+    value: EncryptedValue,
+    onShow: () -> Unit,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val context = LocalContext.current
+    val height = App.Theme.sizes.xxxl
+    Box(
+        modifier = Modifier
+            .padding(
+                start = App.Theme.sizes.small,
+                end = App.Theme.sizes.small,
+            )
+            .fillMaxWidth()
+            .height(height),
+    ) {
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(App.Theme.sizes.large))
+                .background(App.Theme.colors.secondary)
+//                .onClick {
+//                    context.showToast("click ${value.title}") // todo
+//                }
+                .clickable {
+                    context.showToast("click ${value.title}") // todo
+                }
+                .wrapContentHeight(),
+        )
+        BasicText(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = height / 2),
+            text = value.title,
+            style = TextStyle(
+                fontSize = 14.sp,
+                color = App.Theme.colors.foreground,
+            ),
+        )
+        val buttonSize = App.Theme.sizes.large
+        Row(
+            modifier = Modifier
+                .padding(end = (height - buttonSize) / 2)
+                .align(Alignment.CenterEnd),
+            horizontalArrangement = Arrangement.spacedBy(App.Theme.sizes.xs),
+        ) {
+            EncryptedValueButton(
+                size = buttonSize,
+                icon = R.drawable.eye,
+                contentDescription = "unlocked:item:${value.id}:show",
+                onClick = onShow,
+            )
+            EncryptedValueButton(
+                size = buttonSize,
+                icon = R.drawable.copy,
+                contentDescription = "unlocked:item:${value.id}:copy",
+                onClick = onCopy,
+            )
+            EncryptedValueButton(
+                size = buttonSize,
+                icon = R.drawable.cross,
+                contentDescription = "unlocked:item:${value.id}:delete",
+                onClick = onDelete,
+            )
+        }
+    }
+}
+
+@Composable
+private fun UnlockedScreenPortrait() {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(App.Theme.colors.background),
+    ) {
+        val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
+//        val items = listOf(
+//            EncryptedValue(id = "foo", title = "foo"),
+//            EncryptedValue(id = "bar", title = "bar"),
+//            EncryptedValue(id = "baz", title = "baz"),
+//        )
+        val items = (1..24).map {
+            EncryptedValue(id = "foo$it", title = "foo$it")
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = App.Theme.dimensions.insets.calculateStartPadding(layoutDirection),
+                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                )
+                .align(Alignment.Center),
+            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
+            contentPadding = PaddingValues(
+                top = App.Theme.dimensions.insets.calculateTopPadding() + App.Theme.sizes.small,
+                bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
+            ),
+        ) {
+            items(
+                count = items.size,
+                key = { items[it].id },
+            ) { index ->
+                val item = items[index]
+                EncryptedValueItem(
+                    value = item,
+                    onShow = {
+                        context.showToast("show ${item.title}") // todo
+                    },
+                    onCopy = {
+                        context.showToast("copy ${item.title}") // todo
+                    },
+                    onDelete = {
+                        context.showToast("delete ${item.title}") // todo
+                    },
+                )
+            }
+        }
+        ButtonsRow(
+            modifier = Modifier
+                .padding(
+                    bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small,
+                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
+                )
+                .align(Alignment.BottomEnd),
+            onAdd = {
+                // todo
+            },
+            onLock = {
+                // todo
+            },
+        )
     }
 }
 
@@ -122,8 +383,9 @@ private fun Data(
     }
 }
 
+@Deprecated(message = "!")
 @Composable
-internal fun UnlockedScreen(
+private fun UnlockedScreenDeprecated(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
@@ -193,7 +455,7 @@ internal fun UnlockedScreen(
             )
         }
         Configuration.ORIENTATION_PORTRAIT -> {
-            UnlockedScreenPortrait(
+            UnlockedScreenPortraitDeprecated(
                 viewModel = viewModel,
                 clickedState = clickedState,
                 addedState = addedState,
@@ -299,8 +561,9 @@ private fun UnlockedScreenLandscape(
     }
 }
 
+@Deprecated(message = "!")
 @Composable
-private fun UnlockedScreenPortrait(
+private fun UnlockedScreenPortraitDeprecated(
     viewModel: UnlockedViewModel,
     clickedState: MutableState<String?>,
     addedState: MutableState<Boolean>,
