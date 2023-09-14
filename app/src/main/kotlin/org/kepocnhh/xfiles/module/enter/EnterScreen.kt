@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -86,6 +87,15 @@ internal object EnterScreen {
 
 @Composable
 internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) -> Unit) {
+    val logger = App.newLogger("[Enter]")
+    logger.debug("pre dispose")
+    DisposableEffect(Unit) {
+        // todo
+        logger.debug("init")
+        onDispose {
+            logger.debug("on dispose")
+        }
+    }
     val viewModel = App.viewModel<EnterViewModel>()
     val exists by viewModel.exists.collectAsState(null)
     val pinState = rememberSaveable { mutableStateOf("") }
