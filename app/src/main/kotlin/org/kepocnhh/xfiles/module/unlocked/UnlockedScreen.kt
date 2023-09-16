@@ -201,18 +201,20 @@ private fun ButtonsRow(
         horizontalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
     ) {
         FloatingActionButton(
+            color = App.Theme.colors.primary,
             enabled = enabled,
             indication = ColorIndication(color = Colors.white),
             icon = R.drawable.plus,
+            iconColor = Colors.white,
             contentDescription = "unlocked:add",
             onClick = onAdd,
         )
         FloatingActionButton(
-            color = App.Theme.colors.foreground,
+//            color = App.Theme.colors.foreground,
             enabled = enabled,
-            indication = ColorIndication(color = App.Theme.colors.background),
+//            indication = ColorIndication(color = App.Theme.colors.background),
             icon = R.drawable.key,
-            iconColor = App.Theme.colors.background,
+//            iconColor = App.Theme.colors.background,
             contentDescription = "unlocked:lock",
             onClick = onLock,
         )

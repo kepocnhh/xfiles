@@ -26,13 +26,13 @@ import org.kepocnhh.xfiles.module.app.Colors
 @Composable
 internal fun FloatingActionButton(
     size: Dp = App.Theme.sizes.xxxl,
-    color: Color = App.Theme.colors.primary,
+    color: Color = App.Theme.colors.secondary,
     enabled: Boolean,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    indication: Indication? = LocalIndication.current,
+    indication: Indication? = ColorIndication(color = App.Theme.colors.foreground),
     @DrawableRes icon: Int,
     iconSize: Dp = App.Theme.sizes.medium,
-    iconColor: Color = Colors.white,
+    iconColor: Color = App.Theme.colors.foreground,
     contentDescription: String,
     onClick: () -> Unit,
 ) {
