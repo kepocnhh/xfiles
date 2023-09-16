@@ -32,11 +32,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         .map {
             encrypteds.value == null || it > 0
         }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.Lazily,
-            true,
-        )
+        .stateIn(true)
 
     private val _encrypteds = MutableStateFlow<Map<String, String>?>(null)
     val encrypteds = _encrypteds.asStateFlow()
@@ -51,13 +47,18 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     private fun decrypt(key: SecretKey): ByteArray {
-        val jsonObject = JSONObject(injection.files.readText(injection.pathNames.symmetric))
+        val iv = injection
+            .files
+            .readText(injection.pathNames.symmetric)
+            .let(::JSONObject)
+            .getString("ivDB")
+            .base64()
         val services = injection.local.services ?: TODO()
         return injection.security(services)
             .getCipher()
             .decrypt(
                 key = key,
-                params = IvParameterSpec(jsonObject.getString("ivDB").base64()),
+                params = IvParameterSpec(iv),
                 encrypted = injection.files.readBytes(injection.pathNames.dataBase),
             )
     }
@@ -67,7 +68,6 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         decrypted: ByteArray,
     ) {
         val jsonSym = JSONObject(injection.files.readText(injection.pathNames.symmetric))
-        val jsonAsym = JSONObject(injection.files.readText(injection.pathNames.asymmetric))
         val services = injection.local.services ?: TODO()
         val cipher = injection.security(services).getCipher()
         injection.files.writeBytes(
@@ -87,7 +87,12 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                         bytes = cipher.decrypt(
                             key = key,
                             params = IvParameterSpec(jsonSym.getString("ivPrivate").base64()),
-                            encrypted = jsonAsym.getString("private").base64(),
+                            encrypted = injection
+                                .files
+                                .readText(injection.pathNames.asymmetric)
+                                .let(::JSONObject)
+                                .getString("private")
+                                .base64(),
                         ),
                     ),
                     random = injection.security(services).getSecureRandom(),
