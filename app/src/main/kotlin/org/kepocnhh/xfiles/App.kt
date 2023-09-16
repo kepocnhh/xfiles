@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles
 
 import android.app.Application
 import android.os.Build
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -39,6 +40,7 @@ import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
+import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import sp.ax.jc.dialogs.DialogStyle
@@ -83,11 +85,13 @@ internal class App : Application() {
             themeState: ThemeState,
             content: @Composable () -> Unit,
         ) {
+            val logger = newLogger("[Composition]")
             val colors = when (themeState.colorsType) {
                 ColorsType.DARK -> Colors.Dark
                 ColorsType.LIGHT -> Colors.Light
                 ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.Dark else Colors.Light
             }
+            logger.debug("colors: $colors")
             CompositionLocalProvider(
                 LocalColors provides colors,
                 LocalDurations provides Durations(
@@ -122,6 +126,7 @@ internal class App : Application() {
                     background = colors.background,
                     foreground = colors.foreground,
                 ),
+                LocalIndication provides ColorIndication(color = colors.foreground),
                 content = content,
             )
         }

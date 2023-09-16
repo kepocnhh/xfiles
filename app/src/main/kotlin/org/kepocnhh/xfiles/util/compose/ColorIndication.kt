@@ -34,7 +34,7 @@ internal class ColorIndication(private val color: Color) : Indication {
         val isPressed = interactionSource.collectIsPressedAsState()
         val isHovered = interactionSource.collectIsHoveredAsState()
         val isFocused = interactionSource.collectIsFocusedAsState()
-        return remember(interactionSource) {
+        return remember(interactionSource, color) {
             ColorIndicationInstance(color = color, isPressed, isHovered, isFocused)
         }
     }
