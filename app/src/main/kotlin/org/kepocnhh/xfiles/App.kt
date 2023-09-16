@@ -182,34 +182,33 @@ internal class App : Application() {
             }
         }
 
-        @Deprecated(message = "vmStores")
-        private val vmsOwners = mutableMapOf<String, ViewModelStoreOwner>()
         private val vmStores = mutableMapOf<String, ViewModelStore>()
 
         @Composable
         inline fun <reified T : AbstractViewModel> viewModel(): T {
-            val logger = newLogger("[App]") // todo
+//            val logger = newLogger("[App]") // todo
             val key = T::class.java.simpleName
             val (dispose, store) = synchronized(App::class.java) {
                 remember { !vmStores.containsKey(key) } to vmStores.getOrPut(key, ::ViewModelStore)
             }
             DisposableEffect(Unit) {
-                logger.debug("vm:$key:de:init:${store.hashCode()}")
+//                logger.debug("vm:$key:de:init:${store.hashCode()}")
                 onDispose {
-                    logger.debug("vm:$key:de:onDispose:${store.hashCode()}:dispose:$dispose")
+//                    logger.debug("vm:$key:de:onDispose:${store.hashCode()}:dispose:$dispose")
                     synchronized(App::class.java) {
                         if (dispose) {
-                            logger.debug("vm:$key:de:dispose...")
+//                            logger.debug("vm:$key:de:dispose...")
                             vmStores.remove(key)
                             store.clear()
                         }
                     }
                 }
             }
-            logger.debug("vm:$key:store:${store.hashCode()}")
+//            logger.debug("vm:$key:store:${store.hashCode()}")
             return ViewModelProvider(store, _viewModelFactory)[T::class.java]
         }
 
+        /*
         @Composable
         inline fun <reified T : AbstractViewModel> viewModelOld(): T {
             val logger = newLogger("[App]") // todo
@@ -255,6 +254,7 @@ internal class App : Application() {
                 factory = _viewModelFactory,
             )
         }
+        */
 
         /*
         @Composable
