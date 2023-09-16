@@ -1,7 +1,6 @@
 package org.kepocnhh.xfiles.module.unlocked
 
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.module.app.Injection
@@ -126,11 +124,12 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
-    fun requestToShow(key: SecretKey, name: String) {
-        viewModelScope.launch {
-            val value = withContext(Dispatchers.IO) {
-                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
-                jsonObject.getString(name)
+    fun requestToShow(key: SecretKey, id: String) {
+        loading {
+            val value = withContext(injection.contexts.default) {
+                JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                    .getJSONObject(id)
+                    .getString("value")
             }
             _broadcast.emit(Broadcast.OnShow(value))
         }

@@ -115,6 +115,22 @@ internal fun DeletedDialog(
 }
 
 @Composable
+internal fun ShowDialog(
+    state: MutableState<String?>,
+) {
+    val value = state.value ?: return
+    Dialog(
+        App.Theme.strings.yes to {
+            state.value = null
+        }, // todo
+        onDismissRequest = {
+            state.value = null
+        },
+        message = value, // todo
+    )
+}
+
+@Composable
 internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
@@ -128,6 +144,10 @@ internal fun UnlockedScreen(
         onConfirm = {
             viewModel.deleteValue(key, id = it.id)
         },
+    )
+    val showState = remember { mutableStateOf<String?>(null) }
+    ShowDialog(
+        state = showState,
     )
     val loading by viewModel.loading.collectAsState(true)
     val encrypteds by viewModel.encrypteds.collectAsState(null)
@@ -152,7 +172,9 @@ internal fun UnlockedScreen(
                         context.showToast("Copied.") // todo
                     }
                 }
-                is UnlockedViewModel.Broadcast.OnShow -> TODO()
+                is UnlockedViewModel.Broadcast.OnShow -> {
+                    showState.value = broadcast.secret
+                }
             }
         }
     }
@@ -164,6 +186,9 @@ internal fun UnlockedScreen(
             UnlockedScreenPortrait(
                 loading = loading,
                 encrypteds = encrypteds,
+                onShow = {
+                    viewModel.requestToShow(key, id = it.id)
+                },
                 onCopy = {
                     viewModel.requestToCopy(key, id = it.id)
                 },
@@ -352,6 +377,7 @@ private fun Encrypteds(
 private fun UnlockedScreenPortrait(
     loading: Boolean,
     encrypteds: Map<String, String>?,
+    onShow: (EncryptedValue) -> Unit,
     onCopy: (EncryptedValue) -> Unit,
     onAdd: (Pair<String, String>) -> Unit,
     onDelete: (EncryptedValue) -> Unit,
@@ -392,7 +418,7 @@ private fun UnlockedScreenPortrait(
                             enabled = !loading,
                             value = item,
                             onShow = {
-                                context.showToast("show $item") // todo
+                                onShow(item)
                             },
                             onCopy = {
                                 onCopy(item)
