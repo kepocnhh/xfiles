@@ -186,113 +186,21 @@ internal class App : Application() {
 
         @Composable
         inline fun <reified T : AbstractViewModel> viewModel(): T {
-//            val logger = newLogger("[App]") // todo
             val key = T::class.java.simpleName
             val (dispose, store) = synchronized(App::class.java) {
                 remember { !vmStores.containsKey(key) } to vmStores.getOrPut(key, ::ViewModelStore)
             }
             DisposableEffect(Unit) {
-//                logger.debug("vm:$key:de:init:${store.hashCode()}")
                 onDispose {
-//                    logger.debug("vm:$key:de:onDispose:${store.hashCode()}:dispose:$dispose")
                     synchronized(App::class.java) {
                         if (dispose) {
-//                            logger.debug("vm:$key:de:dispose...")
                             vmStores.remove(key)
                             store.clear()
                         }
                     }
                 }
             }
-//            logger.debug("vm:$key:store:${store.hashCode()}")
             return ViewModelProvider(store, _viewModelFactory)[T::class.java]
         }
-
-        /*
-        @Composable
-        inline fun <reified T : AbstractViewModel> viewModelOld(): T {
-            val logger = newLogger("[App]") // todo
-            val key = T::class.java.simpleName
-            /*
-            val owner = synchronized(App::class.java) {
-                vmsOwners[key]
-            }
-            if (owner != null) {
-                logger.debug("vm:$key:owner:${owner.hashCode()}")
-//                return viewModel(
-//                    viewModelStoreOwner = owner,
-//                    factory = _viewModelFactory,
-//                )
-            }
-            */
-            val dispose = remember { !vmsOwners.containsKey(key) }
-            val newOwner = vmsOwners.getOrPut(key) {
-                object : ViewModelStoreOwner {
-                    override val viewModelStore = ViewModelStore()
-                }
-            }
-            DisposableEffect(Unit) {
-                logger.debug("vm:$key:de:init:${newOwner.hashCode()}")
-                onDispose {
-                    logger.debug("vm:$key:de:onDispose:${newOwner.hashCode()}:dispose:$dispose")
-//                    synchronized(App::class.java) {
-//                        vmsOwners.remove(key)
-//                        newOwner.viewModelStore.clear()
-//                    }
-                    synchronized(App::class.java) {
-                        if (dispose) {
-                            logger.debug("vm:$key:de:dispose...")
-                            vmsOwners.remove(key)
-                            newOwner.viewModelStore.clear()
-                        }
-                    }
-                }
-            }
-            logger.debug("vm:$key:newOwner:${newOwner.hashCode()}")
-            return viewModel(
-                viewModelStoreOwner = newOwner,
-                factory = _viewModelFactory,
-            )
-        }
-        */
-
-        /*
-        @Composable
-        inline fun <reified T : AbstractViewModel> viewModelOld(): T {
-            val logger = newLogger("[App]") // todo
-            val key = T::class.java.name
-            val owner = viewModels[key]
-            if (store != null) return store.get(key)
-            DisposableEffect(Unit) {
-                logger.debug("$key:DisposableEffect:init")
-                onDispose {
-                    logger.debug("$key:DisposableEffect:onDispose")
-                    val store = ViewModelStore()
-                    store.put()
-                    viewModel.clear()
-                }
-            }
-            val owner = remember(T::class.java.name) {
-                object : ViewModelStoreOwner {
-                    override val viewModelStore = ViewModelStore()
-                }
-            }
-//            val owner = remember(T::class.java.name) { ViewModelProvider.Factory.from() }
-//            val owner = LocalViewModelStoreOwner.current ?: TODO()
-            val viewModel = viewModel<T>(
-                viewModelStoreOwner = owner,
-//                key = T::class.java.name + ":" + remember { System.nanoTime() }.toString(),
-                factory = _viewModelFactory,
-            )
-            DisposableEffect(Unit) {
-                logger.debug("${T::class.java.simpleName}:DisposableEffect:init")
-                onDispose {
-                    logger.debug("${T::class.java.simpleName}:DisposableEffect:onDispose")
-                    owner.viewModelStore.clear()
-                }
-            }
-            return viewModel
-        }
-        */
     }
 }
