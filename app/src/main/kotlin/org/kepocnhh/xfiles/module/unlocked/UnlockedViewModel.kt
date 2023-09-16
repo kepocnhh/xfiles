@@ -13,14 +13,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
-import org.kepocnhh.xfiles.util.security.generateKeyPair
-import java.security.KeyFactory
 import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
@@ -31,21 +28,6 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         class OnCopy(val secret: String) : Broadcast
         class OnShow(val secret: String) : Broadcast
     }
-
-    private val logger = injection.loggers.newLogger("[Unlocked]")
-
-    init {
-        // todo
-        logger.debug("init")
-    }
-
-    override fun onCleared() {
-        // todo
-        logger.debug("on cleared")
-    }
-
-//    private val _loading = MutableStateFlow(true)
-//    val loading = _loading.asStateFlow()
 
     private val _operations = MutableStateFlow(0)
     val loading = _operations
@@ -58,32 +40,16 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             true,
         )
 
-    private val _encrypteds = MutableStateFlow<List<EncryptedValue>?>(null)
+    private val _encrypteds = MutableStateFlow<Map<String, String>?>(null)
     val encrypteds = _encrypteds.asStateFlow()
-
-    @Deprecated(message = "_encrypteds")
-    private val _data = MutableStateFlow<Map<String, String>?>(null)
-    @Deprecated(message = "encrypteds")
-    val data = _data.asStateFlow()
 
     private val _broadcast = MutableSharedFlow<Broadcast>()
     val broadcast = _broadcast.asSharedFlow()
 
     private fun JSONObject.toMap(): Map<String, String> {
-        val result = mutableMapOf<String, String>()
-        keys().forEach { key ->
-            result[key] = getString(key)
+        return keys().asSequence().associateWith { id ->
+            getJSONObject(id).getString("title")
         }
-        return result
-    }
-
-    private fun JSONObject.toList(): List<EncryptedValue> {
-        return keys().asSequence().map { id ->
-            EncryptedValue(
-                id = id,
-                title = getJSONObject(id).getString("title"),
-            )
-        }.toList()
     }
 
     private fun decrypt(key: SecretKey): ByteArray {
@@ -144,15 +110,6 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     fun requestValues(key: SecretKey) {
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                JSONObject(decrypt(key).toString(Charsets.UTF_8)).toList()
-            }
-        }
-    }
-
-    @Deprecated(message = "requestValues")
-    fun requestData(key: SecretKey) {
-        injection.launch {
-            _data.value = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8)).toMap()
             }
         }
@@ -186,7 +143,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             _encrypteds.value = withContext(injection.contexts.default) {
                 val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
                 jsonObject.put(
-                    generateSequence { UUID.randomUUID().toString() }
+                    generateSequence(UUID.randomUUID()::toString)
                         .firstOrNull { !jsonObject.has(it) }
                         ?: TODO(),
                     JSONObject().put("title", title).put("value", value),
@@ -195,28 +152,8 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
-                jsonObject.toList()
-            }
-        }
-    }
-
-    @Deprecated(message = "addValue")
-    fun addData(key: SecretKey, name: String, value: String) {
-        if (name.trim().isEmpty()) TODO()
-        if (value.trim().isEmpty()) TODO()
-        viewModelScope.launch {
-            val map = withContext(Dispatchers.IO) {
-                val decrypted = decrypt(key)
-                val jsonObject = JSONObject(decrypted.toString(Charsets.UTF_8))
-                if (jsonObject.has(name)) TODO()
-                jsonObject.put(name, value)
-                encrypt(
-                    key = key,
-                    decrypted = jsonObject.toString().toByteArray(),
-                )
                 jsonObject.toMap()
             }
-            _data.value = map
         }
     }
 
@@ -230,31 +167,8 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
-                jsonObject.toList()
-            }
-        }
-    }
-
-    @Deprecated(message = "deleteValue")
-    fun deleteData(key: SecretKey, name: String) {
-        println("delete: \"$name\"")
-        if (name.trim().isEmpty()) TODO()
-        viewModelScope.launch {
-            val map = withContext(Dispatchers.IO) {
-                val decrypted = decrypt(key)
-                val decoded = decrypted.toString(Charsets.UTF_8)
-                println("decoded: $decoded")
-                val jsonObject = JSONObject(decoded)
-                if (!jsonObject.has(name)) TODO("$decoded has no \"$name\"")
-                jsonObject.remove(name)
-                println("decrypt: $jsonObject")
-                encrypt(
-                    key = key,
-                    decrypted = jsonObject.toString().toByteArray(),
-                )
                 jsonObject.toMap()
             }
-            _data.value = map
         }
     }
 }

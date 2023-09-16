@@ -163,7 +163,7 @@ internal fun UnlockedScreen(
         Configuration.ORIENTATION_PORTRAIT -> {
             UnlockedScreenPortrait(
                 loading = loading,
-                items = encrypteds,
+                encrypteds = encrypteds,
                 onCopy = {
                     viewModel.requestToCopy(key, id = it.id)
                 },
@@ -324,7 +324,7 @@ private fun EncryptedValueItem(
 private fun Encrypteds(
     modifier: Modifier,
     enabled: Boolean,
-    items: List<EncryptedValue>,
+    items: Map<String, String>,
     itemContent: @Composable (EncryptedValue) -> Unit,
 ) {
     LazyColumn(
@@ -336,11 +336,14 @@ private fun Encrypteds(
         ),
         userScrollEnabled = enabled,
     ) {
+        val keys = items.keys.toList()
         items(
-            count = items.size,
-            key = { items[it].id },
+            count = keys.size,
+            key = { keys[it] },
         ) { index ->
-            itemContent(items[index])
+            val id = keys[index]
+            val title = items[id] ?: TODO()
+            itemContent(EncryptedValue(id = id, title = title))
         }
     }
 }
@@ -348,7 +351,7 @@ private fun Encrypteds(
 @Composable
 private fun UnlockedScreenPortrait(
     loading: Boolean,
-    items: List<EncryptedValue>?,
+    encrypteds: Map<String, String>?,
     onCopy: (EncryptedValue) -> Unit,
     onAdd: (Pair<String, String>) -> Unit,
     onDelete: (EncryptedValue) -> Unit,
@@ -362,10 +365,10 @@ private fun UnlockedScreenPortrait(
     ) {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
         when {
-            items == null -> {
+            encrypteds == null -> {
                 // todo
             }
-            items.isEmpty() -> {
+            encrypteds.isEmpty() -> {
                 BasicText(
                     modifier = Modifier
                         .align(Alignment.Center),
@@ -383,7 +386,7 @@ private fun UnlockedScreenPortrait(
                         )
                         .align(Alignment.Center),
                     enabled = !loading,
-                    items = items,
+                    items = encrypteds,
                     itemContent = { item ->
                         EncryptedValueItem(
                             enabled = !loading,
@@ -410,7 +413,7 @@ private fun UnlockedScreenPortrait(
                     end = insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
                 )
                 .align(Alignment.BottomEnd),
-            enabled = items != null && !loading,
+            enabled = encrypteds != null && !loading,
             onAdd = {
                 val title = "foo${System.currentTimeMillis()}" // todo
                 val value = "${System.nanoTime()}" // todo
@@ -487,249 +490,6 @@ private fun Data(
                         },
                     ),
                 text = "$name: $value"
-            )
-        }
-    }
-}
-
-@Deprecated(message = "!")
-@Composable
-private fun UnlockedScreenDeprecated(
-    key: SecretKey,
-    broadcast: (UnlockedScreen.Broadcast) -> Unit,
-) {
-    val context = LocalContext.current
-    val viewModel = App.viewModel<UnlockedViewModel>()
-    var secret by remember { mutableStateOf<String?>(null) }
-    val clickedState = remember { mutableStateOf<String?>(null) }
-    val addedState = remember { mutableStateOf(false) }
-    val entries by viewModel.data.collectAsState(null)
-    LaunchedEffect(Unit) {
-        viewModel.broadcast.collect { broadcast ->
-            when (broadcast) {
-                is UnlockedViewModel.Broadcast.OnCopy -> {
-                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("secret", broadcast.secret)
-                    clip.description.extras = PersistableBundle().also {
-                        it.putBoolean("android.content.extra.IS_SENSITIVE", true)
-                    }
-                    clipboardManager.setPrimaryClip(clip)
-                }
-                is UnlockedViewModel.Broadcast.OnShow -> {
-                    secret = broadcast.secret
-                }
-            }
-        }
-    }
-    BackHandler {
-        broadcast(UnlockedScreen.Broadcast.Lock)
-    }
-    if (secret != null) {
-        Dialog(
-            "ok" to {
-                secret = null
-            },
-            onDismissRequest = {
-                secret = null
-            },
-            message = "$secret",
-        )
-    }
-    val clicked = clickedState.value
-    if (clicked != null) {
-        Dialog(
-            "delete" to {
-                viewModel.deleteData(key, name = clicked)
-                clickedState.value = null
-            },
-            "copy" to {
-//                viewModel.requestToCopy(key, name = clicked) // todo
-                clickedState.value = null
-            },
-            onDismissRequest = {
-                clickedState.value = null
-            },
-            message = "\"$clicked\"?", // todo
-        )
-    }
-    when (val orientation = LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            UnlockedScreenLandscape(
-                viewModel = viewModel,
-                clickedState = clickedState,
-                addedState = addedState,
-                entries = entries,
-                key = key,
-                broadcast = broadcast,
-            )
-        }
-        Configuration.ORIENTATION_PORTRAIT -> {
-            UnlockedScreenPortraitDeprecated(
-                viewModel = viewModel,
-                clickedState = clickedState,
-                addedState = addedState,
-                entries = entries,
-                key = key,
-                broadcast = broadcast,
-            )
-        }
-        else -> error("Orientation $orientation is not supported!")
-    }
-    AnimatedHVisibilityShadow(
-        visible = addedState.value,
-        duration = App.Theme.durations.animation,
-//        duration = 2.seconds,
-        initialOffsetX = { it },
-    ) {
-        AddItemScreen(
-            keys = entries!!.keys,
-            onCancel = {
-                addedState.value = false
-            },
-            onAdd = { name, value ->
-                viewModel.addData(key, name = name, value = value)
-                addedState.value = false
-            }
-        )
-    }
-}
-
-@Composable
-private fun UnlockedScreenLandscape(
-    viewModel: UnlockedViewModel,
-    clickedState: MutableState<String?>,
-    addedState: MutableState<Boolean>,
-    entries: Map<String, String>?,
-    key: SecretKey,
-    broadcast: (UnlockedScreen.Broadcast) -> Unit,
-) {
-    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
-        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
-        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
-        else -> error("Layout direction $i is not supported!")
-    }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val parent = this
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(App.Theme.colors.background)
-                .padding(
-                    top = App.Theme.dimensions.insets.calculateTopPadding(),
-                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
-                ),
-        ) {
-            when (entries) {
-                null -> {
-                    Spacer(Modifier.width(parent.maxHeight)) // todo loading
-                    viewModel.requestData(key)
-                }
-                else -> Data(
-                    modifier = Modifier.width(parent.maxHeight),
-                    entries = entries,
-                    onClick = { name ->
-                        clickedState.value = name
-                    },
-                    onLongClick = { name ->
-                        viewModel.requestToShow(key, name = name)
-                    },
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.Bottom)
-                    .weight(1f)
-                    .height(64.dp)
-            ) {
-                BasicText(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .clickable { broadcast(UnlockedScreen.Broadcast.Lock) }
-                        .wrapContentHeight(),
-                    text = "lock",
-                    style = TextStyle(
-                        textAlign = TextAlign.Center,
-                    ),
-                )
-                BasicText(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .clickable {
-                            addedState.value = true
-                        }
-                        .wrapContentHeight(),
-                    text = "add",
-                    style = TextStyle(
-                        textAlign = TextAlign.Center,
-                    ),
-                )
-            }
-        }
-    }
-}
-
-@Deprecated(message = "!")
-@Composable
-private fun UnlockedScreenPortraitDeprecated(
-    viewModel: UnlockedViewModel,
-    clickedState: MutableState<String?>,
-    addedState: MutableState<Boolean>,
-    entries: Map<String, String>?,
-    key: SecretKey,
-    broadcast: (UnlockedScreen.Broadcast) -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(App.Theme.colors.background)
-            .padding(
-                top = App.Theme.dimensions.insets.calculateTopPadding(),
-                bottom = App.Theme.dimensions.insets.calculateBottomPadding(),
-            ),
-    ) {
-        when (entries) {
-            null -> viewModel.requestData(key)
-            else -> Data(
-                entries = entries,
-                onClick = { name ->
-                    clickedState.value = name
-                },
-                onLongClick = { name ->
-                    viewModel.requestToShow(key, name = name)
-                },
-            )
-        }
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(64.dp)
-        ) {
-            BasicText(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clickable { broadcast(UnlockedScreen.Broadcast.Lock) }
-                    .wrapContentHeight(),
-                text = "lock",
-                style = TextStyle(
-                    textAlign = TextAlign.Center,
-                ),
-            )
-            BasicText(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .clickable {
-                        addedState.value = true
-                    }
-                    .wrapContentHeight(),
-                text = "add",
-                style = TextStyle(
-                    textAlign = TextAlign.Center,
-                ),
             )
         }
     }
