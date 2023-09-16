@@ -1,14 +1,10 @@
 package org.kepocnhh.xfiles.module.unlocked
 
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.module.app.Injection
@@ -19,7 +15,6 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
-import kotlin.time.Duration.Companion.seconds
 
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
@@ -104,7 +99,6 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     private fun loading(block: suspend () -> Unit) {
         injection.launch {
             _operations.value += 1
-            delay(2.seconds)
             block()
             _operations.value -= 1
         }
