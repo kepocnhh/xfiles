@@ -11,24 +11,14 @@ internal sealed class Colors(
     val secondary: Color,
     val error: Color,
     val text: Color,
-//    val icon: Color,
-//    val button: Color,
 ) {
     object Dark : Colors(
         background = Color(0xff101010),
-//        background = Color(0xff121212),
         foreground = white,
         primary = primary,
         secondary = Color(0xff202020),
-//        secondary = Color(0xff242424),
-//        secondary = Color(0xff484848),
         error = error,
         text = white,
-//        icon = black,
-//        icon = white,
-//        button = Color(0xff202020),
-//        button = Color(0xff242424),
-//        button = Color(0xff303030),
     )
 
     object Light : Colors(
@@ -36,14 +26,8 @@ internal sealed class Colors(
         foreground = black,
         primary = primary,
         secondary = Color(0xffeeeeee),
-//        secondary = Color(0xffdddddd),
         error = error,
         text = black,
-//        icon = black,
-//        icon = white,
-//        button = Color(0xff121212),
-//        button = Color(0xffeeeeee),
-//        button = Color(0xffdddddd),
     )
 
     companion object {
