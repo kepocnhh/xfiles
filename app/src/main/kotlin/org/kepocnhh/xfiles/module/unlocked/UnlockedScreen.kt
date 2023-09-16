@@ -82,6 +82,8 @@ import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
+import org.kepocnhh.xfiles.util.compose.screenHeight
+import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
@@ -180,7 +182,25 @@ internal fun UnlockedScreen(
     }
     when (val orientation = LocalConfiguration.current.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
-            TODO()
+            UnlockedScreenLandscape(
+                loading = loading,
+                encrypteds = encrypteds,
+                onAdd = { (title, value) ->
+                    viewModel.addValue(key, title = title, value = value)
+                },
+                onLock = {
+                    broadcast(UnlockedScreen.Broadcast.Lock)
+                },
+                onShow = {
+                    viewModel.requestToShow(key, id = it.id)
+                },
+                onCopy = {
+                    viewModel.requestToCopy(key, id = it.id)
+                },
+                onDelete = {
+                    deleteState.value = it
+                },
+            )
         }
         Configuration.ORIENTATION_PORTRAIT -> {
             UnlockedScreenPortrait(
@@ -200,7 +220,7 @@ internal fun UnlockedScreen(
                 },
                 onLock = {
                     broadcast(UnlockedScreen.Broadcast.Lock)
-                }
+                },
             )
         }
         else -> error("Orientation $orientation is not supported!")
@@ -349,16 +369,14 @@ private fun EncryptedValueItem(
 private fun Encrypteds(
     modifier: Modifier,
     enabled: Boolean,
+    contentPadding: PaddingValues,
     items: Map<String, String>,
     itemContent: @Composable (EncryptedValue) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
-        contentPadding = PaddingValues(
-            top = App.Theme.dimensions.insets.calculateTopPadding() + App.Theme.sizes.small,
-            bottom = App.Theme.dimensions.insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
-        ),
+        contentPadding = contentPadding,
         userScrollEnabled = enabled,
     ) {
         val keys = items.keys.toList()
@@ -383,35 +401,35 @@ private fun UnlockedScreenPortrait(
     onDelete: (EncryptedValue) -> Unit,
     onLock: () -> Unit,
 ) {
-    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
+        val insets = LocalView.current.rootWindowInsets.toPaddings()
         when {
             encrypteds == null -> {
                 // todo
             }
             encrypteds.isEmpty() -> {
                 BasicText(
-                    modifier = Modifier
-                        .align(Alignment.Center),
+                    modifier = Modifier.align(Alignment.Center),
                     text = "no items", // todo
                 )
             }
             else -> {
-                val insets = LocalView.current.rootWindowInsets.toPaddings()
                 Encrypteds(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            start = insets.calculateStartPadding(layoutDirection),
-                            end = insets.calculateEndPadding(layoutDirection),
-                        )
                         .align(Alignment.Center),
                     enabled = !loading,
+                    contentPadding = PaddingValues(
+                        start = insets.calculateStartPadding(layoutDirection),
+                        top = insets.calculateTopPadding() + App.Theme.sizes.small,
+                        end = insets.calculateEndPadding(layoutDirection),
+                        bottom = insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
+                    ),
                     items = encrypteds,
                     itemContent = { item ->
                         EncryptedValueItem(
@@ -431,7 +449,6 @@ private fun UnlockedScreenPortrait(
                 )
             }
         }
-        val insets = LocalView.current.rootWindowInsets.toPaddings()
         ButtonsRow(
             modifier = Modifier
                 .padding(
@@ -463,59 +480,90 @@ private fun UnlockedScreenPortrait(
 }
 
 @Composable
-private fun Data(
-    modifier: Modifier = Modifier,
-    entries: Map<String, String>,
-    onClick: (String) -> Unit,
-    onLongClick: (String) -> Unit,
+private fun UnlockedScreenLandscape(
+    loading: Boolean,
+    encrypteds: Map<String, String>?,
+    onAdd: (Pair<String, String>) -> Unit,
+    onLock: () -> Unit,
+    onShow: (EncryptedValue) -> Unit,
+    onCopy: (EncryptedValue) -> Unit,
+    onDelete: (EncryptedValue) -> Unit,
 ) {
-    LazyColumn(modifier = modifier) {
-        items(entries.keys.toList()) { name ->
-            println("compose: $name")
-            val value = entries[name] ?: TODO()
-            val draggableState = remember { mutableStateOf(false) }
-            val animatable = remember { Animatable(0f) }
-            val offsetXState = remember { mutableStateOf(0f) }
-            LaunchedEffect(draggableState.value) {
-                if (draggableState.value) {
-                    animatable.stop()
-                } else {
-                    animatable.snapTo(offsetXState.value)
-                    animatable.animateTo(0f)
-                }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(App.Theme.colors.background),
+    ) {
+        val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
+        val insets = LocalView.current.rootWindowInsets.toPaddings()
+        val width = LocalConfiguration.current.screenWidth(insets)
+        val height = LocalConfiguration.current.screenHeight(insets)
+        when {
+            encrypteds == null -> {
+                // todo
             }
-            if (!draggableState.value) {
-                if (animatable.isRunning) {
-                    offsetXState.value = animatable.value
-                }
+            encrypteds.isEmpty() -> {
+                BasicText(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "no items", // todo
+                )
             }
-            BasicText(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .offset { IntOffset(offsetXState.value.roundToInt() / 2, 0) }
-                    .background(Color.Green)
-                    .clicks(
-                        onClick = {
-                            onClick(name)
-                        },
-                        onLongClick = {
-                            onLongClick(name)
-                        }
-                    )
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        state = rememberDraggableState { delta ->
-                            offsetXState.value += delta
-                        },
-                        onDragStarted = {
-                            draggableState.value = true
-                        },
-                        onDragStopped = {
-                            draggableState.value = false
-                        },
+            else -> {
+                Encrypteds(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    enabled = !loading,
+                    contentPadding = PaddingValues(
+                        top = insets.calculateTopPadding() + App.Theme.sizes.small,
+                        bottom = insets.calculateBottomPadding() + App.Theme.sizes.small,
+                        end = width - height,
+//                        end = width - (width / 3) * 2,
                     ),
-                text = "$name: $value"
+                    items = encrypteds,
+                    itemContent = { item ->
+                        EncryptedValueItem(
+                            enabled = !loading,
+                            value = item,
+                            onShow = {
+                                onShow(item)
+                            },
+                            onCopy = {
+                                onCopy(item)
+                            },
+                            onDelete = {
+                                onDelete(item)
+                            },
+                        )
+                    },
+                )
+            }
+        }
+        ButtonsRow(
+            modifier = Modifier
+                .padding(
+                    bottom = insets.calculateBottomPadding() + App.Theme.sizes.small,
+                    end = insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
+                )
+                .align(Alignment.BottomEnd),
+            enabled = encrypteds != null && !loading,
+            onAdd = {
+                val title = "foo${System.currentTimeMillis()}" // todo
+                val value = "${System.nanoTime()}" // todo
+                onAdd(title to value) // todo
+            },
+            onLock = onLock,
+        )
+        AnimatedFadeVisibility(
+            modifier = Modifier.align(Alignment.Center),
+            visible = loading,
+            duration = App.Theme.durations.animation,
+        ) {
+            Squares(
+                color = App.Theme.colors.foreground,
+                width = App.Theme.sizes.large,
+                padding = App.Theme.sizes.small,
+                radius = App.Theme.sizes.xs,
             )
         }
     }
