@@ -285,6 +285,7 @@ private fun AddItemScreenLandscape(
                     .align(Alignment.Bottom)
                     .width(parent.maxHeight),
                 enabled = true,
+                rows = TODO(),
                 onClick = {
                     when (focusedState.value) {
                         Focused.KEY -> keyState.value += it
@@ -408,6 +409,7 @@ private fun AddItemScreenPortraitOld(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
             enabled = true,
+            rows = TODO(),
             onClick = {
                 when (focusedState.value) {
                     Focused.KEY -> keyState.value += it

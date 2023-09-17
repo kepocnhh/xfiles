@@ -12,8 +12,13 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import org.kepocnhh.xfiles.App
 import sp.ax.jc.clicks.clicks
 
 internal object Keyboard {
@@ -21,6 +26,20 @@ internal object Keyboard {
         SPACE_BAR,
         BACKSPACE,
     }
+
+    val letters = listOf(
+        (48..57).map { it.toChar() }.toCharArray(),
+        charArrayOf('q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'),
+        charArrayOf('a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'),
+        charArrayOf('z', 'x', 'c', 'v', 'b', 'n', 'm'),
+    )
+
+    val special = listOf(
+        (33..47).map { it.toChar() }.toCharArray(),
+        (58..64).map { it.toChar() }.toCharArray(),
+        (91..96).map { it.toChar() }.toCharArray(),
+        (123..126).map { it.toChar() }.toCharArray(),
+    )
 }
 
 private fun Char.up(): Char {
@@ -32,7 +51,7 @@ private fun Char.up(): Char {
 
 @Composable
 private fun KeyboardRow(
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     enabled: Boolean,
     chars: CharArray,
     onClick: (Char) -> Unit,
@@ -63,31 +82,34 @@ private fun KeyboardRow(
 
 @Composable
 internal fun Keyboard(
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     enabled: Boolean,
+    rowHeight: Dp = App.Theme.sizes.xl,
+    rows: List<CharArray>,
+    keyTextStyle: TextStyle = TextStyle(
+        textAlign = TextAlign.Center,
+        fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Monospace,
+        fontSize = 14.sp,
+    ),
     onClick: (Char) -> Unit,
     onClickFun: (Keyboard.Fun) -> Unit,
     onLongClickFun: (Keyboard.Fun) -> Unit,
 ) {
     Column(modifier = modifier) {
-        val height = 48.dp
-        val textStyle = TextStyle(
-            textAlign = TextAlign.Center,
-        )
-        listOf(
-            charArrayOf('q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'),
-            charArrayOf('a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'),
-            charArrayOf('z', 'x', 'c', 'v', 'b', 'n', 'm'),
-        ).forEach { chars ->
+        rows.forEach { chars ->
             KeyboardRow(
-                modifier = Modifier.height(height),
+                modifier = Modifier.height(rowHeight),
                 enabled = enabled,
                 chars = chars,
                 onClick = onClick,
-                textStyle = textStyle,
+                textStyle = keyTextStyle,
             )
         }
-        Row(modifier = Modifier.height(height)) {
+        val textStyle = TextStyle(
+            textAlign = TextAlign.Center,
+        ) // todo
+        Row(modifier = Modifier.height(rowHeight)) {
             Spacer(modifier = Modifier.width(64.dp))
             BasicText(
                 modifier = Modifier
@@ -116,7 +138,7 @@ internal fun Keyboard(
                     .wrapContentHeight(),
                 text = "<",
                 style = textStyle,
-            )
+            ) // todo icon
         }
     }
 }
