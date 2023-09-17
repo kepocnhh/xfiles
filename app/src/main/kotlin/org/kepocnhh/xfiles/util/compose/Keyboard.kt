@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -53,13 +54,17 @@ private fun Char.up(): Char {
 
 @Composable
 private fun KeyboardRow(
-    modifier: Modifier,
+    height: Dp,
     enabled: Boolean,
     chars: CharArray,
     onClick: (Char) -> Unit,
     textStyle: TextStyle,
 ) {
-    Row(modifier = modifier) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height),
+    ) {
         chars.forEach {
             BasicText(
                 modifier = Modifier
@@ -77,6 +82,33 @@ private fun KeyboardRow(
                     .wrapContentHeight(),
                 text = it.toString(),
                 style = textStyle,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun KeyboardRows(
+    modifier: Modifier,
+    enabled: Boolean,
+    rowHeight: Dp = App.Theme.sizes.xl,
+    rows: List<CharArray>,
+    onClick: (Char) -> Unit,
+) {
+    Column(modifier = modifier) {
+        rows.forEach { chars ->
+            KeyboardRow(
+                height = rowHeight,
+                enabled = enabled,
+                chars = chars,
+                onClick = onClick,
+                textStyle = TextStyle(
+                    color = App.Theme.colors.text,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp, // todo
+                ),
             )
         }
     }
@@ -102,7 +134,7 @@ internal fun Keyboard(
     Column(modifier = modifier) {
         rows.forEach { chars ->
             KeyboardRow(
-                modifier = Modifier.height(rowHeight),
+                height = rowHeight,
                 enabled = enabled,
                 chars = chars,
                 onClick = onClick,

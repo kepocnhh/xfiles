@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -37,9 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.Keyboard
+import org.kepocnhh.xfiles.util.compose.KeyboardRows
 import org.kepocnhh.xfiles.util.compose.RoundedButton
 import org.kepocnhh.xfiles.util.compose.TextFocused
 import org.kepocnhh.xfiles.util.compose.toPaddings
+import sp.ax.jc.clicks.clicks
 
 private enum class Focused {
     TITLE, SECRET,
@@ -51,6 +54,7 @@ private fun HintTextFocused(
     focusedState: MutableState<Focused?>,
     focused: Focused,
 ) {
+    // todo paste
     val text = when (focused) {
         Focused.TITLE -> values[focused].orEmpty()
         Focused.SECRET -> "*".repeat(values[focused].orEmpty().length)
@@ -119,42 +123,30 @@ private fun AddItemScreenPortrait(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = App.Theme.sizes.small),
+                .align(Alignment.Center)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small)
         ) {
             HintTextFocused(
                 values = values,
                 focusedState = focusedState,
                 focused = Focused.TITLE,
             )
-            Spacer(Modifier.height(App.Theme.sizes.small))
             HintTextFocused(
                 values = values,
                 focusedState = focusedState,
                 focused = Focused.SECRET,
             )
-            Spacer(Modifier.height(App.Theme.sizes.small))
-            RoundedButton(
-                margin = PaddingValues(
-                    start = App.Theme.sizes.small,
-                    end = App.Theme.sizes.small,
-                ),
-                text = "ok", // todo
-                onClick = {
-                    val title = values[Focused.TITLE]
-                    val secret = values[Focused.SECRET]
-                    if (title.isNullOrEmpty() || secret.isNullOrEmpty()) {
-                        // todo
-                    } else {
-                        onAdd(title, secret)
-                    }
-                },
-            )
-            val focused = focusedState.value
-            // todo animation
-            if (focused != null) {
-                val rowsState = remember { mutableStateOf(Keyboard.letters) }
-                Spacer(Modifier.weight(1f))
+        }
+        val focused = focusedState.value
+        // todo animation
+        if (focused != null) {
+            val rowsState = remember { mutableStateOf(Keyboard.letters) }
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
+            ) {
                 Box(
                     modifier = Modifier
                         .height(App.Theme.sizes.xxl)
@@ -200,26 +192,45 @@ private fun AddItemScreenPortrait(
                             ),
                         )
                     }
+                    val text = when (focused) {
+                        Focused.TITLE -> "next" // todo
+                        Focused.SECRET -> "done" // todo
+                    }
                     BasicText(
                         modifier = Modifier
                             .fillMaxHeight()
                             .widthIn(min = 128.dp)
                             .align(Alignment.CenterEnd)
                             .clickable {
-                                // todo
+                                when (focused) {
+                                    Focused.TITLE -> {
+                                        focusedState.value = Focused.SECRET
+                                    }
+                                    Focused.SECRET -> {
+                                        val title = values[Focused.TITLE]
+                                        val secret = values[Focused.SECRET]
+                                        if (title.isNullOrBlank() || secret.isNullOrEmpty()) {
+                                            // todo
+                                        } else {
+                                            onAdd(title, secret)
+                                        }
+                                    }
+                                }
                             }
                             .wrapContentSize()
                             .padding(
                                 start = App.Theme.sizes.small,
                                 end = App.Theme.sizes.small,
                             ),
-                        text = "foo",
+                        text = text,
                         style = TextStyle(
-                            // todo
+                            color = App.Theme.colors.primary,
+                            textAlign = TextAlign.Center,
+                            fontSize = 14.sp, // todo
                         ),
                     )
                 }
-                Keyboard(
+                KeyboardRows(
                     modifier = Modifier
                         .fillMaxWidth(),
                     enabled = true, // todo
@@ -227,31 +238,53 @@ private fun AddItemScreenPortrait(
                     onClick = {
                         values[focused] = values[focused].orEmpty() + it
                     },
-                    onClickFun = {
-                        when (it) {
-                            Keyboard.Fun.SPACE_BAR -> {
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(App.Theme.sizes.xxl),
+                ) {
+                    val textStyle = TextStyle(
+                        color = App.Theme.colors.text,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp, // todo
+                    ) // todo
+                    Spacer(modifier = Modifier.width(64.dp))
+                    BasicText(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(1f)
+                            .clickable(enabled = true) {
                                 values[focused] = values[focused].orEmpty() + ' '
                             }
-                            Keyboard.Fun.BACKSPACE -> {
-                                val oldValue = values[focused].orEmpty()
-                                if (oldValue.isNotEmpty()) {
-                                    values[focused] = oldValue.take(oldValue.lastIndex)
-                                }
-                            }
-                        }
-                    },
-                    onLongClickFun = {
-                        when (it) {
-                            Keyboard.Fun.SPACE_BAR -> TODO("Keyboard:onLongClickFun:SPACE_BAR")
-                            Keyboard.Fun.BACKSPACE -> {
-                                val oldValue = values[focused].orEmpty()
-                                if (oldValue.isNotEmpty()) {
-                                    values[focused] = ""
-                                }
-                            }
-                        }
-                    },
-                )
+                            .wrapContentHeight(),
+                        text = "space",
+                        style = textStyle,
+                    )
+                    BasicText(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(64.dp)
+                            .clicks(
+                                enabled = true,
+                                onClick = {
+                                    val oldValue = values[focused].orEmpty()
+                                    if (oldValue.isNotEmpty()) {
+                                        values[focused] = oldValue.take(oldValue.lastIndex)
+                                    }
+                                },
+                                onLongClick = {
+                                    val oldValue = values[focused].orEmpty()
+                                    if (oldValue.isNotEmpty()) {
+                                        values[focused] = ""
+                                    }
+                                },
+                            )
+                            .wrapContentHeight(),
+                        text = "<",
+                        style = textStyle,
+                    ) // todo icon
+                }
             }
         }
     }
