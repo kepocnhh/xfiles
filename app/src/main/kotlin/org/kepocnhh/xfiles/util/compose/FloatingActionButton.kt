@@ -32,7 +32,7 @@ internal fun FloatingActionButton(
     indication: Indication? = LocalIndication.current,
     @DrawableRes icon: Int,
     iconSize: Dp = App.Theme.sizes.medium,
-    iconColor: Color = App.Theme.colors.foreground,
+    iconColor: Color = App.Theme.colors.icon,
     contentDescription: String,
     onClick: () -> Unit,
 ) {

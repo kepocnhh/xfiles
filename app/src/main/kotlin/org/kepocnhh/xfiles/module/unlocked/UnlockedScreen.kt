@@ -310,19 +310,10 @@ private fun EncryptedValueItem(
                 start = App.Theme.sizes.small,
                 end = App.Theme.sizes.small,
             )
+            .background(App.Theme.colors.secondary, RoundedCornerShape(App.Theme.sizes.large))
             .fillMaxWidth()
             .height(height),
     ) {
-        Spacer(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(App.Theme.sizes.large))
-                .background(App.Theme.colors.secondary)
-//                .onClick {
-//                    context.showToast("click ${value.title}") // todo
-//                }
-                .wrapContentHeight(),
-        )
         BasicText(
             modifier = Modifier
                 .align(Alignment.CenterStart)
