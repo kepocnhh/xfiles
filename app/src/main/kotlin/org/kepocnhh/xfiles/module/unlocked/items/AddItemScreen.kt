@@ -76,7 +76,7 @@ private fun HintTextFocused(
             end = App.Theme.sizes.large,
         ),
         height = App.Theme.sizes.xxxl,
-        color = App.Theme.colors.downstairs,
+        color = App.Theme.colors.basement,
         corners = App.Theme.sizes.large,
         text = if (text.isEmpty() && focusedState.value != focused) hint else text,
         textStyle = if (text.isEmpty() && focusedState.value != focused) hintStyle else textStyle,

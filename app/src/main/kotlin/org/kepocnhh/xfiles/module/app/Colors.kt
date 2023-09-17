@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 internal sealed class Colors(
-    val downstairs: Color,
+    val basement: Color,
     val background: Color,
     val secondary: Color,
     val foreground: Color,
@@ -27,7 +27,7 @@ internal sealed class Colors(
     val icon: Color,
 ) {
     object Dark : Colors(
-        downstairs = Color(0xff070707),
+        basement = Color(0xff070707),
 //        background = Color(0xff000000),
 //        background = Color(0xff070707),
 //        background = Color(0xff0f0f0f),
@@ -43,7 +43,7 @@ internal sealed class Colors(
     )
 
     object Light : Colors(
-        downstairs = Color(0xfff8f8f8),
+        basement = Color(0xfff8f8f8),
 //        background = white,
 //        background = Color(0xffffffff),
 //        background = Color(0xfff8f8f8),
