@@ -270,6 +270,7 @@ private fun ButtonsRow(
 private fun EncryptedValueButton(
     enabled: Boolean,
     size: Dp,
+    iconSize: Dp = size / 2,
     @DrawableRes icon: Int,
     contentDescription: String,
     onClick: () -> Unit,
@@ -277,20 +278,16 @@ private fun EncryptedValueButton(
     Box(
         modifier = Modifier
             .size(size)
-            .background(
-                App.Theme.colors.background,
-                RoundedCornerShape(size / 2),
-            )
             .clip(RoundedCornerShape(size / 2))
             .onClick(enabled = enabled, onClick),
     ) {
         Image(
             modifier = Modifier
-                .size(size / 2)
+                .size(iconSize)
                 .align(Alignment.Center),
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
-            colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
+            colorFilter = ColorFilter.tint(App.Theme.colors.icon),
         )
     }
 }
