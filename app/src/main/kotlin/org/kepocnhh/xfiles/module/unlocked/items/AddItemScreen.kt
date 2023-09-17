@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
@@ -26,6 +26,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.TextFocused
 import org.kepocnhh.xfiles.util.compose.toPaddings
 
@@ -116,6 +117,23 @@ private fun AddItemScreenPortrait(
                 values = values,
                 focusedState = focusedState,
                 focused = Focused.SECRET,
+            )
+        }
+        val focused = focusedState.value
+        if (focused != null) {
+            Keyboard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                onClick = {
+                    values[focused] = values[focused].orEmpty() + it
+                },
+                onBackspace = {
+                    val oldValue = values[focused].orEmpty()
+                    if (oldValue.isNotEmpty()) {
+                        values[focused] = oldValue.take(oldValue.lastIndex)
+                    }
+                }
             )
         }
     }
