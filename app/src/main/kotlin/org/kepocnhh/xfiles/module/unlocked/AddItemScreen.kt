@@ -284,26 +284,35 @@ private fun AddItemScreenLandscape(
                 modifier = Modifier
                     .align(Alignment.Bottom)
                     .width(parent.maxHeight),
+                enabled = true,
                 onClick = {
                     when (focusedState.value) {
                         Focused.KEY -> keyState.value += it
                         Focused.VALUE -> valueState.value += it
                     }
                 },
-                onBackspace = {
-                    when (focusedState.value) {
-                        Focused.KEY -> {
-                            if (keyState.value.isNotEmpty()) {
-                                keyState.value = keyState.value.take(keyState.value.lastIndex)
-                            }
-                        }
-                        Focused.VALUE -> {
-                            if (valueState.value.isNotEmpty()) {
-                                valueState.value = valueState.value.take(valueState.value.lastIndex)
+                onClickFun = {
+                    when (it) {
+                        Keyboard.Fun.SPACE_BAR -> TODO()
+                        Keyboard.Fun.BACKSPACE -> {
+                            when (focusedState.value) {
+                                Focused.KEY -> {
+                                    if (keyState.value.isNotEmpty()) {
+                                        keyState.value = keyState.value.take(keyState.value.lastIndex)
+                                    }
+                                }
+                                Focused.VALUE -> {
+                                    if (valueState.value.isNotEmpty()) {
+                                        valueState.value = valueState.value.take(valueState.value.lastIndex)
+                                    }
+                                }
                             }
                         }
                     }
-                }
+                },
+                onLongClickFun = {
+                    TODO()
+                },
             )
         }
     }
@@ -398,26 +407,35 @@ private fun AddItemScreenPortraitOld(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
+            enabled = true,
             onClick = {
                 when (focusedState.value) {
                     Focused.KEY -> keyState.value += it
                     Focused.VALUE -> valueState.value += it
                 }
             },
-            onBackspace = {
-                when (focusedState.value) {
-                    Focused.KEY -> {
-                        if (keyState.value.isNotEmpty()) {
-                            keyState.value = keyState.value.take(keyState.value.lastIndex)
-                        }
-                    }
-                    Focused.VALUE -> {
-                        if (valueState.value.isNotEmpty()) {
-                            valueState.value = valueState.value.take(valueState.value.lastIndex)
+            onClickFun = {
+                when (it) {
+                    Keyboard.Fun.SPACE_BAR -> TODO()
+                    Keyboard.Fun.BACKSPACE -> {
+                        when (focusedState.value) {
+                            Focused.KEY -> {
+                                if (keyState.value.isNotEmpty()) {
+                                    keyState.value = keyState.value.take(keyState.value.lastIndex)
+                                }
+                            }
+                            Focused.VALUE -> {
+                                if (valueState.value.isNotEmpty()) {
+                                    valueState.value = valueState.value.take(valueState.value.lastIndex)
+                                }
+                            }
                         }
                     }
                 }
-            }
+            },
+            onLongClickFun = {
+                TODO()
+            },
         )
     }
 }

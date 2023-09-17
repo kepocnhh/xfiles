@@ -16,6 +16,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import sp.ax.jc.clicks.clicks
 
+internal object Keyboard {
+    enum class Fun {
+        SPACE_BAR,
+        BACKSPACE,
+    }
+}
+
 private fun Char.up(): Char {
     if (!Character.isLowerCase(this)) return this
     val uppercased = uppercaseChar()
@@ -26,6 +33,7 @@ private fun Char.up(): Char {
 @Composable
 private fun KeyboardRow(
     modifier: Modifier = Modifier,
+    enabled: Boolean,
     chars: CharArray,
     onClick: (Char) -> Unit,
     textStyle: TextStyle,
@@ -37,6 +45,7 @@ private fun KeyboardRow(
                     .fillMaxHeight()
                     .weight(1f)
                     .clicks(
+                        enabled = enabled,
                         onClick = {
                             onClick(it)
                         },
@@ -55,8 +64,10 @@ private fun KeyboardRow(
 @Composable
 internal fun Keyboard(
     modifier: Modifier = Modifier,
+    enabled: Boolean,
     onClick: (Char) -> Unit,
-    onBackspace: () -> Unit,
+    onClickFun: (Keyboard.Fun) -> Unit,
+    onLongClickFun: (Keyboard.Fun) -> Unit,
 ) {
     Column(modifier = modifier) {
         val height = 48.dp
@@ -70,6 +81,7 @@ internal fun Keyboard(
         ).forEach { chars ->
             KeyboardRow(
                 modifier = Modifier.height(height),
+                enabled = enabled,
                 chars = chars,
                 onClick = onClick,
                 textStyle = textStyle,
@@ -81,8 +93,8 @@ internal fun Keyboard(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .clickable {
-                        onClick(' ')
+                    .clickable(enabled = enabled) {
+                        onClickFun(Keyboard.Fun.SPACE_BAR)
                     }
                     .wrapContentHeight(),
                 text = "space",
@@ -92,9 +104,15 @@ internal fun Keyboard(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(64.dp)
-                    .clickable {
-                        onBackspace()
-                    }
+                    .clicks(
+                        enabled = enabled,
+                        onClick = {
+                            onClickFun(Keyboard.Fun.BACKSPACE)
+                        },
+                        onLongClick = {
+                            onLongClickFun(Keyboard.Fun.BACKSPACE)
+                        },
+                    )
                     .wrapContentHeight(),
                 text = "<",
                 style = textStyle,

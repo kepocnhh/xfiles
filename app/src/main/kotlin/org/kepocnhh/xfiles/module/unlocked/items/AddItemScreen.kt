@@ -142,20 +142,40 @@ private fun AddItemScreenPortrait(
             )
         }
         val focused = focusedState.value
+        // todo animation
         if (focused != null) {
             Keyboard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter),
+                enabled = true, // todo
                 onClick = {
                     values[focused] = values[focused].orEmpty() + it
                 },
-                onBackspace = {
-                    val oldValue = values[focused].orEmpty()
-                    if (oldValue.isNotEmpty()) {
-                        values[focused] = oldValue.take(oldValue.lastIndex)
+                onClickFun = {
+                    when (it) {
+                        Keyboard.Fun.SPACE_BAR -> {
+                            values[focused] = values[focused].orEmpty() + ' '
+                        }
+                        Keyboard.Fun.BACKSPACE -> {
+                            val oldValue = values[focused].orEmpty()
+                            if (oldValue.isNotEmpty()) {
+                                values[focused] = oldValue.take(oldValue.lastIndex)
+                            }
+                        }
                     }
-                }
+                },
+                onLongClickFun = {
+                    when (it) {
+                        Keyboard.Fun.SPACE_BAR -> TODO()
+                        Keyboard.Fun.BACKSPACE -> {
+                            val oldValue = values[focused].orEmpty()
+                            if (oldValue.isNotEmpty()) {
+                                values[focused] = ""
+                            }
+                        }
+                    }
+                },
             )
         }
     }
