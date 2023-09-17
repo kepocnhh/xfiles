@@ -39,14 +39,14 @@ internal fun TextFocused(
     onLongClick: () -> Unit,
     focused: Boolean,
 ) {
-    val borderColor = if (focused) textStyle.color else Color.LightGray
+//    val borderColor = if (focused) textStyle.color else Color.LightGray
     Box(
         modifier = Modifier
             .padding(margin)
             .height(height)
             .fillMaxWidth()
             .background(color, RoundedCornerShape(corners))
-            .border(1.dp, borderColor, RoundedCornerShape(corners))
+//            .border(1.dp, borderColor, RoundedCornerShape(corners))
             .clip(RoundedCornerShape(corners))
             .clicks(
                 onClick = onClick,
