@@ -2,43 +2,24 @@ package org.kepocnhh.xfiles.module.unlocked
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import android.content.res.Configuration
 import android.os.PersistableBundle
-import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -49,35 +30,24 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.module.app.Colors
+import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
-import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
-import org.kepocnhh.xfiles.util.compose.AnimatedHVisibilityShadow
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
@@ -85,12 +55,9 @@ import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.screenHeight
 import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.compose.toPaddings
-import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
-import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.seconds
 
 internal object UnlockedScreen {
     sealed interface Broadcast {
@@ -151,6 +118,7 @@ internal fun UnlockedScreen(
     ShowDialog(
         state = showState,
     )
+    val addItemState = remember { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState(true)
     val encrypteds by viewModel.encrypteds.collectAsState(null)
     if (encrypteds == null) viewModel.requestValues(key)
@@ -185,8 +153,8 @@ internal fun UnlockedScreen(
             UnlockedScreenLandscape(
                 loading = loading,
                 encrypteds = encrypteds,
-                onAdd = { (title, value) ->
-                    viewModel.addValue(key, title = title, value = value)
+                onAdd = {
+                    addItemState.value = true
                 },
                 onLock = {
                     broadcast(UnlockedScreen.Broadcast.Lock)
@@ -212,8 +180,8 @@ internal fun UnlockedScreen(
                 onCopy = {
                     viewModel.requestToCopy(key, id = it.id)
                 },
-                onAdd = { (title, value) ->
-                    viewModel.addValue(key, title = title, value = value)
+                onAdd = {
+                    addItemState.value = true
                 },
                 onDelete = {
                     deleteState.value = it
@@ -225,12 +193,17 @@ internal fun UnlockedScreen(
         }
         else -> error("Orientation $orientation is not supported!")
     }
-    DisposableEffect(Unit) {
-        // todo
-        logger.debug("init")
-        onDispose {
-            logger.debug("on dispose")
-        }
+    if (addItemState.value) {
+        // todo animation
+        AddItemScreen(
+            onAdd = { title, secret ->
+                viewModel.addValue(key, title = title, secret = secret)
+                addItemState.value = false
+            },
+            onCancel = {
+                addItemState.value = false
+            }
+        )
     }
 }
 
@@ -385,7 +358,7 @@ private fun UnlockedScreenPortrait(
     encrypteds: Map<String, String>?,
     onShow: (EncryptedValue) -> Unit,
     onCopy: (EncryptedValue) -> Unit,
-    onAdd: (Pair<String, String>) -> Unit,
+    onAdd: () -> Unit,
     onDelete: (EncryptedValue) -> Unit,
     onLock: () -> Unit,
 ) {
@@ -445,11 +418,7 @@ private fun UnlockedScreenPortrait(
                 )
                 .align(Alignment.BottomEnd),
             enabled = encrypteds != null && !loading,
-            onAdd = {
-                val title = "foo${System.currentTimeMillis()}" // todo
-                val value = "${System.nanoTime()}" // todo
-                onAdd(title to value) // todo
-            },
+            onAdd = onAdd,
             onLock = onLock,
         )
         AnimatedFadeVisibility(
@@ -471,7 +440,7 @@ private fun UnlockedScreenPortrait(
 private fun UnlockedScreenLandscape(
     loading: Boolean,
     encrypteds: Map<String, String>?,
-    onAdd: (Pair<String, String>) -> Unit,
+    onAdd: () -> Unit,
     onLock: () -> Unit,
     onShow: (EncryptedValue) -> Unit,
     onCopy: (EncryptedValue) -> Unit,
@@ -535,11 +504,7 @@ private fun UnlockedScreenLandscape(
                 )
                 .align(Alignment.BottomEnd),
             enabled = encrypteds != null && !loading,
-            onAdd = {
-                val title = "foo${System.currentTimeMillis()}" // todo
-                val value = "${System.nanoTime()}" // todo
-                onAdd(title to value) // todo
-            },
+            onAdd = onAdd,
             onLock = onLock,
         )
         AnimatedFadeVisibility(

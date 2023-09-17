@@ -121,8 +121,9 @@ private fun RoundedButton(
     )
 }
 
+@Deprecated(message = "AddItemScreen")
 @Composable
-internal fun AddItemScreen(
+internal fun AddItemScreenOld(
     keys: Set<String>,
     onAdd: (String, String) -> Unit,
     onCancel: () -> Unit,
@@ -180,7 +181,7 @@ internal fun AddItemScreen(
             )
         }
         Configuration.ORIENTATION_PORTRAIT -> {
-            AddItemScreenPortrait(
+            AddItemScreenPortraitOld(
                 keys = keys,
                 keyState = keyState,
                 valueState = valueState,
@@ -308,8 +309,9 @@ private fun AddItemScreenLandscape(
     }
 }
 
+@Deprecated(message = "AddItemScreenPortrait")
 @Composable
-private fun AddItemScreenPortrait(
+private fun AddItemScreenPortraitOld(
     keys: Set<String>,
     keyState: MutableState<String>,
     valueState: MutableState<String>,

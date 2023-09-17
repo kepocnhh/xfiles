@@ -114,29 +114,29 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     fun requestToCopy(key: SecretKey, id: String) {
         loading {
-            val value = withContext(injection.contexts.default) {
+            val secret = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8))
                     .getJSONObject(id)
-                    .getString("value")
+                    .getString("secret")
             }
-            _broadcast.emit(Broadcast.OnCopy(value))
+            _broadcast.emit(Broadcast.OnCopy(secret = secret))
         }
     }
 
     fun requestToShow(key: SecretKey, id: String) {
         loading {
-            val value = withContext(injection.contexts.default) {
+            val secret = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8))
                     .getJSONObject(id)
-                    .getString("value")
+                    .getString("secret")
             }
-            _broadcast.emit(Broadcast.OnShow(value))
+            _broadcast.emit(Broadcast.OnShow(secret = secret))
         }
     }
 
-    fun addValue(key: SecretKey, title: String, value: String) {
+    fun addValue(key: SecretKey, title: String, secret: String) {
         check(title.isNotBlank())
-        check(value.isNotBlank())
+        check(secret.isNotBlank())
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
@@ -144,7 +144,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                     generateSequence(UUID.randomUUID()::toString)
                         .firstOrNull { !jsonObject.has(it) }
                         ?: TODO(),
-                    JSONObject().put("title", title).put("value", value),
+                    JSONObject().put("title", title).put("secret", secret),
                 )
                 encrypt(
                     key = key,
