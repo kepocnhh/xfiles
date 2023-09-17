@@ -81,7 +81,7 @@ private fun SettingsColorRow(
             .background(colors.background)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = ColorIndication(color = colors.foreground),
+                indication = ColorIndication.create(colors.foreground),
                 onClick = onClick,
             ),
     ) {

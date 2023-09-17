@@ -248,7 +248,7 @@ private fun ButtonsRow(
         FloatingActionButton(
             color = App.Theme.colors.primary,
             enabled = enabled,
-            indication = ColorIndication(color = Colors.white),
+            indication = ColorIndication.create(Colors.white),
             icon = R.drawable.plus,
             iconColor = Colors.white,
             contentDescription = "unlocked:add",

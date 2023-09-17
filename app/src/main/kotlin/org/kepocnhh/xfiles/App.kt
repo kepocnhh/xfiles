@@ -126,7 +126,7 @@ internal class App : Application() {
                     background = colors.background,
                     foreground = colors.foreground,
                 ),
-                LocalIndication provides ColorIndication(color = colors.foreground),
+                LocalIndication provides ColorIndication.create(colors.foreground),
                 content = content,
             )
         }
