@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.Keyboard
+import org.kepocnhh.xfiles.util.compose.RoundedButton
 import org.kepocnhh.xfiles.util.compose.TextFocused
 import org.kepocnhh.xfiles.util.compose.toPaddings
 
@@ -40,7 +42,10 @@ private fun HintTextFocused(
     focusedState: MutableState<Focused?>,
     focused: Focused,
 ) {
-    val text = values[focused].orEmpty()
+    val text = when (focused) {
+        Focused.TITLE -> values[focused].orEmpty()
+        Focused.SECRET -> "*".repeat(values[focused].orEmpty().length)
+    }
     val hint = when (focused) {
         Focused.TITLE -> "Title" // todo
         Focused.SECRET -> "Secret" // todo
@@ -89,6 +94,7 @@ private fun HintTextFocused(
 private fun AddItemScreenPortrait(
     focusedState: MutableState<Focused?>,
     values: MutableMap<Focused, String>,
+    onAdd: (String, String) -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
     Box(
@@ -106,17 +112,33 @@ private fun AddItemScreenPortrait(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = App.Theme.sizes.small),
+            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
         ) {
             HintTextFocused(
                 values = values,
                 focusedState = focusedState,
                 focused = Focused.TITLE,
             )
-            Spacer(Modifier.height(App.Theme.sizes.small))
             HintTextFocused(
                 values = values,
                 focusedState = focusedState,
                 focused = Focused.SECRET,
+            )
+            RoundedButton(
+                margin = PaddingValues(
+                    start = App.Theme.sizes.small,
+                    end = App.Theme.sizes.small,
+                ),
+                text = "ok", // todo
+                onClick = {
+                    val title = values[Focused.TITLE]
+                    val secret = values[Focused.SECRET]
+                    if (title.isNullOrEmpty() || secret.isNullOrEmpty()) {
+                        // todo
+                    } else {
+                        onAdd(title, secret)
+                    }
+                },
             )
         }
         val focused = focusedState.value
@@ -157,6 +179,7 @@ internal fun AddItemScreen(
             AddItemScreenPortrait(
                 focusedState = focusedState,
                 values = valuesState,
+                onAdd = onAdd,
             )
         }
         else -> error("Orientation $orientation is not supported!")
