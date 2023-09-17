@@ -178,7 +178,8 @@ private fun AddItemScreenPortrait(
                                 ),
                             text = "abc",
                             style = TextStyle(
-                                // todo
+                                color = App.Theme.colors.text,
+                                fontSize = 14.sp, // todo
                             ),
                         )
                         BasicText(
@@ -194,7 +195,8 @@ private fun AddItemScreenPortrait(
                                 ),
                             text = "!@#",
                             style = TextStyle(
-                                // todo
+                                color = App.Theme.colors.text,
+                                fontSize = 14.sp, // todo
                             ),
                         )
                     }

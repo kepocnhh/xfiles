@@ -35,11 +35,13 @@ internal object Keyboard {
     )
 
     val special = listOf(
-        (33..47).map { it.toChar() }.toCharArray(),
-        (58..64).map { it.toChar() }.toCharArray(),
-        (91..96).map { it.toChar() }.toCharArray(),
-        (123..126).map { it.toChar() }.toCharArray(),
-    )
+        33..40,
+        41..47,
+        58..64,
+        (91..96) + (123..126),
+    ).map { ints ->
+        ints.map { it.toChar() }.toCharArray()
+    }
 }
 
 private fun Char.up(): Char {
@@ -87,10 +89,11 @@ internal fun Keyboard(
     rowHeight: Dp = App.Theme.sizes.xl,
     rows: List<CharArray>,
     keyTextStyle: TextStyle = TextStyle(
+        color = App.Theme.colors.text,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         fontFamily = FontFamily.Monospace,
-        fontSize = 14.sp,
+        fontSize = 14.sp, // todo
     ),
     onClick: (Char) -> Unit,
     onClickFun: (Keyboard.Fun) -> Unit,
@@ -107,7 +110,9 @@ internal fun Keyboard(
             )
         }
         val textStyle = TextStyle(
+            color = App.Theme.colors.text,
             textAlign = TextAlign.Center,
+            fontSize = 14.sp, // todo
         ) // todo
         Row(modifier = Modifier.height(rowHeight)) {
             Spacer(modifier = Modifier.width(64.dp))
