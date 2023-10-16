@@ -16,9 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.entity.SecuritySettings
@@ -87,9 +84,9 @@ internal class App : Application() {
         ) {
             val logger = newLogger("[Composition]")
             val colors = when (themeState.colorsType) {
-                ColorsType.DARK -> Colors.Dark
-                ColorsType.LIGHT -> Colors.Light
-                ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.Dark else Colors.Light
+                ColorsType.DARK -> Colors.dark
+                ColorsType.LIGHT -> Colors.light
+                ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.dark else Colors.light
             }
             logger.debug("colors: $colors")
             CompositionLocalProvider(

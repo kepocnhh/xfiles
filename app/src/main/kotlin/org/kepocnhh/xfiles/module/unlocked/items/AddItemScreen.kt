@@ -28,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
-import org.kepocnhh.xfiles.util.compose.RoundedButton
 import org.kepocnhh.xfiles.util.compose.TextFocused
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.clicks.clicks
@@ -76,7 +74,7 @@ private fun HintTextFocused(
         )
     }
     val hintStyle = TextStyle(
-        color = App.Theme.colors.secondary,
+        color = App.Theme.colors.textHint,
         fontSize = 14.sp, // todo
     )
     TextFocused(
