@@ -153,6 +153,7 @@ androidComponents.onVariants { variant ->
                 }
                 val applicationId by variant.applicationId
                 val expected = setOf(
+                    "android.permission.VIBRATE",
                     "$applicationId.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
                 )
                 check(actual.sorted() == expected.sorted()) {

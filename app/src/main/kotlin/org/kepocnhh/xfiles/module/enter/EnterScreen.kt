@@ -1,6 +1,11 @@
 package org.kepocnhh.xfiles.module.enter
 
+import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -37,8 +42,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -102,6 +109,8 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
     val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
     val settingsState = remember { mutableStateOf(false) }
+//    val hapticFeedback = LocalHapticFeedback.current
+    val context = LocalContext.current
     if (deleteDialogState.value) {
         Dialog(
             App.Theme.strings.yes to {
@@ -133,6 +142,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
             }
         }
     }
+    val durations = App.Theme.durations
     LaunchedEffect(Unit) {
         viewModel.broadcast.collect { broadcast ->
             when (broadcast) {
@@ -141,6 +151,19 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                 }
                 EnterViewModel.Broadcast.OnUnlockError -> {
                     errorState.value = EnterScreen.Error.UNLOCK
+//                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                        manager.defaultVibrator
+                    } else {
+                        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    }
+                    val duration = durations.animation
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(duration.inWholeMilliseconds, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        vibrator.vibrate(duration.inWholeMilliseconds)
+                    }
                 }
                 EnterViewModel.Broadcast.OnSecurityError -> {
                     errorState.value = EnterScreen.Error.SECURITY
