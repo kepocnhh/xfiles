@@ -172,7 +172,7 @@ internal fun AnimatedFadeVisibility(
 }
 
 @Composable
-internal fun SlideVAndFade(
+internal fun SlideInVFadeExpand(
     visible: Boolean,
     modifier: Modifier = Modifier,
     label: String = "SlideVAndFade",
@@ -185,7 +185,7 @@ internal fun SlideVAndFade(
         visible = visible,
         modifier = modifier,
         label = label,
-        enter = slideInVAndFade(
+        enter = slideInVFadeExpand(
             durationMillis = duration.inWholeMilliseconds.toInt(),
             initialOffsetY = initialOffsetY,
         ),

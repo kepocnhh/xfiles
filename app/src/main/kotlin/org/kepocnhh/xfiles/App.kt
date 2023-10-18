@@ -43,6 +43,7 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     object Theme {
@@ -93,7 +94,8 @@ internal class App : Application() {
             CompositionLocalProvider(
                 LocalColors provides colors,
                 LocalDurations provides Durations(
-                    animation = 250.milliseconds,
+//                    animation = 250.milliseconds,
+                    animation = 2.seconds, // todo
                 ),
                 LocalDimensions provides Dimensions(
                     insets = LocalView.current.rootWindowInsets.toPaddings(),

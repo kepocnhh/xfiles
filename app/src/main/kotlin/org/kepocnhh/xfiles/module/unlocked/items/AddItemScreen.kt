@@ -2,6 +2,8 @@ package org.kepocnhh.xfiles.module.unlocked.items
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -37,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
-import org.kepocnhh.xfiles.util.compose.SlideVAndFade
+import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
 import org.kepocnhh.xfiles.util.compose.TextFocused
@@ -290,7 +292,7 @@ private fun AddItemScreenPortrait(
             focused = Focused.SECRET,
         )
         Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-        SlideVAndFade(
+        SlideInVFadeExpand(
             visible = focusedState.value != null,
             duration = App.Theme.durations.animation,
         ) {

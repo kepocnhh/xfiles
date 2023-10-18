@@ -3,14 +3,18 @@ package org.kepocnhh.xfiles.util.compose
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
 internal fun slideInHAndFade(
     slideAnimationSpec: FiniteAnimationSpec<IntOffset>,
@@ -56,24 +60,32 @@ internal fun slideOutHAndFade(
     )
 }
 
-internal fun slideInVAndFade(
+internal fun slideInVFadeExpand(
     slideAnimationSpec: FiniteAnimationSpec<IntOffset>,
     fadeAnimationSpec: FiniteAnimationSpec<Float>,
+    expandAnimationSpec: FiniteAnimationSpec<IntSize>,
+    expandFrom: Alignment.Vertical,
     initialOffsetY: (fullHeight: Int) -> Int,
 ): EnterTransition {
     return slideInVertically(
         animationSpec = slideAnimationSpec,
         initialOffsetY = initialOffsetY
-    ) + fadeIn(fadeAnimationSpec)
+    ) + fadeIn(fadeAnimationSpec) + expandVertically(
+        animationSpec = expandAnimationSpec,
+        expandFrom = expandFrom,
+    )
 }
 
-internal fun slideInVAndFade(
+internal fun slideInVFadeExpand(
     durationMillis: Int,
+    expandFrom: Alignment.Vertical = Alignment.Top,
     initialOffsetY: (fullHeight: Int) -> Int,
 ): EnterTransition {
-    return slideInVAndFade(
+    return slideInVFadeExpand(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
+        expandAnimationSpec = tween(durationMillis),
+        expandFrom = expandFrom,
         initialOffsetY = initialOffsetY
     )
 }
