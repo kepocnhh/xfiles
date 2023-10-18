@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,20 +25,29 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.R
+import org.kepocnhh.xfiles.module.app.Colors
+import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.ColorIndication
+import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
 import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
@@ -106,13 +116,63 @@ private fun HintTextFocused(
 }
 
 @Composable
+private fun KeyboardSwitch(
+    modifier: Modifier,
+    rowsState: MutableState<List<CharArray>>,
+) {
+    Row(
+        modifier = modifier,
+    ) {
+        BasicText(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable {
+                    rowsState.value = Keyboard.letters
+                }
+                .wrapContentSize()
+                .padding(
+                    start = App.Theme.sizes.small,
+                    end = App.Theme.sizes.small,
+                ),
+            text = "abc",
+            style = TextStyle(
+                color = App.Theme.colors.text,
+                fontSize = 14.sp, // todo
+            ),
+        )
+        BasicText(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable {
+                    rowsState.value = Keyboard.special
+                }
+                .wrapContentSize()
+                .padding(
+                    start = App.Theme.sizes.small,
+                    end = App.Theme.sizes.small,
+                ),
+            text = "!@#",
+            style = TextStyle(
+                color = App.Theme.colors.text,
+                fontSize = 14.sp, // todo
+            ),
+        )
+    }
+}
+
+@Composable
 private fun Keyboard(
     margin: PaddingValues,
     focused: Focused,
     values: MutableMap<Focused, String>,
-    onClick: () -> Unit,
+    onAction: () -> Unit,
 ) {
     val rowsState = remember { mutableStateOf(Keyboard.letters) }
+    LaunchedEffect(focused) {
+        if (focused != Focused.SECRET) {
+            rowsState.value = Keyboard.letters
+        }
+    }
     Column(
         modifier = Modifier
             .padding(margin)
@@ -123,68 +183,45 @@ private fun Keyboard(
                 .height(App.Theme.sizes.xxl)
                 .fillMaxWidth(),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .align(Alignment.CenterStart),
+            AnimatedFadeVisibility(
+                visible = focused == Focused.SECRET,
+                duration = App.Theme.durations.animation,
             ) {
-                BasicText(
+                KeyboardSwitch(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .clickable {
-                            rowsState.value = Keyboard.letters
-                        }
-                        .wrapContentSize()
-                        .padding(
-                            start = App.Theme.sizes.small,
-                            end = App.Theme.sizes.small,
-                        ),
-                    text = "abc",
-                    style = TextStyle(
-                        color = App.Theme.colors.text,
-                        fontSize = 14.sp, // todo
-                    ),
-                )
-                BasicText(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .clickable {
-                            rowsState.value = Keyboard.special
-                        }
-                        .wrapContentSize()
-                        .padding(
-                            start = App.Theme.sizes.small,
-                            end = App.Theme.sizes.small,
-                        ),
-                    text = "!@#",
-                    style = TextStyle(
-                        color = App.Theme.colors.text,
-                        fontSize = 14.sp, // todo
-                    ),
+                        .align(Alignment.CenterStart),
+                    rowsState = rowsState,
                 )
             }
-            val text = when (focused) {
-                Focused.TITLE -> "next" // todo
-                Focused.SECRET -> "done" // todo
-            }
-            BasicText(
+            Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .widthIn(min = 128.dp)
+                    .width(App.Theme.sizes.xxxl)
                     .align(Alignment.CenterEnd)
-                    .onClick(block = onClick)
-                    .wrapContentSize()
-                    .padding(
-                        start = App.Theme.sizes.small,
-                        end = App.Theme.sizes.small,
+                    .clicks(
+                        onClick = {
+                            val oldValue = values[focused].orEmpty()
+                            if (oldValue.isNotEmpty()) {
+                                values[focused] = oldValue.take(oldValue.lastIndex)
+                            }
+                        },
+                        onLongClick = {
+                            val oldValue = values[focused].orEmpty()
+                            if (oldValue.isNotEmpty()) {
+                                values[focused] = ""
+                            }
+                        },
                     ),
-                text = text,
-                style = TextStyle(
-                    color = App.Theme.colors.primary,
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp, // todo
-                ),
-            )
+            ) {
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    painter = painterResource(id = R.drawable.backspace),
+                    contentDescription = "item:value:backspace",
+                    colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
+                )
+            }
         }
         KeyboardRows(
             modifier = Modifier
@@ -217,29 +254,37 @@ private fun Keyboard(
                 text = "space",
                 style = textStyle,
             )
-            BasicText(
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(App.Theme.sizes.small),
+        ) {
+            Row(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .width(64.dp)
-                    .clicks(
-                        enabled = true,
-                        onClick = {
-                            val oldValue = values[focused].orEmpty()
-                            if (oldValue.isNotEmpty()) {
-                                values[focused] = oldValue.take(oldValue.lastIndex)
-                            }
-                        },
-                        onLongClick = {
-                            val oldValue = values[focused].orEmpty()
-                            if (oldValue.isNotEmpty()) {
-                                values[focused] = ""
-                            }
-                        },
-                    )
-                    .wrapContentHeight(),
-                text = "<",
-                style = textStyle,
-            ) // todo icon
+                    .align(Alignment.CenterStart),
+            ) {
+
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd),
+            ) {
+                val icon = when (focused) {
+                    Focused.TITLE -> R.drawable.arrow_right
+                    Focused.SECRET -> R.drawable.check
+                }
+                val enabled = !values[focused].isNullOrEmpty()
+                FloatingActionButton(
+                    color = if (enabled) App.Theme.colors.primary else App.Theme.colors.secondary,
+                    enabled = enabled,
+                    indication = ColorIndication.create(Colors.white),
+                    icon = icon,
+                    iconColor = if (enabled) Color.White else App.Theme.colors.background,
+                    contentDescription = "add:item:${focused.name}",
+                    onClick = onAction,
+                )
+            }
         }
     }
 }
@@ -308,7 +353,7 @@ private fun AddItemScreenPortrait(
                 margin = PaddingValues(bottom = insets.calculateBottomPadding()),
                 focused = focused,
                 values = values,
-                onClick = {
+                onAction = {
                     when (focused) {
                         Focused.TITLE -> {
                             focusedState.value = Focused.SECRET
