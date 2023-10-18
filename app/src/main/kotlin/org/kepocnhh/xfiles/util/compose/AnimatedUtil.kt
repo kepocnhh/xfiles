@@ -7,7 +7,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.ui.unit.IntOffset
 
 internal fun slideInHAndFade(
@@ -51,5 +53,49 @@ internal fun slideOutHAndFade(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
         targetOffsetX = targetOffsetX
+    )
+}
+
+internal fun slideInVAndFade(
+    slideAnimationSpec: FiniteAnimationSpec<IntOffset>,
+    fadeAnimationSpec: FiniteAnimationSpec<Float>,
+    initialOffsetY: (fullHeight: Int) -> Int,
+): EnterTransition {
+    return slideInVertically(
+        animationSpec = slideAnimationSpec,
+        initialOffsetY = initialOffsetY
+    ) + fadeIn(fadeAnimationSpec)
+}
+
+internal fun slideInVAndFade(
+    durationMillis: Int,
+    initialOffsetY: (fullHeight: Int) -> Int,
+): EnterTransition {
+    return slideInVAndFade(
+        slideAnimationSpec = tween(durationMillis),
+        fadeAnimationSpec = tween(durationMillis),
+        initialOffsetY = initialOffsetY
+    )
+}
+
+internal fun slideOutVAndFade(
+    slideAnimationSpec: FiniteAnimationSpec<IntOffset>,
+    fadeAnimationSpec: FiniteAnimationSpec<Float>,
+    targetOffsetY: (fullHeight: Int) -> Int,
+): ExitTransition {
+    return slideOutVertically(
+        animationSpec = slideAnimationSpec,
+        targetOffsetY = targetOffsetY
+    ) + fadeOut(fadeAnimationSpec)
+}
+
+internal fun slideOutVAndFade(
+    durationMillis: Int,
+    targetOffsetY: (fullHeight: Int) -> Int,
+): ExitTransition {
+    return slideOutVAndFade(
+        slideAnimationSpec = tween(durationMillis),
+        fadeAnimationSpec = tween(durationMillis),
+        targetOffsetY = targetOffsetY
     )
 }

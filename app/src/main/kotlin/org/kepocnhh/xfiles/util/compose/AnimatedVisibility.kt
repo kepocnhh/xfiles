@@ -170,3 +170,29 @@ internal fun AnimatedFadeVisibility(
         content = content,
     )
 }
+
+@Composable
+internal fun AnimatedVVisibility(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    label: String = "AnimatedVVisibility",
+    duration: Duration,
+    initialOffsetY: (fullHeight: Int) -> Int = { it },
+    targetOffsetY: (fullHeight: Int) -> Int = initialOffsetY,
+    content: @Composable AnimatedVisibilityScope.() -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        label = label,
+        enter = slideInVAndFade(
+            durationMillis = duration.inWholeMilliseconds.toInt(),
+            initialOffsetY = initialOffsetY,
+        ),
+        exit = slideOutVAndFade(
+            durationMillis = duration.inWholeMilliseconds.toInt(),
+            targetOffsetY = targetOffsetY,
+        ),
+        content = content,
+    )
+}
