@@ -39,7 +39,7 @@ internal fun WindowInsets.toPaddings(density: Density = LocalDensity.current) : 
     return toPaddings(density = density.density)
 }
 
-internal fun Modifier.padding(
+internal fun Modifier.paddings(
     horizontal: PaddingValues,
     layoutDirection: LayoutDirection,
 ): Modifier {
@@ -49,14 +49,14 @@ internal fun Modifier.padding(
     )
 }
 
-internal fun Modifier.padding(
+internal fun Modifier.paddings(
     horizontal: PaddingValues,
 ): Modifier {
     return composed {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
-        padding(
-            start = horizontal.calculateStartPadding(layoutDirection),
-            end = horizontal.calculateEndPadding(layoutDirection),
+        paddings(
+            horizontal = horizontal,
+            layoutDirection = layoutDirection,
         )
     }
 }

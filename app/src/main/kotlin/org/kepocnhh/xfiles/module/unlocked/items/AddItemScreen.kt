@@ -39,7 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.util.compose.padding
+import org.kepocnhh.xfiles.util.compose.paddings
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
 import org.kepocnhh.xfiles.util.compose.Keyboard
@@ -116,7 +116,7 @@ private fun Keyboard(
     val rowsState = remember { mutableStateOf(Keyboard.letters) }
     Column(
         modifier = Modifier
-            .padding(paddingValues = margin)
+            .padding(margin)
             .fillMaxWidth(),
     ) {
         Box(
@@ -261,7 +261,7 @@ private fun AddItemScreenPortrait(
             ) // todo clickable?
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .padding(horizontal = insets),
+            .paddings(horizontal = insets),
         verticalArrangement = Arrangement.Bottom,
     ) {
         BasicText(
