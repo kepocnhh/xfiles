@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
+import org.kepocnhh.xfiles.util.compose.padding
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
 import org.kepocnhh.xfiles.util.compose.Keyboard
@@ -106,6 +108,7 @@ private fun HintTextFocused(
 
 @Composable
 private fun Keyboard(
+    margin: PaddingValues,
     focused: Focused,
     values: MutableMap<Focused, String>,
     onClick: () -> Unit,
@@ -113,6 +116,7 @@ private fun Keyboard(
     val rowsState = remember { mutableStateOf(Keyboard.letters) }
     Column(
         modifier = Modifier
+            .padding(paddingValues = margin)
             .fillMaxWidth(),
     ) {
         Box(
@@ -257,7 +261,7 @@ private fun AddItemScreenPortrait(
             ) // todo clickable?
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .padding(insets),
+            .padding(horizontal = insets),
         verticalArrangement = Arrangement.Bottom,
     ) {
         BasicText(
@@ -291,13 +295,18 @@ private fun AddItemScreenPortrait(
             focusedState = focusedState,
             focused = Focused.SECRET,
         )
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+        Spacer(
+            modifier = Modifier
+                .animateContentSize(tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()))
+                .height(if (focusedState.value != null) App.Theme.sizes.small else App.Theme.sizes.small + insets.calculateBottomPadding()),
+        )
         SlideInVFadeExpand(
             visible = focusedState.value != null,
             duration = App.Theme.durations.animation,
         ) {
             val focused = focusedState.value!! // todo
             Keyboard(
+                margin = PaddingValues(bottom = insets.calculateBottomPadding()),
                 focused = focused,
                 values = values,
                 onClick = {
