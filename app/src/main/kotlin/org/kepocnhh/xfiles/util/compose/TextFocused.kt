@@ -30,6 +30,7 @@ import sp.ax.jc.clicks.clicks
 internal fun TextFocused(
     margin: PaddingValues,
     padding: PaddingValues,
+    enabled: Boolean,
     height: Dp,
     color: Color,
     corners: Dp,
@@ -39,16 +40,17 @@ internal fun TextFocused(
     onLongClick: () -> Unit,
     focused: Boolean,
 ) {
-    val borderColor = if (focused) textStyle.color else Color.LightGray
+//    val borderColor = if (focused) textStyle.color else Color.LightGray
     Box(
         modifier = Modifier
             .padding(margin)
             .height(height)
             .fillMaxWidth()
             .background(color, RoundedCornerShape(corners))
-            .border(1.dp, borderColor, RoundedCornerShape(corners))
+//            .border(1.dp, borderColor, RoundedCornerShape(corners))
             .clip(RoundedCornerShape(corners))
             .clicks(
+                enabled = enabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
             )

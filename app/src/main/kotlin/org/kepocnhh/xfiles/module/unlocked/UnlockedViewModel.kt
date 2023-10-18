@@ -1,12 +1,10 @@
 package org.kepocnhh.xfiles.module.unlocked
 
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.module.app.Injection
@@ -14,8 +12,7 @@ import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
-import org.kepocnhh.xfiles.util.security.generateKeyPair
-import java.security.KeyFactory
+import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
@@ -25,120 +22,151 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         class OnShow(val secret: String) : Broadcast
     }
 
-    private val _data = MutableStateFlow<Map<String, String>?>(null)
-    val data = _data.asStateFlow()
+    private val _operations = MutableStateFlow(0)
+    val loading = _operations
+        .map {
+            encrypteds.value == null || it > 0
+        }
+        .stateIn(true)
+
+    private val _encrypteds = MutableStateFlow<Map<String, String>?>(null)
+    val encrypteds = _encrypteds.asStateFlow()
 
     private val _broadcast = MutableSharedFlow<Broadcast>()
     val broadcast = _broadcast.asSharedFlow()
 
     private fun JSONObject.toMap(): Map<String, String> {
-        val result = mutableMapOf<String, String>()
-        keys().forEach { key ->
-            result[key] = getString(key)
+        return keys().asSequence().associateWith { id ->
+            getJSONObject(id).getString("title")
         }
-        return result
     }
 
     private fun decrypt(key: SecretKey): ByteArray {
-        val jsonObject = JSONObject(injection.files.readText("sym.json"))
+        val iv = injection
+            .files
+            .readText(injection.pathNames.symmetric)
+            .let(::JSONObject)
+            .getString("ivDB")
+            .base64()
         val services = injection.local.services ?: TODO()
-        val cipher = injection.security(services).getCipher()
-        val params = IvParameterSpec(jsonObject.getString("ivDB").base64())
-        val encrypted = injection.files.readBytes("db.json.enc")
-        return cipher.decrypt(key, params, encrypted)
+        return injection.security(services)
+            .getCipher()
+            .decrypt(
+                key = key,
+                params = IvParameterSpec(iv),
+                encrypted = injection.files.readBytes(injection.pathNames.dataBase),
+            )
     }
 
     private fun encrypt(
         key: SecretKey,
         decrypted: ByteArray,
     ) {
-        val jsonObject = JSONObject(injection.files.readText("sym.json"))
+        val jsonSym = JSONObject(injection.files.readText(injection.pathNames.symmetric))
         val services = injection.local.services ?: TODO()
         val cipher = injection.security(services).getCipher()
-        val pair = JSONObject(injection.files.readText("asym.json")).let { json ->
-            KeyFactory.getInstance("DSA").generateKeyPair(
-                public = json.getString("public").base64(),
-                private = cipher.decrypt(
-                    key = key,
-                    params = IvParameterSpec(jsonObject.getString("ivPrivate").base64()),
-                    encrypted = json.getString("private").base64(),
-                )
-            )
-        }
-        injection.files.writeBytes("db.json.enc", cipher.encrypt(key, IvParameterSpec(jsonObject.getString("ivDB").base64()), decrypted))
-        val random = injection.security(services).getSecureRandom()
-        val sig = injection.security(services)
-            .getSignature()
-            .sign(pair.private, random, decrypted = decrypted)
-        injection.files.writeBytes("db.json.sig", sig)
+        injection.files.writeBytes(
+            pathname = injection.pathNames.dataBase,
+            bytes = cipher.encrypt(
+                key = key,
+                params = IvParameterSpec(jsonSym.getString("ivDB").base64()),
+                decrypted = decrypted,
+            ),
+        )
+        injection.files.writeBytes(
+            pathname = injection.pathNames.dataBaseSignature,
+            bytes = injection.security(services)
+                .getSignature()
+                .sign(
+                    key = injection.security(services).getKeyFactory().generatePrivate(
+                        bytes = cipher.decrypt(
+                            key = key,
+                            params = IvParameterSpec(jsonSym.getString("ivPrivate").base64()),
+                            encrypted = injection
+                                .files
+                                .readText(injection.pathNames.asymmetric)
+                                .let(::JSONObject)
+                                .getString("private")
+                                .base64(),
+                        ),
+                    ),
+                    random = injection.security(services).getSecureRandom(),
+                    decrypted = decrypted,
+                ),
+        )
     }
 
-    fun requestData(key: SecretKey) {
+    private fun loading(block: suspend () -> Unit) {
         injection.launch {
-            _data.value = withContext(injection.contexts.default) {
+            _operations.value += 1
+            block()
+            _operations.value -= 1
+        }
+    }
+
+    fun requestValues(key: SecretKey) {
+        loading {
+            _encrypteds.value = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8)).toMap()
             }
         }
     }
 
-    fun requestToCopy(key: SecretKey, name: String) {
-        viewModelScope.launch {
-            val value = withContext(Dispatchers.IO) {
-                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
-                jsonObject.getString(name)
+    fun requestToCopy(key: SecretKey, id: String) {
+        loading {
+            val secret = withContext(injection.contexts.default) {
+                JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                    .getJSONObject(id)
+                    .getString("secret")
             }
-            _broadcast.emit(Broadcast.OnCopy(value))
+            _broadcast.emit(Broadcast.OnCopy(secret = secret))
         }
     }
 
-    fun requestToShow(key: SecretKey, name: String) {
-        viewModelScope.launch {
-            val value = withContext(Dispatchers.IO) {
-                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
-                jsonObject.getString(name)
+    fun requestToShow(key: SecretKey, id: String) {
+        loading {
+            val secret = withContext(injection.contexts.default) {
+                JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                    .getJSONObject(id)
+                    .getString("secret")
             }
-            _broadcast.emit(Broadcast.OnShow(value))
+            _broadcast.emit(Broadcast.OnShow(secret = secret))
         }
     }
 
-    fun addData(key: SecretKey, name: String, value: String) {
-        if (name.trim().isEmpty()) TODO()
-        if (value.trim().isEmpty()) TODO()
-        viewModelScope.launch {
-            val map = withContext(Dispatchers.IO) {
-                val decrypted = decrypt(key)
-                val jsonObject = JSONObject(decrypted.toString(Charsets.UTF_8))
-                if (jsonObject.has(name)) TODO()
-                jsonObject.put(name, value)
+    fun addValue(key: SecretKey, title: String, secret: String) {
+        check(title.isNotBlank())
+        check(secret.isNotBlank())
+        loading {
+            _encrypteds.value = withContext(injection.contexts.default) {
+                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                jsonObject.put(
+                    generateSequence(UUID.randomUUID()::toString)
+                        .firstOrNull { !jsonObject.has(it) }
+                        ?: TODO(),
+                    JSONObject().put("title", title).put("secret", secret),
+                )
                 encrypt(
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
                 jsonObject.toMap()
             }
-            _data.value = map
         }
     }
 
-    fun deleteData(key: SecretKey, name: String) {
-        println("delete: \"$name\"")
-        if (name.trim().isEmpty()) TODO()
-        viewModelScope.launch {
-            val map = withContext(Dispatchers.IO) {
-                val decrypted = decrypt(key)
-                val decoded = decrypted.toString(Charsets.UTF_8)
-                println("decoded: $decoded")
-                val jsonObject = JSONObject(decoded)
-                if (!jsonObject.has(name)) TODO("$decoded has no \"$name\"")
-                jsonObject.remove(name)
-                println("decrypt: $jsonObject")
+    fun deleteValue(key: SecretKey, id: String) {
+        loading {
+            _encrypteds.value = withContext(injection.contexts.default) {
+                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                if (!jsonObject.has(id)) TODO()
+                jsonObject.remove(id)
                 encrypt(
                     key = key,
                     decrypted = jsonObject.toString().toByteArray(),
                 )
                 jsonObject.toMap()
             }
-            _data.value = map
         }
     }
 }

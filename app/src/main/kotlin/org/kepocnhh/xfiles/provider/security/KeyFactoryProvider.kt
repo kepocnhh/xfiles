@@ -1,7 +1,9 @@
 package org.kepocnhh.xfiles.provider.security
 
-import java.security.KeyPair
+import java.security.PrivateKey
+import java.security.PublicKey
 
 internal interface KeyFactoryProvider {
-    fun generate(public: ByteArray, private: ByteArray): KeyPair
+    fun generatePublic(bytes: ByteArray): PublicKey
+    fun generatePrivate(bytes: ByteArray): PrivateKey
 }

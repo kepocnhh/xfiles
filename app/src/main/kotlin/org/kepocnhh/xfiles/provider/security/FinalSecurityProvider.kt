@@ -96,11 +96,12 @@ private class SecretKeyFactoryProviderImpl(
 private class KeyFactoryProviderImpl(
     private val delegate: KeyFactory,
 ) : KeyFactoryProvider {
-    override fun generate(public: ByteArray, private: ByteArray): KeyPair {
-        return KeyPair(
-            delegate.generatePublic(X509EncodedKeySpec(public)),
-            delegate.generatePrivate(PKCS8EncodedKeySpec(private)),
-        )
+    override fun generatePublic(bytes: ByteArray): PublicKey {
+        return delegate.generatePublic(X509EncodedKeySpec(bytes))
+    }
+
+    override fun generatePrivate(bytes: ByteArray): PrivateKey {
+        return delegate.generatePrivate(PKCS8EncodedKeySpec(bytes))
     }
 }
 

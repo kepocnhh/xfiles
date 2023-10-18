@@ -35,12 +35,12 @@ import org.kepocnhh.xfiles.util.compose.ColorIndication
 @Composable
 private fun getColors(colorsType: ColorsType): Colors {
     return when (colorsType) {
-        ColorsType.DARK -> Colors.Dark
-        ColorsType.LIGHT -> Colors.Light
+        ColorsType.DARK -> Colors.dark
+        ColorsType.LIGHT -> Colors.light
         ColorsType.AUTO -> if (isSystemInDarkTheme()) {
-            Colors.Dark
+            Colors.dark
         } else {
-            Colors.Light
+            Colors.light
         }
     }
 }
@@ -81,7 +81,7 @@ private fun SettingsColorRow(
             .background(colors.background)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = ColorIndication(color = colors.foreground),
+                indication = ColorIndication.create(colors.foreground),
                 onClick = onClick,
             ),
     ) {

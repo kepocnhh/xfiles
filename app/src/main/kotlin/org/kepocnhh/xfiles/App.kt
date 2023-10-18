@@ -6,6 +6,7 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -14,7 +15,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelStore
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.entity.SecuritySettings
@@ -33,15 +34,16 @@ import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
-import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.toPaddings
+import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     object Theme {
@@ -61,6 +63,7 @@ internal class App : Application() {
             @ReadOnlyComposable
             get() = LocalDurations.current
 
+        @Deprecated("val insets = LocalView.current.rootWindowInsets.toPaddings()")
         val dimensions: Dimensions
             @Composable
             @ReadOnlyComposable
@@ -81,15 +84,19 @@ internal class App : Application() {
             themeState: ThemeState,
             content: @Composable () -> Unit,
         ) {
+            val logger = newLogger("[Composition]")
             val colors = when (themeState.colorsType) {
-                ColorsType.DARK -> Colors.Dark
-                ColorsType.LIGHT -> Colors.Light
-                ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.Dark else Colors.Light
+                ColorsType.DARK -> Colors.dark
+                ColorsType.LIGHT -> Colors.light
+                ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.dark else Colors.light
             }
+            logger.debug("colors: $colors")
             CompositionLocalProvider(
                 LocalColors provides colors,
                 LocalDurations provides Durations(
-                    animation = 250.milliseconds,
+//                    animation = 250.milliseconds,
+                    animation = 500.milliseconds,
+//                    animation = 2.seconds, // todo
                 ),
                 LocalDimensions provides Dimensions(
                     insets = LocalView.current.rootWindowInsets.toPaddings(),
@@ -120,6 +127,7 @@ internal class App : Application() {
                     background = colors.background,
                     foreground = colors.foreground,
                 ),
+                LocalIndication provides ColorIndication.create(colors.foreground),
                 content = content,
             )
         }
@@ -132,8 +140,8 @@ internal class App : Application() {
         } else {
             SecuritySettings.PBEIterations.NUMBER_2_20
         }
-        val injection = Injection(
-            loggers = _loggerFactory,
+        _injection = Injection(
+            loggers = FinalLoggerFactory,
             contexts = Contexts(
                 main = Dispatchers.Main,
                 default = Dispatchers.Default,
@@ -161,27 +169,44 @@ internal class App : Application() {
                 dataBaseSignature = "db.json.sig",
             )
         )
-        _viewModelFactory = object : ViewModelProvider.Factory {
-            override fun <U : ViewModel> create(modelClass: Class<U>): U {
-                return modelClass.getConstructor(Injection::class.java).newInstance(injection)
-            }
-        }
     }
 
     companion object {
-        private val _loggerFactory: LoggerFactory = FinalLoggerFactory
-        private var _viewModelFactory: ViewModelProvider.Factory? = null
+        private var _injection: Injection? = null
+        private val _viewModelFactory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return modelClass
+                    .getConstructor(Injection::class.java)
+                    .newInstance(checkNotNull(_injection))
+            }
+        }
 
         @Composable
         fun newLogger(tag: String): Logger {
             return remember(tag) {
-                _loggerFactory.newLogger(tag)
+                checkNotNull(_injection).loggers.newLogger(tag)
             }
         }
 
+        private val vmStores = mutableMapOf<String, ViewModelStore>()
+
         @Composable
-        inline fun <reified T : ViewModel> viewModel(): T {
-            return viewModel(factory = checkNotNull(_viewModelFactory))
+        inline fun <reified T : AbstractViewModel> viewModel(): T {
+            val key = T::class.java.simpleName
+            val (dispose, store) = synchronized(App::class.java) {
+                remember { !vmStores.containsKey(key) } to vmStores.getOrPut(key, ::ViewModelStore)
+            }
+            DisposableEffect(Unit) {
+                onDispose {
+                    synchronized(App::class.java) {
+                        if (dispose) {
+                            vmStores.remove(key)
+                            store.clear()
+                        }
+                    }
+                }
+            }
+            return ViewModelProvider(store, _viewModelFactory)[T::class.java]
         }
     }
 }

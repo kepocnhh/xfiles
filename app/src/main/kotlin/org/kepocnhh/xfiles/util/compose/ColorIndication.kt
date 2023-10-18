@@ -12,9 +12,22 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 
-internal class ColorIndication(private val color: Color) : Indication {
+internal class ColorIndication(
+    private val pressed: Color,
+    private val hovered: Color,
+) : Indication {
+    companion object {
+        fun create(color: Color): Indication {
+            return ColorIndication(
+                pressed = color.copy(alpha = .2f),
+                hovered = color.copy(alpha = .1f),
+            )
+        }
+    }
+
     private class ColorIndicationInstance(
-        private val color: Color,
+        private val pressed: Color,
+        private val hovered: Color,
         private val isPressed: State<Boolean>,
         private val isHovered: State<Boolean>,
         private val isFocused: State<Boolean>,
@@ -22,9 +35,9 @@ internal class ColorIndication(private val color: Color) : Indication {
         override fun ContentDrawScope.drawIndication() {
             drawContent()
             if (isPressed.value) {
-                drawRect(color = color.copy(alpha = 0.3f), size = size)
+                drawRect(color = pressed, size = size)
             } else if (isHovered.value || isFocused.value) {
-                drawRect(color = color.copy(alpha = 0.1f), size = size)
+                drawRect(color = hovered, size = size)
             }
         }
     }
@@ -34,8 +47,14 @@ internal class ColorIndication(private val color: Color) : Indication {
         val isPressed = interactionSource.collectIsPressedAsState()
         val isHovered = interactionSource.collectIsHoveredAsState()
         val isFocused = interactionSource.collectIsFocusedAsState()
-        return remember(interactionSource) {
-            ColorIndicationInstance(color = color, isPressed, isHovered, isFocused)
+        return remember(interactionSource, pressed, hovered) {
+            ColorIndicationInstance(
+                pressed = pressed,
+                hovered = hovered,
+                isPressed = isPressed,
+                isHovered = isHovered,
+                isFocused = isFocused,
+            )
         }
     }
 }
