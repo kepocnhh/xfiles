@@ -5,8 +5,10 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -23,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -172,10 +175,36 @@ internal fun AnimatedFadeVisibility(
 }
 
 @Composable
-internal fun SlideInVFadeExpand(
+internal fun ExpandVertically(
     visible: Boolean,
     modifier: Modifier = Modifier,
-    label: String = "SlideVAndFade",
+    label: String = "ExpandVertically",
+    duration: Duration,
+    expandFrom: Alignment.Vertical = Alignment.Top,
+    shrinkTowards: Alignment.Vertical = Alignment.Bottom,
+    content: @Composable AnimatedVisibilityScope.() -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        label = label,
+        enter = expandVertically(
+            animationSpec = tween(duration.inWholeMilliseconds.toInt()),
+            expandFrom = expandFrom,
+        ),
+        exit = shrinkVertically(
+            animationSpec = tween(duration.inWholeMilliseconds.toInt()),
+            shrinkTowards = shrinkTowards,
+        ),
+        content = content,
+    )
+}
+
+@Composable
+internal fun SlideInVFade(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    label: String = "SlideInVFade",
     duration: Duration,
     initialOffsetY: (fullHeight: Int) -> Int = { it },
     targetOffsetY: (fullHeight: Int) -> Int = initialOffsetY,
@@ -185,7 +214,7 @@ internal fun SlideInVFadeExpand(
         visible = visible,
         modifier = modifier,
         label = label,
-        enter = slideInVFadeExpand(
+        enter = slideInVFade(
             durationMillis = duration.inWholeMilliseconds.toInt(),
             initialOffsetY = initialOffsetY,
         ),

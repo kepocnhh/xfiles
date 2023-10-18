@@ -94,7 +94,8 @@ internal class App : Application() {
             CompositionLocalProvider(
                 LocalColors provides colors,
                 LocalDurations provides Durations(
-                    animation = 250.milliseconds,
+//                    animation = 250.milliseconds,
+                    animation = 500.milliseconds,
 //                    animation = 2.seconds, // todo
                 ),
                 LocalDimensions provides Dimensions(

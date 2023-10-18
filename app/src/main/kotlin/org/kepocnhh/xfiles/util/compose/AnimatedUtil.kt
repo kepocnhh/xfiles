@@ -60,32 +60,24 @@ internal fun slideOutHAndFade(
     )
 }
 
-internal fun slideInVFadeExpand(
+internal fun slideInVFade(
     slideAnimationSpec: FiniteAnimationSpec<IntOffset>,
     fadeAnimationSpec: FiniteAnimationSpec<Float>,
-    expandAnimationSpec: FiniteAnimationSpec<IntSize>,
-    expandFrom: Alignment.Vertical,
     initialOffsetY: (fullHeight: Int) -> Int,
 ): EnterTransition {
     return slideInVertically(
         animationSpec = slideAnimationSpec,
         initialOffsetY = initialOffsetY
-    ) + fadeIn(fadeAnimationSpec) + expandVertically(
-        animationSpec = expandAnimationSpec,
-        expandFrom = expandFrom,
-    )
+    ) + fadeIn(fadeAnimationSpec)
 }
 
-internal fun slideInVFadeExpand(
+internal fun slideInVFade(
     durationMillis: Int,
-    expandFrom: Alignment.Vertical = Alignment.Top,
     initialOffsetY: (fullHeight: Int) -> Int,
 ): EnterTransition {
-    return slideInVFadeExpand(
+    return slideInVFade(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
-        expandAnimationSpec = tween(durationMillis),
-        expandFrom = expandFrom,
         initialOffsetY = initialOffsetY
     )
 }

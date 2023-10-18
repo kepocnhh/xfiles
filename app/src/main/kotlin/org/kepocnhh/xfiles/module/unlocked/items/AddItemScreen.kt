@@ -47,10 +47,10 @@ import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.ColorIndication
+import org.kepocnhh.xfiles.util.compose.ExpandVertically
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
-import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
 import org.kepocnhh.xfiles.util.compose.TextFocused
 import org.kepocnhh.xfiles.util.compose.horizontalPaddings
 import org.kepocnhh.xfiles.util.compose.toPaddings
@@ -333,7 +333,7 @@ private fun AddItemScreenPortrait(
                 .animateContentSize(tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()))
                 .height(if (focusedState.value != null) App.Theme.sizes.small else App.Theme.sizes.small + insets.calculateBottomPadding()),
         )
-        SlideInVFadeExpand(
+        ExpandVertically(
             visible = focusedState.value != null,
             duration = App.Theme.durations.animation,
         ) {
