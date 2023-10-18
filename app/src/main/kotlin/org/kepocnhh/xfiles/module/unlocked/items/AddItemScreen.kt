@@ -194,34 +194,27 @@ private fun Keyboard(
                     rowsState = rowsState,
                 )
             }
-            Box(
+            val enabled = !values[focused].isNullOrEmpty()
+            val color = if (enabled) App.Theme.colors.primary else App.Theme.colors.secondary
+            val textStyle = TextStyle(
+                color = color,
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp, // todo
+            ) // todo
+            val text = when (focused) {
+                Focused.TITLE -> "next"
+                Focused.SECRET -> "done"
+            }
+            BasicText(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(App.Theme.sizes.xxxl)
                     .align(Alignment.CenterEnd)
-                    .clicks(
-                        onClick = {
-                            val oldValue = values[focused].orEmpty()
-                            if (oldValue.isNotEmpty()) {
-                                values[focused] = oldValue.take(oldValue.lastIndex)
-                            }
-                        },
-                        onLongClick = {
-                            val oldValue = values[focused].orEmpty()
-                            if (oldValue.isNotEmpty()) {
-                                values[focused] = ""
-                            }
-                        },
-                    ),
-            ) {
-                Image(
-                    modifier = Modifier
-                        .align(Alignment.Center),
-                    painter = painterResource(id = R.drawable.backspace),
-                    contentDescription = "item:value:backspace",
-                    colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
-                )
-            }
+                    .onClick(enabled = enabled, block = onAction)
+                    .padding(horizontal = App.Theme.sizes.xl)
+                    .wrapContentHeight(),
+                text = text,
+                style = textStyle,
+            )
         }
         KeyboardRows(
             modifier = Modifier
@@ -254,35 +247,31 @@ private fun Keyboard(
                 text = "space",
                 style = textStyle,
             )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(App.Theme.sizes.small),
-        ) {
-            Row(
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart),
+                    .fillMaxHeight()
+                    .width(App.Theme.sizes.xxxl)
+                    .clicks(
+                        onClick = {
+                            val oldValue = values[focused].orEmpty()
+                            if (oldValue.isNotEmpty()) {
+                                values[focused] = oldValue.take(oldValue.lastIndex)
+                            }
+                        },
+                        onLongClick = {
+                            val oldValue = values[focused].orEmpty()
+                            if (oldValue.isNotEmpty()) {
+                                values[focused] = ""
+                            }
+                        },
+                    ),
             ) {
-
-            }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd),
-            ) {
-                val icon = when (focused) {
-                    Focused.TITLE -> R.drawable.arrow_right
-                    Focused.SECRET -> R.drawable.check
-                }
-                val enabled = !values[focused].isNullOrEmpty()
-                FloatingActionButton(
-                    color = if (enabled) App.Theme.colors.primary else App.Theme.colors.secondary,
-                    enabled = enabled,
-                    indication = ColorIndication.create(Colors.white),
-                    icon = icon,
-                    iconColor = if (enabled) Color.White else App.Theme.colors.background,
-                    contentDescription = "add:item:${focused.name}",
-                    onClick = onAction,
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    painter = painterResource(id = R.drawable.backspace),
+                    contentDescription = "item:value:backspace",
+                    colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
                 )
             }
         }
