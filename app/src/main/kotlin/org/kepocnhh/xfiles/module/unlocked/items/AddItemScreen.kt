@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,12 +38,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.util.compose.paddings
-import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
-import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
+import org.kepocnhh.xfiles.util.compose.SlideInVFadeExpand
 import org.kepocnhh.xfiles.util.compose.TextFocused
+import org.kepocnhh.xfiles.util.compose.horizontalPaddings
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
@@ -261,7 +259,7 @@ private fun AddItemScreenPortrait(
             ) // todo clickable?
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .paddings(horizontal = insets),
+            .horizontalPaddings(insets),
         verticalArrangement = Arrangement.Bottom,
     ) {
         BasicText(
