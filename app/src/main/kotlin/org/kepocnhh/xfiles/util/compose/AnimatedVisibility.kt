@@ -172,10 +172,10 @@ internal fun AnimatedFadeVisibility(
 }
 
 @Composable
-internal fun AnimatedVVisibility(
+internal fun SlideVAndFade(
     visible: Boolean,
     modifier: Modifier = Modifier,
-    label: String = "AnimatedVVisibility",
+    label: String = "SlideVAndFade",
     duration: Duration,
     initialOffsetY: (fullHeight: Int) -> Int = { it },
     targetOffsetY: (fullHeight: Int) -> Int = initialOffsetY,

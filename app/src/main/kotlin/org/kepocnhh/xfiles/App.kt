@@ -62,6 +62,7 @@ internal class App : Application() {
             @ReadOnlyComposable
             get() = LocalDurations.current
 
+        @Deprecated("val insets = LocalView.current.rootWindowInsets.toPaddings()")
         val dimensions: Dimensions
             @Composable
             @ReadOnlyComposable

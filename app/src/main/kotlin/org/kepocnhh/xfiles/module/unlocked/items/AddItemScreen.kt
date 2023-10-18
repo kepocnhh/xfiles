@@ -36,7 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.util.compose.AnimatedVVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
+import org.kepocnhh.xfiles.util.compose.SlideVAndFade
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
 import org.kepocnhh.xfiles.util.compose.TextFocused
@@ -81,12 +82,10 @@ private fun HintTextFocused(
     )
     TextFocused(
         margin = PaddingValues(
-            start = App.Theme.sizes.small,
-            end = App.Theme.sizes.small,
+            horizontal = App.Theme.sizes.small,
         ),
         padding = PaddingValues(
-            start = App.Theme.sizes.large,
-            end = App.Theme.sizes.large,
+            horizontal = App.Theme.sizes.large,
         ),
         height = App.Theme.sizes.xxxl,
         color = App.Theme.colors.basement,
@@ -247,7 +246,7 @@ private fun AddItemScreenPortrait(
     onAdd: (String, String) -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
-    Box(
+    Column(
         modifier = Modifier
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -257,27 +256,41 @@ private fun AddItemScreenPortrait(
             .fillMaxSize()
             .background(App.Theme.colors.background)
             .padding(insets),
+        verticalArrangement = Arrangement.Bottom,
     ) {
-        Column(
+        BasicText(
             modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small)
-        ) {
-            HintTextFocused(
-                values = values,
-                focusedState = focusedState,
-                focused = Focused.TITLE,
-            )
-            HintTextFocused(
-                values = values,
-                focusedState = focusedState,
-                focused = Focused.SECRET,
-            )
-        }
-        AnimatedVVisibility(
+                .padding(horizontal = App.Theme.sizes.small),
+            text = "Come up with a name for your secret:", // todo
+            style = TextStyle(
+                color = App.Theme.colors.text,
+                fontSize = 14.sp,
+            ),
+        )
+        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+        HintTextFocused(
+            values = values,
+            focusedState = focusedState,
+            focused = Focused.TITLE,
+        )
+        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+        BasicText(
             modifier = Modifier
-                .align(Alignment.BottomCenter),
+                .padding(horizontal = App.Theme.sizes.small),
+            text = "Enter your secret here:", // todo
+            style = TextStyle(
+                color = App.Theme.colors.text,
+                fontSize = 14.sp,
+            ),
+        )
+        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+        HintTextFocused(
+            values = values,
+            focusedState = focusedState,
+            focused = Focused.SECRET,
+        )
+        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+        SlideVAndFade(
             visible = focusedState.value != null,
             duration = App.Theme.durations.animation,
         ) {
