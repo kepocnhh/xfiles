@@ -180,6 +180,7 @@ internal fun ExpandVertically(
     modifier: Modifier = Modifier,
     label: String = "ExpandVertically",
     duration: Duration,
+    initialHeight: (fullHeight: Int) -> Int = { 0 },
     expandFrom: Alignment.Vertical = Alignment.Top,
     shrinkTowards: Alignment.Vertical = Alignment.Bottom,
     content: @Composable AnimatedVisibilityScope.() -> Unit
@@ -190,6 +191,7 @@ internal fun ExpandVertically(
         label = label,
         enter = expandVertically(
             animationSpec = tween(duration.inWholeMilliseconds.toInt()),
+            initialHeight = initialHeight,
             expandFrom = expandFrom,
         ),
         exit = shrinkVertically(

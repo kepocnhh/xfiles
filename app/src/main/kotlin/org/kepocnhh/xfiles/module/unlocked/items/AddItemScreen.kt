@@ -3,6 +3,9 @@ package org.kepocnhh.xfiles.module.unlocked.items
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,6 +13,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -32,14 +38,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
@@ -285,8 +299,15 @@ private fun AddItemScreenPortrait(
     onAdd: (String, String) -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
-    Column(
+//    val height = remember { mutableStateOf() }
+    BoxWithConstraints(
         modifier = Modifier
+//            .layout { measurable, constraints ->
+//                val placeable = measurable.measure(constraints)
+//                layout(width = placeable.width, height = placeable.height) {
+//                    placeable.place(x = 0, y = 0)
+//                }
+//            }
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -295,45 +316,119 @@ private fun AddItemScreenPortrait(
             .fillMaxSize()
             .background(App.Theme.colors.background)
             .horizontalPaddings(insets),
-        verticalArrangement = Arrangement.Bottom,
     ) {
-        BasicText(
+        val scope: BoxWithConstraintsScope = this
+        val keyboardHeightState = remember { mutableStateOf<Int?>(null) }
+        val keyboardHeight = keyboardHeightState.value
+        val valuesCoordinatesState = remember { mutableStateOf<LayoutCoordinates?>(null) }
+        val valuesCoordinates = valuesCoordinatesState.value
+        val targetValue: Int = when {
+            keyboardHeight != null -> {
+//                keyboardHeight
+                scope.constraints.maxHeight - keyboardHeight - valuesCoordinates!!.size.height
+            }
+            valuesCoordinates != null -> {
+                val offset = valuesCoordinates.positionInParent()
+//                scope.constraints.maxHeight - valuesCoordinates.size.height - offset.y.toInt()
+                scope.constraints.maxHeight / 2 - valuesCoordinates.size.height / 2
+            }
+            else -> 0
+        }
+        val yState = animateIntAsState(
+            targetValue = targetValue,
+            animationSpec = tween(App.Theme.durations.animation.inWholeMilliseconds.toInt())
+        )
+        println("targetValue: " + targetValue)
+        println("y: " + yState.value)
+//        val bar = animateOffsetAsState(
+//            targetValue = if (focusedState.value == null) TODO() else TODO()
+//        )
+//        val foo = animateDpAsState(
+//            targetValue = 0.dp,
+//            animationSpec = tween(App.Theme.durations.animation.inWholeMilliseconds.toInt())
+//        )
+//        val yKeyboard = animateDpAsState(
+//            targetValue = 0.dp,
+//            animationSpec = tween(App.Theme.durations.animation.inWholeMilliseconds.toInt())
+//        )
+        Column(
             modifier = Modifier
-                .padding(horizontal = App.Theme.sizes.small),
-            text = "Come up with a name for your secret:", // todo
-            style = TextStyle(
-                color = App.Theme.colors.text,
-                fontSize = 14.sp,
-            ),
-        )
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-        HintTextFocused(
-            values = values,
-            focusedState = focusedState,
-            focused = Focused.TITLE,
-        )
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-        BasicText(
-            modifier = Modifier
-                .padding(horizontal = App.Theme.sizes.small),
-            text = "Enter your secret here:", // todo
-            style = TextStyle(
-                color = App.Theme.colors.text,
-                fontSize = 14.sp,
-            ),
-        )
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-        HintTextFocused(
-            values = values,
-            focusedState = focusedState,
-            focused = Focused.SECRET,
-        )
-        Spacer(
-            modifier = Modifier
-                .animateContentSize(tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()))
-                .height(if (focusedState.value != null) App.Theme.sizes.small else App.Theme.sizes.small + insets.calculateBottomPadding()),
-        )
+                .onPlaced { layoutCoordinates ->
+                    valuesCoordinatesState.value = layoutCoordinates
+                    println("values size: " + layoutCoordinates.size)
+                    println("values offset: " + layoutCoordinates.positionInParent())
+                    println("values bounds: " + layoutCoordinates.boundsInParent())
+                    println("values root: " + layoutCoordinates.positionInRoot())
+                }
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(width = placeable.width, height = placeable.height) {
+//                        if (keyboardHeight == null) {
+//                            val y = scope.constraints.maxHeight / 2 - placeable.height / 2
+//                            placeable.place(x = 0, y = y)
+//                        } else {
+//                            val y = scope.constraints.maxHeight - yState.value - placeable.height
+////                            val y = scope.constraints.maxHeight - keyboardCoordinates.height - placeable.height
+//                            placeable.place(x = 0, y = y)
+//                        }
+                        placeable.place(x = 0, y = yState.value)
+                    }
+                }
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
+        ) {
+            BasicText(
+                modifier = Modifier
+                    .padding(horizontal = App.Theme.sizes.small),
+                text = "Come up with a name for your secret:", // todo
+                style = TextStyle(
+                    color = App.Theme.colors.text,
+                    fontSize = 14.sp,
+                ),
+            )
+            HintTextFocused(
+                values = values,
+                focusedState = focusedState,
+                focused = Focused.TITLE,
+            )
+            BasicText(
+                modifier = Modifier
+                    .padding(horizontal = App.Theme.sizes.small),
+                text = "Enter your secret here:", // todo
+                style = TextStyle(
+                    color = App.Theme.colors.text,
+                    fontSize = 14.sp,
+                ),
+            )
+            HintTextFocused(
+                values = values,
+                focusedState = focusedState,
+                focused = Focused.SECRET,
+            )
+        }
+//        Spacer(
+//            modifier = Modifier
+//                .animateContentSize(tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()))
+//                .height(if (focusedState.value != null) App.Theme.sizes.small else App.Theme.sizes.small + insets.calculateBottomPadding()),
+//        )
         ExpandVertically(
+            modifier = Modifier
+//                .onPlaced { layoutCoordinates ->
+//                    keyboardSizeState.value = layoutCoordinates.size
+//                    println("keyboard: " + layoutCoordinates.size)
+//                }
+//                .layout { measurable, constraints ->
+//                    val placeable = measurable.measure(constraints)
+//                    layout(width = placeable.width, height = placeable.height) {
+//                        placeable.place(x = 0, y = scope.constraints.maxHeight)
+//                    }
+//                }
+                .align(Alignment.BottomCenter),
+            initialHeight = { fullHeight: Int ->
+                keyboardHeightState.value = fullHeight
+                println("keyboard height: " + fullHeight)
+                0
+            },
             visible = focusedState.value != null,
             duration = App.Theme.durations.animation,
         ) {
