@@ -89,6 +89,7 @@ private fun HintTextFocused(
         padding = PaddingValues(
             horizontal = App.Theme.sizes.large,
         ),
+        enabled = focusedState.value != focused,
         height = App.Theme.sizes.xxxl,
         color = App.Theme.colors.basement,
         corners = App.Theme.sizes.large,

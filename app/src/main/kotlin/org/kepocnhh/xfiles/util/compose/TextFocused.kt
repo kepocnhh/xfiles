@@ -30,6 +30,7 @@ import sp.ax.jc.clicks.clicks
 internal fun TextFocused(
     margin: PaddingValues,
     padding: PaddingValues,
+    enabled: Boolean,
     height: Dp,
     color: Color,
     corners: Dp,
@@ -49,6 +50,7 @@ internal fun TextFocused(
 //            .border(1.dp, borderColor, RoundedCornerShape(corners))
             .clip(RoundedCornerShape(corners))
             .clicks(
+                enabled = enabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
