@@ -10,9 +10,6 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
 }
 
-val code = 15
-version = "0.1.1"
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -30,8 +27,8 @@ android {
         applicationId = appId
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = version.toString()
-        versionCode = code
+        versionName = "0.1.2"
+        versionCode = 16
         manifestPlaceholders["appName"] = "@string/app_name"
     }
 
@@ -138,7 +135,13 @@ fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    output.outputFileName.set(kebabCase(rootProject.name, version.toString(), variant.name, code.toString()) + ".apk")
+    val name = kebabCase(
+        rootProject.name,
+        android.defaultConfig.versionName!!,
+        variant.name,
+        android.defaultConfig.versionCode.toString(),
+    )
+    output.outputFileName.set("$name.apk")
     afterEvaluate {
         setCoverage(variant)
         setCodeQuality(variant)
