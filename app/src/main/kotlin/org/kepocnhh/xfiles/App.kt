@@ -11,7 +11,6 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -21,7 +20,6 @@ import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
-import org.kepocnhh.xfiles.module.app.Dimensions
 import org.kepocnhh.xfiles.module.app.Durations
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.module.app.Language
@@ -38,18 +36,15 @@ import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
-import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     object Theme {
         private val LocalColors = staticCompositionLocalOf<Colors> { error("no colors") }
         private val LocalDurations = staticCompositionLocalOf<Durations> { error("no durations") }
-        private val LocalDimensions = staticCompositionLocalOf<Dimensions> { error("no dimensions") }
         private val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
         private val LocalStrings = staticCompositionLocalOf<Strings> { error("no strings") }
 
@@ -62,12 +57,6 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = LocalDurations.current
-
-        @Deprecated("val insets = LocalView.current.rootWindowInsets.toPaddings()")
-        val dimensions: Dimensions
-            @Composable
-            @ReadOnlyComposable
-            get() = LocalDimensions.current
 
         val sizes: Sizes
             @Composable
@@ -97,9 +86,6 @@ internal class App : Application() {
 //                    animation = 250.milliseconds,
                     animation = 500.milliseconds,
 //                    animation = 2.seconds, // todo
-                ),
-                LocalDimensions provides Dimensions(
-                    insets = LocalView.current.rootWindowInsets.toPaddings(),
                 ),
                 LocalSizes provides Sizes(
                     xxxs = 2.dp,

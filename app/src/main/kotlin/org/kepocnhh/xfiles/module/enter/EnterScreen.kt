@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +54,8 @@ import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.screenHeight
 import org.kepocnhh.xfiles.util.compose.screenWidth
+import org.kepocnhh.xfiles.util.compose.toPaddings
+import org.kepocnhh.xfiles.util.compose.verticalPaddings
 import org.kepocnhh.xfiles.util.ct
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
@@ -187,10 +190,11 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
     }
     val orientation = LocalConfiguration.current.orientation
     val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
-    val width = LocalConfiguration.current.screenWidth(App.Theme.dimensions.insets)
+    val insets = LocalView.current.rootWindowInsets.toPaddings()
+    val width = LocalConfiguration.current.screenWidth(insets)
     val targetWidth = when (orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
-            LocalConfiguration.current.screenHeight(App.Theme.dimensions.insets) + App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)
+            LocalConfiguration.current.screenHeight(insets) + insets.calculateEndPadding(layoutDirection)
         }
         Configuration.ORIENTATION_PORTRAIT -> width
         else -> TODO()
@@ -338,6 +342,7 @@ private fun EnterScreenLandscape(
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
 ) {
+    val insets = LocalView.current.rootWindowInsets.toPaddings()
     val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
         View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
         View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
@@ -350,8 +355,8 @@ private fun EnterScreenLandscape(
                 .fillMaxSize()
                 .background(App.Theme.colors.background)
                 .padding(
-                    top = App.Theme.dimensions.insets.calculateTopPadding(),
-                    end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection),
+                    top = insets.calculateTopPadding(),
+                    end = insets.calculateEndPadding(layoutDirection),
                 ),
         ) {
             EnterScreenInfo(
@@ -397,14 +402,12 @@ private fun EnterScreenPortrait(
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
 ) {
+    val insets = LocalView.current.rootWindowInsets.toPaddings()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .padding(
-                top = App.Theme.dimensions.insets.calculateTopPadding(),
-                bottom = App.Theme.dimensions.insets.calculateBottomPadding(),
-            ),
+            .verticalPaddings(insets),
     ) {
         EnterScreenInfo(
             modifier = Modifier

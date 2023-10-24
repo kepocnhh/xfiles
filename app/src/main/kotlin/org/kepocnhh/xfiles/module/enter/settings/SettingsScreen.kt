@@ -18,9 +18,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
+import org.kepocnhh.xfiles.util.compose.toPaddings
 
 internal object SettingsScreen {
     val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
@@ -78,12 +80,13 @@ private fun SettingsScreenPortrait() {
 
 @Composable
 private fun SettingsScreenLandscape() {
+    val insets = LocalView.current.rootWindowInsets.toPaddings()
     val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .padding(end = App.Theme.dimensions.insets.calculateEndPadding(layoutDirection)),
+            .padding(end = insets.calculateEndPadding(layoutDirection)),
     ) {
         Columns(
             modifier = Modifier.align(Alignment.Center),
