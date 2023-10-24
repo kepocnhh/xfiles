@@ -11,15 +11,15 @@ buildscript {
 }
 
 task<Delete>("clean") {
-    delete = setOf(buildDir, "buildSrc/build")
+    delete = setOf(layout.buildDirectory.get(), "buildSrc/build")
 }
 
 repositories.mavenCentral()
 
-val kotlinLint: Configuration by configurations.creating
+val ktlint: Configuration by configurations.creating
 
 dependencies {
-    kotlinLint("com.pinterest:ktlint:${Version.ktlint}") {
+    ktlint("com.pinterest:ktlint:${Version.ktlint}") {
         attributes {
             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
         }
@@ -27,17 +27,18 @@ dependencies {
 }
 
 task<JavaExec>("checkCodeStyle") {
-    classpath = kotlinLint
+    classpath = ktlint
     mainClass.set("com.pinterest.ktlint.Main")
+    val output = layout.buildDirectory.file("reports/analysis/code/style/html/index.html").get()
     args(
-        "build.gradle.kts",
-        "settings.gradle.kts",
-        "buildSrc/src/main/kotlin/**/*.kt",
-        "buildSrc/build.gradle.kts",
+        "app/build.gradle.kts",
         "app/src/debug/kotlin/**/*.kt",
         "app/src/main/kotlin/**/*.kt",
         "app/src/test/kotlin/**/*.kt",
-        "app/build.gradle.kts",
-        "--reporter=html,output=${File(buildDir, "reports/analysis/code/style/html/index.html")}",
+        "build.gradle.kts",
+        "buildSrc/build.gradle.kts",
+        "buildSrc/src/main/kotlin/**/*.kt",
+        "settings.gradle.kts",
+        "--reporter=html,output=${output.asFile.absolutePath}",
     )
 }
