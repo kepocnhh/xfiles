@@ -3,6 +3,7 @@ package org.kepocnhh.xfiles.module.unlocked.items
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -40,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
@@ -285,6 +288,7 @@ private fun AddItemScreenPortrait(
     onAdd: (String, String) -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
+    val secretFieldExpandState = remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .clickable(
@@ -312,22 +316,33 @@ private fun AddItemScreenPortrait(
             focusedState = focusedState,
             focused = Focused.TITLE,
         )
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-        BasicText(
-            modifier = Modifier
-                .padding(horizontal = App.Theme.sizes.small),
-            text = "Enter your secret here:", // todo
-            style = TextStyle(
-                color = App.Theme.colors.text,
-                fontSize = 14.sp,
-            ),
-        )
-        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-        HintTextFocused(
-            values = values,
-            focusedState = focusedState,
-            focused = Focused.SECRET,
-        )
+        ExpandVertically(
+            visible = secretFieldExpandState.value,
+            expandFrom = Alignment.CenterVertically,
+            duration = App.Theme.durations.animation,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+            ) {
+                Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+                BasicText(
+                    modifier = Modifier
+                        .padding(horizontal = App.Theme.sizes.small),
+                    text = "Enter your secret here:", // todo
+                    style = TextStyle(
+                        color = App.Theme.colors.text,
+                        fontSize = 14.sp,
+                    ),
+                )
+                Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+                HintTextFocused(
+                    values = values,
+                    focusedState = focusedState,
+                    focused = Focused.SECRET,
+                )
+            }
+        }
         Spacer(
             modifier = Modifier
                 .animateContentSize(tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()))
@@ -346,6 +361,7 @@ private fun AddItemScreenPortrait(
                     when (focused) {
                         Focused.TITLE -> {
                             focusedState.value = Focused.SECRET
+                            secretFieldExpandState.value = true
                         }
                         Focused.SECRET -> {
                             val title = values[Focused.TITLE]
