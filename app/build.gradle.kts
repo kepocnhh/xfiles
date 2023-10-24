@@ -66,10 +66,16 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
         val dirs = fileTree(layout.buildDirectory.file("tmp/kotlin-classes/" + variant.name)) {
-            include("**/${appId.replace('.', '/')}/implementation/module/**/*")
+            include("**/${appId.replace('.', '/')}/module/**/*")
         }
         classDirectories.setFrom(dirs)
         executionData(taskUnitTest)
+        doLast {
+            val report = layout.buildDirectory.file("reports/jacoco/$name/html/index.html").get().asFile
+            if (report.exists()) {
+                println("Coverage report: ${report.absolutePath}")
+            }
+        }
     }
     task<JacocoCoverageVerification>(camelCase("test", variant.name, "CoverageVerification")) {
         dependsOn(taskCoverageReport)
