@@ -65,7 +65,7 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes/" + variant.name)) {
+        val dirs = fileTree(layout.buildDirectory.file("tmp/kotlin-classes/" + variant.name)) {
             include("**/${appId.replace('.', '/')}/implementation/module/**/*")
         }
         classDirectories.setFrom(dirs)
@@ -111,7 +111,7 @@ fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
             reports {
                 html {
                     required.set(true)
-                    outputLocation.set(buildDir.resolve("reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
+                    outputLocation.set(layout.buildDirectory.file("reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
                 }
                 md.required.set(false)
                 sarif.required.set(false)
@@ -142,11 +142,17 @@ androidComponents.onVariants { variant ->
         tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
             kotlinOptions.jvmTarget = Version.jvmTarget
         }
+        tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "UnitTest", "JavaWithJavac")) {
+            targetCompatibility = Version.jvmTarget
+        }
+        tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "UnitTest", "Kotlin")) {
+            kotlinOptions.jvmTarget = Version.jvmTarget
+        }
         val checkManifestTask = task(camelCase("checkManifest", variant.name)) {
             dependsOn(camelCase("compile", variant.name, "Sources"))
             doLast {
                 val file = "intermediates/merged_manifest/${variant.name}/AndroidManifest.xml"
-                val manifest = groovy.xml.XmlParser().parse(buildDir.resolve(file))
+                val manifest = groovy.xml.XmlParser().parse(layout.buildDirectory.file(file).get().asFile)
                 val actual = manifest.getAt(groovy.namespace.QName("uses-permission")).map {
                     check(it is groovy.util.Node)
                     val attributes = it.attributes().mapKeys { (k, _) -> k.toString() }
@@ -179,5 +185,5 @@ dependencies {
     implementation("com.github.kepocnhh:ComposeClicks:0.2.2-SNAPSHOT")
     implementation("com.github.kepocnhh:ComposeDialogs:0.1.0-SNAPSHOT")
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
