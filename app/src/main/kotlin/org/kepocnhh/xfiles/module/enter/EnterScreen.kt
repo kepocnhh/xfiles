@@ -57,6 +57,8 @@ import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.compose.verticalPaddings
 import org.kepocnhh.xfiles.util.ct
+import sp.ax.jc.animations.style.SlideStyle
+import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.math.absoluteValue
@@ -272,10 +274,13 @@ private fun EnterScreenInfo(
                 )
             }
         }
-        AnimatedHVisibility(
-            modifier = modifier2,
+        // todo fade
+        SlideHVisibility(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+                .padding(vertical = App.Theme.sizes.small),
             visible = exists == false,
-            duration = App.Theme.durations.animation,
         ) {
             BasicText(
                 style = TextStyle(

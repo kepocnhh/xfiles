@@ -191,6 +191,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
     implementation("androidx.security:security-crypto:1.0.0")
+    implementation("com.github.kepocnhh:ComposeAnimations:0.0.1-SNAPSHOT")
     implementation("com.github.kepocnhh:ComposeClicks:0.2.2-SNAPSHOT")
     implementation("com.github.kepocnhh:ComposeDialogs:0.1.0-SNAPSHOT")
     testImplementation("junit:junit:4.13.2")

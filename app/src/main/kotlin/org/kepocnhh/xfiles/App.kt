@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles
 
 import android.app.Application
 import android.os.Build
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
@@ -37,8 +38,11 @@ import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
+import sp.ax.jc.animations.style.LocalTweenStyle
+import sp.ax.jc.animations.style.TweenStyle
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 internal class App : Application() {
@@ -80,13 +84,14 @@ internal class App : Application() {
                 ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.dark else Colors.light
             }
             logger.debug("colors: $colors")
+            val durations = Durations(
+//                    animation = 250.milliseconds,
+                animation = 500.milliseconds,
+//                    animation = 2.seconds, // todo
+            )
             CompositionLocalProvider(
                 LocalColors provides colors,
-                LocalDurations provides Durations(
-//                    animation = 250.milliseconds,
-                    animation = 500.milliseconds,
-//                    animation = 2.seconds, // todo
-                ),
+                LocalDurations provides durations,
                 LocalSizes provides Sizes(
                     xxxs = 2.dp,
                     xxs = 4.dp,
@@ -114,6 +119,11 @@ internal class App : Application() {
                     foreground = colors.foreground,
                 ),
                 LocalIndication provides ColorIndication.create(colors.foreground),
+                LocalTweenStyle provides TweenStyle(
+                    duration = durations.animation,
+                    delay = Duration.ZERO,
+                    easing = FastOutSlowInEasing,
+                ),
                 content = content,
             )
         }
