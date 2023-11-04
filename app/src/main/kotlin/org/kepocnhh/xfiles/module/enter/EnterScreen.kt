@@ -58,10 +58,12 @@ import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.compose.verticalPaddings
 import org.kepocnhh.xfiles.util.ct
 import sp.ax.jc.animations.style.SlideStyle
+import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.math.absoluteValue
+import kotlin.time.Duration.Companion.seconds
 
 internal object EnterScreen {
     sealed interface Broadcast {
@@ -291,10 +293,9 @@ private fun EnterScreenInfo(
                 text = App.Theme.strings.noDatabase,
             )
         }
-        AnimatedFadeVisibility(
+        FadeVisibility(
             modifier = Modifier.align(Alignment.Center),
             visible = exists == null,
-            duration = App.Theme.durations.animation,
         ) {
             Squares(
                 color = App.Theme.colors.foreground,

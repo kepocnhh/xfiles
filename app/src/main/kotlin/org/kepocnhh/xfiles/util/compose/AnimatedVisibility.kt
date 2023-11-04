@@ -156,6 +156,7 @@ internal fun AnimatedHOpen(
     )
 }
 
+@Deprecated(message = "replace with sp.ax.jc.animations.tween.fade.FadeVisibility")
 @Composable
 internal fun AnimatedFadeVisibility(
     visible: Boolean,
