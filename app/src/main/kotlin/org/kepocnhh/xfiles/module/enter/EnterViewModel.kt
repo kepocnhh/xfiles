@@ -18,6 +18,7 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.SecurityUtil
 import org.kepocnhh.xfiles.util.security.getServiceOrNull
 import org.kepocnhh.xfiles.util.security.requireService
+import org.kepocnhh.xfiles.util.security.toSecurityService
 import java.security.NoSuchAlgorithmException
 import java.security.Provider
 import java.security.interfaces.DSAParams
@@ -40,13 +41,6 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     private val _exists = MutableStateFlow<Boolean?>(null)
     val exists = _exists.asStateFlow()
-
-    private fun Provider.Service.toSecurityService(): SecurityService {
-        return SecurityService(
-            provider = provider.name,
-            algorithm = algorithm,
-        )
-    }
 
     fun requestFile() {
         injection.launch {

@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.util.security
 
+import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import java.security.NoSuchProviderException
 import java.security.Provider
@@ -38,4 +39,11 @@ internal object SecurityUtil {
             SecuritySettings.DSAKeyLength.BITS_1024_3 -> 1024 * 3
         }
     }
+}
+
+internal fun Provider.Service.toSecurityService(): SecurityService {
+    return SecurityService(
+        provider = provider.name,
+        algorithm = algorithm,
+    )
 }

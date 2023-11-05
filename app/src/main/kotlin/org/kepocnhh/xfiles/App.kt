@@ -12,7 +12,10 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -72,6 +75,9 @@ internal class App : Application() {
             @ReadOnlyComposable
             get() = LocalStrings.current
 
+        private var _textStyle: TextStyle? = null
+        val textStyle: TextStyle get() = checkNotNull(_textStyle)
+
         @Composable
         fun Composition(
             themeState: ThemeState,
@@ -85,8 +91,8 @@ internal class App : Application() {
             }
             logger.debug("colors: $colors")
             val durations = Durations(
-//                    animation = 250.milliseconds,
-                animation = 500.milliseconds,
+                    animation = 250.milliseconds,
+//                animation = 500.milliseconds,
 //                    animation = 2.seconds, // todo
             )
             CompositionLocalProvider(
@@ -124,7 +130,14 @@ internal class App : Application() {
                     delay = Duration.ZERO,
                     easing = FastOutSlowInEasing,
                 ),
-                content = content,
+                content = {
+                    _textStyle = TextStyle(
+                        color = colors.text,
+                        fontFamily = FontFamily.Default,
+                        fontSize = 14.sp, // todo
+                    )
+                    content()
+                },
             )
         }
     }
