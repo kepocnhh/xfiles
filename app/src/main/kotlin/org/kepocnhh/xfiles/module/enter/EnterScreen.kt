@@ -78,17 +78,10 @@ internal object EnterScreen {
 
 @Composable
 internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) -> Unit) {
-    val logger = App.newLogger("[Enter]")
-    logger.debug("pre dispose")
-    DisposableEffect(Unit) {
-        // todo
-        logger.debug("init")
-        onDispose {
-            logger.debug("on dispose")
-        }
-    }
     val viewModel = App.viewModel<EnterViewModel>()
-    val exists by viewModel.exists.collectAsState(null)
+    println("[Enter]: viewModel: ${viewModel.hashCode()}")
+    val exists by viewModel.exists.collectAsState()
+    println("[Enter]: exists: $exists")
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
@@ -242,11 +235,16 @@ private fun EnterScreenInfo(
                 start = App.Theme.sizes.small,
                 end = App.Theme.sizes.small,
             )
+        val initialOffsetX: (fullWidth: Int) -> Int = when (val orientation = LocalConfiguration.current.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> { it -> -it }
+            Configuration.ORIENTATION_PORTRAIT -> { it -> it }
+            else -> error("Orientation $orientation is not supported!")
+        }
         AnimatedHVisibility(
             modifier = modifier2,
             visible = exists == true,
             duration = App.Theme.durations.animation,
-            initialOffsetX = { it },
+            initialOffsetX = initialOffsetX,
         ) {
             Column {
                 val textStyle = TextStyle(

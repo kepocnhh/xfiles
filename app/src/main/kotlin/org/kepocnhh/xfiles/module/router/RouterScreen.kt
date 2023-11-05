@@ -114,6 +114,7 @@ private fun OnChecked(onBack: () -> Unit) {
     )
     // todo fade
     AnimatedVisibility(
+//        visible = keyState.value == null,
         visible = animatedState.value && keyState.value == null,
         enter = enterTransition(
             tweenStyle = tweenStyle,
@@ -137,6 +138,7 @@ private fun OnChecked(onBack: () -> Unit) {
     }
     // todo fade
     AnimatedVisibility(
+//        visible = keyState.value != null,
         visible = animatedState.value && keyState.value != null,
         enter = enterTransition(
             tweenStyle = tweenStyle,
