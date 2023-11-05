@@ -13,5 +13,6 @@ Encrypted data storage application.
 - [ ] strings as res
 - [ ] squares local composition
 - [ ] dialogs
-- [ ] animations
+- [ ] animations slide + fade
+- [ ] animations content
 - [ ] biometric
