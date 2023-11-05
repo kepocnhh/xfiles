@@ -47,6 +47,7 @@ import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     object Theme {
@@ -91,9 +92,9 @@ internal class App : Application() {
             }
             logger.debug("colors: $colors")
             val durations = Durations(
-                    animation = 250.milliseconds,
-//                animation = 500.milliseconds,
-//                    animation = 2.seconds, // todo
+//                animation = 250.milliseconds,
+                animation = 500.milliseconds,
+//                animation = 2.seconds, // todo
             )
             CompositionLocalProvider(
                 LocalColors provides colors,

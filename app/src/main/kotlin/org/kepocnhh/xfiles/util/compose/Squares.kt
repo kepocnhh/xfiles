@@ -1,9 +1,10 @@
 package org.kepocnhh.xfiles.util.compose
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -11,6 +12,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -18,57 +20,68 @@ import org.kepocnhh.xfiles.util.ct
 
 @Composable
 internal fun Squares(
-    modifier: Modifier = Modifier,
     color: Color,
     width: Dp,
     padding: Dp,
     radius: Dp,
 ) {
-    val alphaState = remember { mutableStateOf(1f) }
-    Canvas(modifier = modifier) {
-        val size = Size(width.toPx(), width.toPx())
+    Squares(
+        modifier = { Modifier.size(it) },
+        color = color,
+        width = width,
+        padding = padding,
+        radius = radius,
+    )
+}
+
+@Composable
+internal fun Squares(
+    modifier: (DpSize) -> Modifier,
+    color: Color,
+    width: Dp,
+    padding: Dp,
+    radius: Dp,
+) {
+    val alphaState = remember { mutableFloatStateOf(1f) }
+    val size = DpSize(width = width + padding + width, height = width + padding + width)
+    Canvas(
+        modifier = modifier(size),
+    ) {
+        val squareSize = Size(width.toPx(), width.toPx())
         val cornerRadius = CornerRadius(x = radius.toPx(), y = radius.toPx())
+        val paddingOffset = Offset(x = padding.toPx(), y = padding.toPx())
         drawRoundRect(
-            color = color.copy(alpha = alphaState.value.ct(1f)),
-            topLeft = Offset(
-                x = - size.width - padding.toPx() / 2,
-                y = - size.height - padding.toPx() / 2,
-            ),
-            size = size,
+            color = color.copy(alpha = (alphaState.floatValue - 0.00f).ct(1f)),
+            topLeft = Offset.Zero,
+            size = squareSize,
             cornerRadius = cornerRadius,
         )
         drawRoundRect(
-            color = color.copy(alpha = (alphaState.value - 0.25f).ct(1f)),
-            topLeft = Offset(
-                x = padding.toPx() / 2,
-                y = - size.height - padding.toPx() / 2,
-            ),
-            size = size,
+            color = color.copy(alpha = (alphaState.floatValue - 0.25f).ct(1f)),
+            topLeft = Offset.Zero.copy(x = squareSize.width + paddingOffset.x),
+            size = squareSize,
             cornerRadius = cornerRadius,
         )
         drawRoundRect(
-            color = color.copy(alpha = (alphaState.value - 0.5f).ct(1f)),
-            topLeft = Offset(
-                x = padding.toPx() / 2,
-                y = padding.toPx() / 2,
-            ),
-            size = size,
+            color = color.copy(alpha = (alphaState.floatValue - 0.50f).ct(1f)),
+            topLeft = Offset.Zero.copy(y = squareSize.height + paddingOffset.y),
+            size = squareSize,
             cornerRadius = cornerRadius,
         )
         drawRoundRect(
-            color = color.copy(alpha = (alphaState.value - 0.75f).ct(1f)),
+            color = color.copy(alpha = (alphaState.floatValue - 0.75f).ct(1f)),
             topLeft = Offset(
-                x = - size.width - padding.toPx() / 2,
-                y = padding.toPx() / 2,
+                x = squareSize.width + paddingOffset.x,
+                y = squareSize.height + paddingOffset.y,
             ),
-            size = size,
+            size = squareSize,
             cornerRadius = cornerRadius,
         )
     }
-    LaunchedEffect(alphaState.value) {
+    LaunchedEffect(alphaState.floatValue) {
         withContext(Dispatchers.Default) {
             delay(16)
         }
-        alphaState.value = (alphaState.value + 0.025f).ct(1f)
+        alphaState.floatValue = (alphaState.floatValue + 0.025f).ct(1f)
     }
 }
