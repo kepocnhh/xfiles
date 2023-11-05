@@ -3,6 +3,7 @@ package org.kepocnhh.xfiles
 import android.app.Application
 import android.os.Build
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -93,8 +94,8 @@ internal class App : Application() {
             }
             logger.debug("colors: $colors")
             val durations = Durations(
-                animation = 250.milliseconds,
-//                animation = 500.milliseconds,
+//                animation = 250.milliseconds,
+                animation = 500.milliseconds,
 //                animation = 2.seconds, // todo
             )
             CompositionLocalProvider(
@@ -131,6 +132,7 @@ internal class App : Application() {
                     duration = durations.animation,
                     delay = Duration.ZERO,
                     easing = FastOutSlowInEasing,
+//                    easing = LinearEasing,
                 ),
                 content = {
                     _textStyle = TextStyle(
