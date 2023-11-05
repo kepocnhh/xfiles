@@ -64,10 +64,10 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
             _state.value = State.OnChecks(null)
             when (type) {
                 ChecksType.SECURITY_SERVICES -> {
-                    delay(2.seconds)
+//                    delay(2.seconds)
                     if (injection.local.services != null) continue
                     _state.value = State.OnChecks(type)
-                    delay(2.seconds)
+//                    delay(2.seconds)
                     val services = try {
                         getSecurityServices()
                     } catch (e: Throwable) {
@@ -84,7 +84,7 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
 
     fun runChecks() {
         injection.launch {
-            injection.local.services = null // todo
+//            injection.local.services = null // todo
             withContext(injection.contexts.default) {
                 runChecksInternal()
             }

@@ -14,10 +14,17 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.Squares
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 private fun BoxScope.OnError(
@@ -91,13 +98,26 @@ internal fun ChecksScreen(
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
+        val delay = App.Theme.durations.animation
+        val ready = remember { CompletableDeferred<Unit>() }
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.Default) {
+                delay(delay)
+            }
+            ready.complete(Unit)
+        }
         val viewModel = App.viewModel<ChecksViewModel>()
         LaunchedEffect(Unit) {
             viewModel
                 .broadcast
                 .collect {
                     when (it) {
-                        ChecksViewModel.Broadcast.OnComplete -> onComplete()
+                        ChecksViewModel.Broadcast.OnComplete -> {
+                            withContext(Dispatchers.Default) {
+                                ready.await()
+                            }
+                            onComplete()
+                        }
                     }
                 }
         }

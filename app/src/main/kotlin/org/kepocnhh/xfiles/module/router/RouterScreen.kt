@@ -20,7 +20,7 @@ import javax.crypto.SecretKey
 @Composable
 private fun OnChecked(onBack: () -> Unit) {
     // todo start animation if visible on start
-    val animatedState = remember { mutableStateOf(false) }
+    val animatedState = rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(animatedState.value) {
         if (!animatedState.value) {
             animatedState.value = true
@@ -67,7 +67,7 @@ internal fun RouterScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
-        val checkedState = remember { mutableStateOf(false) }
+        val checkedState = rememberSaveable { mutableStateOf(false) }
         FadeVisibility(visible = !checkedState.value) {
             ChecksScreen(
                 onComplete = {
