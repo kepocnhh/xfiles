@@ -11,6 +11,7 @@ Encrypted data storage application.
 
 ### backlog
 - [ ] strings as res
+- [ ] squares local composition
 - [ ] dialogs
 - [ ] animations
 - [ ] biometric

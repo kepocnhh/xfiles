@@ -5,12 +5,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
-import org.kepocnhh.xfiles.module.app.ColorsType
-import org.kepocnhh.xfiles.module.app.Language
-import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.router.RouterScreen
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
-import java.security.Security
 
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
