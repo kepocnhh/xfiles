@@ -114,6 +114,13 @@ internal class App : Application() {
                 animation = 500.milliseconds,
 //                animation = 2.seconds, // todo
             )
+            _orientation = _orientationFlow.collectAsState().value
+            println("[App]: orientation: $orientation")
+            _textStyle = TextStyle(
+                color = colors.text,
+                fontFamily = FontFamily.Default,
+                fontSize = 14.sp, // todo
+            )
             CompositionLocalProvider(
                 LocalColors provides colors,
                 LocalDurations provides durations,
@@ -150,16 +157,7 @@ internal class App : Application() {
                     easing = FastOutSlowInEasing,
 //                    easing = LinearEasing,
                 ),
-                content = {
-                    _orientation = _orientationFlow.collectAsState().value
-                    println("[App]: orientation: $orientation")
-                    _textStyle = TextStyle(
-                        color = colors.text,
-                        fontFamily = FontFamily.Default,
-                        fontSize = 14.sp, // todo
-                    )
-                    content()
-                },
+                content = content,
             )
         }
     }

@@ -165,8 +165,9 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
             }
         }
     }
-    when (LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
+//    when (LocalConfiguration.current.orientation) {
+    when (App.Theme.orientation) {
+        App.Orientation.LANDSCAPE -> {
             EnterScreenLandscape(
                 exists = exists,
                 errorState = errorState,
@@ -175,7 +176,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                 settingsState = settingsState,
             )
         }
-        else -> {
+        App.Orientation.PORTRAIT -> {
             EnterScreenPortrait(
                 exists = exists,
                 errorState = errorState,
