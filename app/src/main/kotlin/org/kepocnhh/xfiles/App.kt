@@ -172,7 +172,7 @@ internal class App : Application() {
                     else -> Orientation.PORTRAIT
                 }
             }
-        }.enable()
+        }//.enable() // todo
         val pbeIterations = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             SecuritySettings.PBEIterations.NUMBER_2_16
         } else {
@@ -238,9 +238,7 @@ internal class App : Application() {
             DisposableEffect(Unit) {
                 onDispose {
                     synchronized(App::class.java) {
-                        println("[App]: on dispose: $key") // todo
                         if (dispose) {
-                            println("[App]: on remove: $key") // todo
                             vmStores.remove(key)
                             store.clear()
                         }

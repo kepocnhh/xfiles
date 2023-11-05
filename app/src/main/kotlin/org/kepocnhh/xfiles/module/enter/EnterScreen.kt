@@ -79,9 +79,7 @@ internal object EnterScreen {
 @Composable
 internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) -> Unit) {
     val viewModel = App.viewModel<EnterViewModel>()
-    println("[Enter]: viewModel: ${viewModel.hashCode()}")
     val exists by viewModel.exists.collectAsState()
-    println("[Enter]: exists: $exists")
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
@@ -165,6 +163,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
             }
         }
     }
+    // todo orientation
 //    when (LocalConfiguration.current.orientation) {
     when (App.Theme.orientation) {
         App.Orientation.LANDSCAPE -> {

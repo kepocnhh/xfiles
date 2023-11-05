@@ -16,12 +16,10 @@ internal class MainActivity : AppCompatActivity() {
                 finish()
             }
             val themeViewModel = App.viewModel<ThemeViewModel>()
-            println("[Main]: themeViewModel: ${themeViewModel.hashCode()}")
             when (val themeState = themeViewModel.state.collectAsState().value) {
                 null -> themeViewModel.requestThemeState()
                 else -> {
                     App.Theme.Composition(themeState = themeState) {
-                        println("[Main]: orientation: " + App.Theme.orientation)
                         RouterScreen(onBack = ::finish)
                     }
                 }
