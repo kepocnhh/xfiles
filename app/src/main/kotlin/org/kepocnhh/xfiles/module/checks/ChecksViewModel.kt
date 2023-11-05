@@ -61,7 +61,6 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
 
     private suspend fun runChecksInternal() {
         for (type in ChecksType.entries) {
-            _state.value = State.OnChecks(null)
             when (type) {
                 ChecksType.SECURITY_SERVICES -> {
 //                    delay(2.seconds)
@@ -78,6 +77,7 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                     injection.local.services = services
                 }
             }
+            _state.value = State.OnChecks(null)
         }
         _broadcast.emit(Broadcast.OnComplete)
     }

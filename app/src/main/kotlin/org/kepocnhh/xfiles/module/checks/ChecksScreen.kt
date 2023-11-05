@@ -24,7 +24,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.Squares
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 @Composable
 private fun BoxScope.OnError(
@@ -98,14 +100,9 @@ internal fun ChecksScreen(
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
+        val markStart = TimeSource.Monotonic.markNow()
         val delay = App.Theme.durations.animation
-        val ready = remember { CompletableDeferred<Unit>() }
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.Default) {
-                delay(delay)
-            }
-            ready.complete(Unit)
-        }
+//        val delay = 5.seconds
         val viewModel = App.viewModel<ChecksViewModel>()
         LaunchedEffect(Unit) {
             viewModel
@@ -114,7 +111,7 @@ internal fun ChecksScreen(
                     when (it) {
                         ChecksViewModel.Broadcast.OnComplete -> {
                             withContext(Dispatchers.Default) {
-                                ready.await()
+                                delay(delay - markStart.elapsedNow())
                             }
                             onComplete()
                         }
