@@ -4,6 +4,7 @@ internal data class SecuritySettings(
     val aesKeyLength: AESKeyLength,
     val pbeIterations: PBEIterations,
     val dsaKeyLength: DSAKeyLength,
+    val hasBiometric: Boolean,
 ) {
     enum class AESKeyLength {
         BITS_256,

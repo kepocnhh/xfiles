@@ -196,6 +196,7 @@ internal class App : Application() {
                         pbeIterations = pbeIterations,
                         aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
                         dsaKeyLength = SecuritySettings.DSAKeyLength.BITS_1024_2,
+                        hasBiometric = false,
                     ),
                 ),
             ),
@@ -205,6 +206,7 @@ internal class App : Application() {
                 asymmetric = "asym.json",
                 dataBase = "db.json.enc",
                 dataBaseSignature = "db.json.sig",
+                biometric = "biometric.enc",
             )
         )
     }

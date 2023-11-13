@@ -104,6 +104,8 @@ internal class FinalLocalDataProvider(
                     .getString("pbeIterations", null)
                     ?.let(SecuritySettings.PBEIterations::valueOf)
                     ?: defaults.securitySettings.pbeIterations,
+                hasBiometric = preferences
+                    .getBoolean("hasBiometric", defaults.securitySettings.hasBiometric),
             )
         }
         set(value) {
@@ -111,6 +113,7 @@ internal class FinalLocalDataProvider(
                 .putString("aesKeyLength", value.aesKeyLength.name)
                 .putString("dsaKeyLength", value.dsaKeyLength.name)
                 .putString("pbeIterations", value.pbeIterations.name)
+                .putBoolean("hasBiometric", value.hasBiometric)
                 .commit()
         }
 }

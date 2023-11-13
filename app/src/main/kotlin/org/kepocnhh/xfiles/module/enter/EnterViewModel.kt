@@ -24,6 +24,7 @@ import java.security.Provider
 import java.security.interfaces.DSAParams
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
+import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
@@ -33,55 +34,30 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         class OnUnlock(val key: SecretKey) : Broadcast
         object OnUnlockError : Broadcast
         object OnSecurityError : Broadcast
+        class OnBiometric(val iv: ByteArray) : Broadcast
     }
+
+    data class State(
+        val loading: Boolean = false,
+        val exists: Boolean,
+        val hasBiometric: Boolean,
+    )
 
     private val logger = injection.loggers.newLogger("[Enter|VM]")
     private val _broadcast = MutableSharedFlow<Broadcast>()
     val broadcast = _broadcast.asSharedFlow()
 
-    private val _exists = MutableStateFlow<Boolean?>(null)
-    val exists = _exists.asStateFlow()
+    private val _state = MutableStateFlow<State?>(null)
+    val state = _state.asStateFlow()
 
-    fun requestFile() {
+    fun requestState() {
         injection.launch {
-            val result = withContext(injection.contexts.default) {
-                runCatching {
-                    if (injection.local.services == null) {
-                        val provider = SecurityUtil.requireProvider("BC")
-                        val ciphers = setOf(
-                            "PBEWITHHMACSHA256ANDAES_256",
-                            "PBEWITHSHA256AND256BITAES-CBC-BC",
-                        )
-                        val cipher = ciphers.firstNotNullOfOrNull {
-                            provider.getServiceOrNull(
-                                type = "Cipher",
-                                algorithm = it,
-                            )
-                        }?.toSecurityService() ?: throw NoSuchAlgorithmException("No such algorithms ${provider.name}:Cipher:$ciphers!")
-                        val platform = SecurityUtil.requireProvider("AndroidOpenSSL")
-                        injection.local.services = SecurityServices(
-                            cipher = cipher,
-                            symmetric = provider.requireService(type = "SecretKeyFactory", algorithm = cipher.algorithm).toSecurityService(),
-                            asymmetric = provider.requireService(type = "KeyPairGenerator", algorithm = "DSA").toSecurityService(),
-                            signature = provider.requireService(type = "Signature", algorithm = "SHA256WithDSA").toSecurityService(),
-                            hash = platform.requireService(type = "MessageDigest", algorithm = "SHA-512").toSecurityService(),
-                            random = platform.requireService(type = "SecureRandom", algorithm = "SHA1PRNG").toSecurityService(),
-                        )
-                        logger.debug("services: " + injection.local.services)
-                    }
-                }
+            _state.value = withContext(injection.contexts.default) {
+                State(
+                    exists = injection.files.exists(injection.pathNames.dataBase),
+                    hasBiometric = injection.local.securitySettings.hasBiometric,
+                )
             }
-            result.fold(
-                onFailure = {
-                    logger.warning("Check security services error: $it")
-                    _broadcast.emit(Broadcast.OnSecurityError)
-                },
-                onSuccess = {
-                    _exists.value = withContext(injection.contexts.default) {
-                        injection.files.exists(injection.pathNames.dataBase)
-                    }
-                },
-            )
         }
     }
 
@@ -103,10 +79,8 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
     }
 
-    private fun create(pin: String, securitySettings: SecuritySettings): SecretKey {
+    private fun create(password: String, securitySettings: SecuritySettings): SecretKey {
         val services = injection.local.services ?: TODO()
-        val md = injection.security(services).getMessageDigest()
-        val hash = md.digest(pin.toByteArray()).base64()
         val random = injection.security(services).getSecureRandom()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val blockSize = SecurityUtil.getBlockSize(securitySettings.aesKeyLength)
@@ -133,7 +107,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val cipher = injection.security(services).getCipher()
         val key = injection.security(services)
             .getSecretKeyFactory()
-            .generate(PBEKeySpec(hash.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
+            .generate(PBEKeySpec(password.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
         injection.files.writeBytes(injection.pathNames.dataBase, cipher.encrypt(key, IvParameterSpec(meta.ivDB), decrypted))
         val private = cipher.encrypt(key, IvParameterSpec(meta.ivPrivate), pair.private.encoded)
         JSONObject()
@@ -149,11 +123,21 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         return key
     }
 
-    fun createNewFile(pin: String) {
+    fun createNewFile(pin: String, cipher: Cipher?) {
         injection.launch {
-            _exists.value = null
+            _state.value = state.value!!.copy(loading = true)
             val key = withContext(injection.contexts.default) {
-                create(pin, injection.local.securitySettings)
+                val password = getPassword(pin = pin)
+                if (cipher != null) {
+                    val encrypted = cipher.doFinal(password.toByteArray())
+                    val biometric = JSONObject()
+                        .put("password", encrypted.base64())
+                        .put("iv", cipher.iv.base64())
+                        .toString()
+                        .toByteArray()
+                    injection.files.writeBytes(injection.pathNames.biometric, biometric)
+                }
+                create(password = password, securitySettings = injection.local.securitySettings)
             }
             _broadcast.emit(Broadcast.OnUnlock(key))
         }
@@ -161,11 +145,13 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     fun deleteFile() {
         injection.launch {
-            _exists.value = null
+            _state.value = state.value!!.copy(loading = true)
             withContext(injection.contexts.default) {
                 injection.files.delete(injection.pathNames.dataBase)
             }
-            _exists.value = false
+            _state.value = withContext(injection.contexts.default) {
+                State(exists = false, hasBiometric = injection.local.securitySettings.hasBiometric)
+            }
         }
     }
 
@@ -177,17 +163,21 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         )
     }
 
-    private fun unlock(pin: String, securitySettings: SecuritySettings): SecretKey {
+    private fun getPassword(pin: String): String {
         val services = injection.local.services ?: TODO()
         val md = injection.security(services).getMessageDigest()
-        val hash = md.digest(pin.toByteArray()).base64()
+        return md.digest(pin.toByteArray()).base64()
+    }
+
+    private fun unlock(password: String, securitySettings: SecuritySettings): SecretKey {
+        val services = injection.local.services ?: TODO()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val pbeIterations = SecurityUtil.getValue(securitySettings.pbeIterations)
         val meta = JSONObject(injection.files.readText(injection.pathNames.symmetric)).toKeyMeta()
         val cipher = injection.security(services).getCipher()
         val key = injection.security(services)
             .getSecretKeyFactory()
-            .generate(PBEKeySpec(hash.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
+            .generate(PBEKeySpec(password.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
         val decrypted = cipher.decrypt(
             key = key,
             params = IvParameterSpec(meta.ivDB),
@@ -212,21 +202,55 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     fun unlockFile(pin: String) {
         injection.launch {
-            _exists.value = null
+            _state.value = state.value!!.copy(loading = true)
             val result = withContext(injection.contexts.default) {
                 runCatching {
-                    unlock(pin = pin, injection.local.securitySettings)
+                    val securitySettings = injection.local.securitySettings
+                    val password = getPassword(pin = pin)
+                    unlock(password = password, securitySettings = securitySettings)
                 }
             }
             result.fold(
                 onFailure = {
-                    _exists.value = true
+                    _state.value = withContext(injection.contexts.default) {
+                        State(exists = true, hasBiometric = injection.local.securitySettings.hasBiometric)
+                    }
                     _broadcast.emit(Broadcast.OnUnlockError)
                 },
                 onSuccess = {
                     _broadcast.emit(Broadcast.OnUnlock(it))
                 },
             )
+        }
+    }
+
+    fun unlockFile(cipher: Cipher) {
+        injection.launch {
+            _state.value = state.value!!.copy(loading = true)
+            val key = withContext(injection.contexts.default) {
+                val securitySettings = injection.local.securitySettings
+                val password = injection.files.readText(injection.pathNames.biometric)
+                    .let(::JSONObject)
+                    .getString("password")
+                    .base64()
+                    .let(cipher::doFinal)
+                    .let(::String)
+                unlock(password = password, securitySettings = securitySettings)
+            }
+            _broadcast.emit(Broadcast.OnUnlock(key))
+        }
+    }
+
+    fun requestBiometric() {
+        injection.launch {
+            _state.value = state.value!!.copy(loading = true)
+            val iv = withContext(injection.contexts.default) {
+                injection.files.readText(injection.pathNames.biometric)
+                    .let(::JSONObject)
+                    .getString("iv")
+                    .base64()
+            }
+            _broadcast.emit(Broadcast.OnBiometric(iv))
         }
     }
 }

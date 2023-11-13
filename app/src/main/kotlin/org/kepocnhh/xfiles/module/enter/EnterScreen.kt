@@ -37,12 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.enter.settings.SettingsScreen
+import org.kepocnhh.xfiles.util.android.BiometricUtil
+import org.kepocnhh.xfiles.util.android.findActivity
 import org.kepocnhh.xfiles.util.android.getDefaultVibrator
 import org.kepocnhh.xfiles.util.android.vibrate
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
@@ -61,6 +64,7 @@ import sp.ax.jc.animations.style.SlideStyle
 import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.dialogs.Dialog
+import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
@@ -78,17 +82,20 @@ internal object EnterScreen {
 
 @Composable
 internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) -> Unit) {
+    val logger = App.newLogger("[Enter]")
     val viewModel = App.viewModel<EnterViewModel>()
-    val exists by viewModel.exists.collectAsState()
+    val state = viewModel.state.collectAsState().value
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
     val settingsState = remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val activity = context.findActivity<FragmentActivity>() ?: TODO("No activity!")
     if (deleteDialogState.value) {
         Dialog(
             App.Theme.strings.yes to {
                 viewModel.deleteFile()
+                BiometricUtil.deleteSecretKey() // todo
                 pinState.value = ""
                 deleteDialogState.value = false
             },
@@ -96,22 +103,27 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
             onDismissRequest = { deleteDialogState.value = false },
         )
     }
+    LaunchedEffect(settingsState.value) {
+        if (!settingsState.value) {
+            viewModel.requestState()
+        }
+    }
     LaunchedEffect(Unit) {
-        if (exists == null) {
-            viewModel.requestFile()
+        if (state == null) {
+            viewModel.requestState()
         }
     }
     LaunchedEffect(pinState.value) {
         if (pinState.value.length == 4) {
-            when (exists) {
-                true -> {
-                    viewModel.unlockFile(pinState.value)
-                }
-                false -> {
-                    viewModel.createNewFile(pinState.value)
-                }
-                null -> {
-                    // noop
+            val state = viewModel.state.value ?: TODO()
+            if (state.exists) {
+                viewModel.unlockFile(pin = pinState.value)
+            } else {
+                if (state.hasBiometric) {
+                    logger.debug("has biometric...")
+                    BiometricUtil.authenticate(activity)
+                } else {
+                    viewModel.createNewFile(pin = pinState.value, cipher = null)
                 }
             }
         }
@@ -129,6 +141,25 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                 }
                 EnterViewModel.Broadcast.OnSecurityError -> {
                     errorState.value = EnterScreen.Error.SECURITY
+                }
+                is EnterViewModel.Broadcast.OnBiometric -> {
+                    logger.debug("on biometric...")
+                    BiometricUtil.authenticate(activity, iv = broadcast.iv)
+                }
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        BiometricUtil.broadcast.collect { broadcast ->
+            when (broadcast) {
+                is BiometricUtil.Broadcast.OnSucceeded -> {
+                    logger.debug("on succeeded...")
+                    val state = viewModel.state.value ?: TODO()
+                    if (state.exists) {
+                        viewModel.unlockFile(cipher = broadcast.cipher)
+                    } else {
+                        viewModel.createNewFile(pin = pinState.value, cipher = broadcast.cipher)
+                    }
                 }
             }
         }
@@ -168,20 +199,28 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
     when (App.Theme.orientation) {
         App.Orientation.LANDSCAPE -> {
             EnterScreenLandscape(
-                exists = exists,
+                exists = state?.exists,
                 errorState = errorState,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
                 settingsState = settingsState,
+                onBiometric = {
+                    TODO("orientation:landscape")
+                },
+                hasBiometric = state?.hasBiometric ?: false,
             )
         }
         App.Orientation.PORTRAIT -> {
             EnterScreenPortrait(
-                exists = exists,
+                state = state,
                 errorState = errorState,
                 pinState = pinState,
                 deleteDialogState = deleteDialogState,
                 settingsState = settingsState,
+                onBiometric = {
+                    logger.debug("request biometric...")
+                    viewModel.requestBiometric()
+                },
             )
         }
     }
@@ -279,7 +318,7 @@ private fun EnterScreenInfo(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.Center)
-                .padding(vertical = App.Theme.sizes.small),
+                .padding(horizontal = App.Theme.sizes.small),
             visible = exists == false,
         ) {
             BasicText(
@@ -345,6 +384,8 @@ private fun EnterScreenLandscape(
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
+    onBiometric: () -> Unit,
+    hasBiometric: Boolean,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
     val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
@@ -392,7 +433,10 @@ private fun EnterScreenLandscape(
                 },
                 onSettings = {
                     settingsState.value = true
-                }
+                },
+                onBiometric = onBiometric,
+                hasBiometric = hasBiometric,
+                exists = exists ?: false,
             )
         }
     }
@@ -400,11 +444,12 @@ private fun EnterScreenLandscape(
 
 @Composable
 private fun EnterScreenPortrait(
-    exists: Boolean?,
+    state: EnterViewModel.State?,
     errorState: MutableState<EnterScreen.Error?>,
     pinState: MutableState<String>,
     deleteDialogState: MutableState<Boolean>,
     settingsState: MutableState<Boolean>,
+    onBiometric: () -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
     Column(
@@ -417,7 +462,7 @@ private fun EnterScreenPortrait(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            exists = exists,
+            exists = if (state == null) null else if (state.loading) null else state.exists,
             errorState = errorState,
             pinState = pinState,
             deleteDialogState = deleteDialogState,
@@ -425,7 +470,7 @@ private fun EnterScreenPortrait(
         PinPad(
             modifier = Modifier
                 .fillMaxWidth(),
-            enabled = exists != null && errorState.value == null,
+            enabled = state != null && !state.loading && errorState.value == null,
             visibleDelete = pinState.value.isNotEmpty(),
             onDelete = {
                 pinState.value = ""
@@ -442,6 +487,9 @@ private fun EnterScreenPortrait(
             onClick = { char ->
                 pinState.value += char
             },
+            onBiometric = onBiometric,
+            hasBiometric = state?.hasBiometric ?: false,
+            exists = state?.exists ?: false,
         )
     }
 }

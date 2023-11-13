@@ -5,4 +5,5 @@ internal data class PathNames(
     val asymmetric: String,
     val dataBase: String,
     val dataBaseSignature: String,
+    val biometric: String,
 )

@@ -24,6 +24,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
+import sp.ax.jc.animations.tween.fade.FadeVisibility
+import sp.ax.jc.clicks.onClick
 
 @Composable
 private fun PinRow(
@@ -100,6 +102,9 @@ internal fun PinPad(
     onDelete: () -> Unit,
     onSettings: () -> Unit,
     onClick: (Char) -> Unit,
+    onBiometric: () -> Unit,
+    hasBiometric: Boolean,
+    exists: Boolean,
 ) {
     Column(modifier = modifier) {
         PinRow(
@@ -138,22 +143,14 @@ internal fun PinPad(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .let {
-                        if (enabled) {
-                            it.clickable {
-                                onSettings()
-                            }
-                        } else {
-                            it
-                        }
-                    },
+                    .onClick(enabled = enabled, block = onSettings),
             ) {
                 Image(
                     modifier = Modifier
                         .size(App.Theme.sizes.medium)
                         .align(Alignment.Center),
                     painter = painterResource(id = R.drawable.gear),
-                    contentDescription = "delete",
+                    contentDescription = "settings",
                     colorFilter = ColorFilter.tint(textStyle.color),
                 )
             }
@@ -180,9 +177,15 @@ internal fun PinPad(
                     .fillMaxHeight()
                     .weight(1f)
                     .let {
-                        if (enabled && visibleDelete) {
+                        if (!enabled) {
+                            it
+                        } else if (visibleDelete) {
                             it.clickable {
                                 onDelete()
+                            }
+                        } else if (hasBiometric && exists) {
+                            it.clickable {
+                                onBiometric()
                             }
                         } else {
                             it
@@ -200,6 +203,18 @@ internal fun PinPad(
                             .size(App.Theme.sizes.medium),
                         painter = painterResource(id = R.drawable.cross),
                         contentDescription = "delete",
+                        colorFilter = ColorFilter.tint(textStyle.color),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
+                FadeVisibility(
+                    modifier = Modifier.align(Alignment.Center),
+                    visible = !visibleDelete && hasBiometric && exists,
+                ) {
+                    Image(
+                        modifier = Modifier.size(App.Theme.sizes.medium),
+                        painter = painterResource(id = R.drawable.biometric),
+                        contentDescription = "biometric",
                         colorFilter = ColorFilter.tint(textStyle.color),
                         contentScale = ContentScale.Fit,
                     )

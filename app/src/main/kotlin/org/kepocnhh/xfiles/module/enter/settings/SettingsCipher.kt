@@ -411,6 +411,42 @@ internal fun SettingsCipher(editable: Boolean) {
                     viewModel.setSettings(settings.copy(dsaKeyLength = it))
                 },
             )
+            SettingsHasBiometric(
+                hasBiometric = settings.hasBiometric,
+                editable = editable,
+                onClick = {
+                    viewModel.setSettings(settings.copy(hasBiometric = !settings.hasBiometric))
+                },
+            )
         }
+    }
+}
+
+@Composable
+private fun SettingsHasBiometric(
+    hasBiometric: Boolean,
+    editable: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .clickable(enabled = editable, onClick = onClick)
+            .padding(horizontal = App.Theme.sizes.small),
+    ) {
+        BasicText(
+            modifier = Modifier.align(Alignment.CenterStart),
+            style = App.Theme.textStyle,
+            text = "Has biometric", // todo lang
+        )
+        BasicText(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            style = App.Theme.textStyle.copy(
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+            ),
+            text = if (hasBiometric) App.Theme.strings.yes else "no", // todo lang
+        )
     }
 }

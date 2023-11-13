@@ -172,6 +172,8 @@ androidComponents.onVariants { variant ->
                 val applicationId by variant.applicationId
                 val expected = setOf(
                     "android.permission.VIBRATE",
+                    "android.permission.USE_BIOMETRIC",
+                    "android.permission.USE_FINGERPRINT",
                     "$applicationId.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
                 )
                 check(actual.sorted() == expected.sorted()) {
@@ -188,6 +190,7 @@ androidComponents.onVariants { variant ->
 dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
     implementation("androidx.security:security-crypto:1.0.0")
