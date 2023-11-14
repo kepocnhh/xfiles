@@ -153,12 +153,29 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
         BiometricUtil.broadcast.collect { broadcast ->
             when (broadcast) {
                 is BiometricUtil.Broadcast.OnSucceeded -> {
-                    logger.debug("on succeeded...")
-                    val state = viewModel.state.value ?: TODO()
-                    if (state.exists) {
+                    logger.debug("on biometric succeeded...")
+                    if (viewModel.state.value!!.exists) {
                         viewModel.unlockFile(cipher = broadcast.cipher)
                     } else {
                         viewModel.createNewFile(pin = pinState.value, cipher = broadcast.cipher)
+                    }
+                }
+                is BiometricUtil.Broadcast.OnError -> {
+                    logger.debug("on biometric error...")
+                    if (viewModel.state.value!!.exists) {
+                        when (broadcast.type) {
+                            BiometricUtil.Broadcast.OnError.Type.USER_CANCELED -> {
+                                viewModel.requestState()
+                            }
+                            null -> TODO("Create. On biometric unknown error!")
+                        }
+                    } else {
+                        when (broadcast.type) {
+                            BiometricUtil.Broadcast.OnError.Type.USER_CANCELED -> {
+                                pinState.value = ""
+                            }
+                            null -> TODO("Unlock. On biometric unknown error!")
+                        }
                     }
                 }
             }

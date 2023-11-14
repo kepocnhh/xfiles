@@ -25,6 +25,11 @@ import javax.crypto.spec.IvParameterSpec
 internal object BiometricUtil {
     sealed interface Broadcast {
         data class OnSucceeded(val cipher: Cipher) : Broadcast
+        data class OnError(val type: Type?) : Broadcast {
+            enum class Type {
+                USER_CANCELED,
+            }
+        }
     }
 
     private val algorithm = KeyProperties.KEY_ALGORITHM_AES
@@ -41,7 +46,13 @@ internal object BiometricUtil {
     private const val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
     private val callback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-            TODO()
+            val type = when (errorCode) {
+                BiometricPrompt.ERROR_USER_CANCELED -> Broadcast.OnError.Type.USER_CANCELED
+                else -> null
+            }
+            scope.launch {
+                _broadcast.emit(Broadcast.OnError(type = type))
+            }
         }
 
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
