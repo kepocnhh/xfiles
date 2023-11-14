@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.util.android
 
+import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
@@ -28,6 +29,7 @@ internal object BiometricUtil {
         data class OnError(val type: Type?) : Broadcast {
             enum class Type {
                 USER_CANCELED,
+                CAN_NOT_AUTHENTICATE,
             }
         }
     }
@@ -113,13 +115,30 @@ internal object BiometricUtil {
             .build()
     }
 
+    private fun Context.canAuthenticate(): Boolean {
+        val biometricManager = BiometricManager.from(this)
+        return biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+    }
+
     fun authenticate(activity: FragmentActivity) {
+        if (!activity.canAuthenticate()) {
+            scope.launch {
+                _broadcast.emit(Broadcast.OnError(Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE))
+            }
+            return
+        }
         val cipher = getCipher()
         cipher.init(Cipher.ENCRYPT_MODE, getKeyOrCreate())
         BiometricPrompt(activity, callback).authenticate(getPromptInfo(), BiometricPrompt.CryptoObject(cipher))
     }
 
     fun authenticate(activity: FragmentActivity, iv: ByteArray) {
+        if (!activity.canAuthenticate()) {
+            scope.launch {
+                _broadcast.emit(Broadcast.OnError(Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE))
+            }
+            return
+        }
         val cipher = getCipher()
         cipher.init(Cipher.DECRYPT_MODE, getKeyOrCreate(), IvParameterSpec(iv))
         BiometricPrompt(activity, callback).authenticate(getPromptInfo(), BiometricPrompt.CryptoObject(cipher))

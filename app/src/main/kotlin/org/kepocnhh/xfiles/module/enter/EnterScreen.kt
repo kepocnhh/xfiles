@@ -47,6 +47,7 @@ import org.kepocnhh.xfiles.module.enter.settings.SettingsScreen
 import org.kepocnhh.xfiles.util.android.BiometricUtil
 import org.kepocnhh.xfiles.util.android.findActivity
 import org.kepocnhh.xfiles.util.android.getDefaultVibrator
+import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.android.vibrate
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHOpen
@@ -167,14 +168,19 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                             BiometricUtil.Broadcast.OnError.Type.USER_CANCELED -> {
                                 viewModel.requestState()
                             }
-                            null -> TODO("Create. On biometric unknown error!")
+                            BiometricUtil.Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE -> TODO("Unlock:CAN_NOT_AUTHENTICATE")
+                            null -> TODO("Unlock. On biometric unknown error!")
                         }
                     } else {
                         when (broadcast.type) {
                             BiometricUtil.Broadcast.OnError.Type.USER_CANCELED -> {
                                 pinState.value = ""
                             }
-                            null -> TODO("Unlock. On biometric unknown error!")
+                            BiometricUtil.Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE -> {
+                                pinState.value = ""
+                                context.showToast("Cannot authenticate with device credentials!") // todo lang
+                            }
+                            null -> TODO("Create. On biometric unknown error!")
                         }
                     }
                 }
