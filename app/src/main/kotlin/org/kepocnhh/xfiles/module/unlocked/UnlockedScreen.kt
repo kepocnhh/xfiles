@@ -52,6 +52,7 @@ import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
+import org.kepocnhh.xfiles.util.compose.KeepScreenOn
 import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.screenHeight
@@ -108,6 +109,7 @@ internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
+    KeepScreenOn()
     val context = LocalContext.current
     val viewModel = App.viewModel<UnlockedViewModel>()
     val logger = App.newLogger(tag = "[Unlocked|Screen]")
@@ -201,7 +203,9 @@ internal fun UnlockedScreen(
     FadeVisibility(
         visible = addItemState.value,
     ) {
-        Spacer(modifier = Modifier.fillMaxSize().background(Colors.black))
+        Spacer(modifier = Modifier
+            .fillMaxSize()
+            .background(Colors.black))
     }
     SlideHVisibility(
         visible = addItemState.value,
