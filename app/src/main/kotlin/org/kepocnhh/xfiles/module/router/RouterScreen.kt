@@ -102,7 +102,7 @@ private fun OnChecked(onBack: () -> Unit) {
             animatedState.value = true
         }
     }
-    val keyState = rememberSaveable { mutableStateOf<SecretKey?>(null) }
+    val keyState = remember { mutableStateOf<SecretKey?>(null) }
     val initState = rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(keyState.value) {
         if (keyState.value != null && initState.value) {
