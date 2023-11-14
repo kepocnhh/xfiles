@@ -64,6 +64,10 @@ internal class ObserverService : Service() {
         private val indexes = AtomicInteger(0)
         val TIMER_NOTIFICATION_ID = indexes.incrementAndGet()
 
+        // todo build notification with timer
+        // todo update timer
+        // todo clipbard timer
+
         private fun intent(context: Context, action: Action): Intent {
             val intent = Intent(context, ObserverService::class.java)
             intent.action = action.name

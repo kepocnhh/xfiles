@@ -82,11 +82,7 @@ internal object ForegroundUtil {
     }
 }
 
-internal inline fun <reified T : Service> Context.notifyAndStartForeground(id: Int, title: String) {
-    val notification = ForegroundUtil.buildNotification(
-        context = this,
-        title = title,
-    )
+internal inline fun <reified T : Service> Context.notifyAndStartForeground(id: Int, notification: Notification) {
     ForegroundUtil.notify(this, id = id, notification = notification)
     ForegroundUtil.startForeground(
         context = this,
@@ -94,6 +90,14 @@ internal inline fun <reified T : Service> Context.notifyAndStartForeground(id: I
         notificationId = id,
         notification = notification,
     )
+}
+
+internal inline fun <reified T : Service> Context.notifyAndStartForeground(id: Int, title: String) {
+    val notification = ForegroundUtil.buildNotification(
+        context = this,
+        title = title,
+    )
+    notifyAndStartForeground(id = id, notification = notification)
 }
 
 internal inline fun <reified T : Service> Context.stopForeground(
