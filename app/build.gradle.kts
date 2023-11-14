@@ -27,8 +27,8 @@ android {
         applicationId = appId
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = "0.2.0"
-        versionCode = 19
+        versionName = "0.3.0"
+        versionCode = 20
         manifestPlaceholders["appName"] = "@string/app_name"
     }
 
