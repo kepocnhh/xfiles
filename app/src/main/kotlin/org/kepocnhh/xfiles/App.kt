@@ -173,11 +173,6 @@ internal class App : Application() {
                 }
             }
         }//.enable() // todo
-        val pbeIterations = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            SecuritySettings.PBEIterations.NUMBER_2_16
-        } else {
-            SecuritySettings.PBEIterations.NUMBER_2_20
-        }
         _injection = Injection(
             loggers = FinalLoggerFactory,
             contexts = Contexts(
@@ -193,7 +188,7 @@ internal class App : Application() {
                         language = Language.AUTO,
                     ),
                     securitySettings = SecuritySettings(
-                        pbeIterations = pbeIterations,
+                        pbeIterations = SecuritySettings.PBEIterations.NUMBER_2_16,
                         aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
                         dsaKeyLength = SecuritySettings.DSAKeyLength.BITS_1024_2,
                         hasBiometric = false,
