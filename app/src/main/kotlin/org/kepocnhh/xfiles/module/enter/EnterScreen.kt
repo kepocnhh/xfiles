@@ -168,7 +168,14 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                             BiometricUtil.Broadcast.OnError.Type.USER_CANCELED -> {
                                 viewModel.requestState()
                             }
-                            BiometricUtil.Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE -> TODO("Unlock:CAN_NOT_AUTHENTICATE")
+                            BiometricUtil.Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE -> {
+                                viewModel.requestState()
+                                context.showToast("Cannot authenticate with device credentials!") // todo lang
+                            }
+                            BiometricUtil.Broadcast.OnError.Type.UNRECOVERABLE_KEY -> {
+                                viewModel.requestState()
+                                context.showToast("Device credentials can no longer be used for authentication!") // todo lang
+                            }
                             null -> TODO("Unlock. On biometric unknown error!")
                         }
                     } else {
@@ -180,7 +187,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                                 pinState.value = ""
                                 context.showToast("Cannot authenticate with device credentials!") // todo lang
                             }
-                            null -> TODO("Create. On biometric unknown error!")
+                            else -> TODO("Create. On biometric unknown error: ${broadcast.type}")
                         }
                     }
                 }

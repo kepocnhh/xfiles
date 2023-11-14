@@ -17,6 +17,7 @@ import java.security.AlgorithmParameterGenerator
 import java.security.AlgorithmParameters
 import java.security.KeyStore
 import java.security.SecureRandom
+import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -30,6 +31,7 @@ internal object BiometricUtil {
             enum class Type {
                 USER_CANCELED,
                 CAN_NOT_AUTHENTICATE,
+                UNRECOVERABLE_KEY,
             }
         }
     }
@@ -120,27 +122,35 @@ internal object BiometricUtil {
         return biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
     }
 
-    fun authenticate(activity: FragmentActivity) {
-        if (!activity.canAuthenticate()) {
+    private fun getKeyOrError(context: Context): SecretKey? {
+        if (!context.canAuthenticate()) {
             scope.launch {
                 _broadcast.emit(Broadcast.OnError(Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE))
             }
-            return
+            return null
         }
+        val key = try {
+            getKeyOrCreate()
+        } catch (e: UnrecoverableKeyException) {
+            scope.launch {
+                _broadcast.emit(Broadcast.OnError(Broadcast.OnError.Type.UNRECOVERABLE_KEY))
+            }
+            return null
+        }
+        return key
+    }
+
+    fun authenticate(activity: FragmentActivity) {
+        val key = getKeyOrError(activity) ?: return
         val cipher = getCipher()
-        cipher.init(Cipher.ENCRYPT_MODE, getKeyOrCreate())
+        cipher.init(Cipher.ENCRYPT_MODE, key)
         BiometricPrompt(activity, callback).authenticate(getPromptInfo(), BiometricPrompt.CryptoObject(cipher))
     }
 
     fun authenticate(activity: FragmentActivity, iv: ByteArray) {
-        if (!activity.canAuthenticate()) {
-            scope.launch {
-                _broadcast.emit(Broadcast.OnError(Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE))
-            }
-            return
-        }
+        val key = getKeyOrError(activity) ?: return
         val cipher = getCipher()
-        cipher.init(Cipher.DECRYPT_MODE, getKeyOrCreate(), IvParameterSpec(iv))
+        cipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(iv))
         BiometricPrompt(activity, callback).authenticate(getPromptInfo(), BiometricPrompt.CryptoObject(cipher))
     }
 }
