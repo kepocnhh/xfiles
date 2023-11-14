@@ -17,14 +17,12 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version Version.detekt
 }
 
-val appId = "org.kepocnhh.xfiles"
-
 android {
-    namespace = appId
+    namespace = "org.kepocnhh.xfiles"
     compileSdk = Version.Android.compileSdk
 
     defaultConfig {
-        applicationId = appId
+        applicationId = namespace
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
         versionName = "0.3.0"
@@ -63,7 +61,7 @@ fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
         val dirs = fileTree(layout.buildDirectory.file("tmp/kotlin-classes/" + variant.name)) {
-            include("**/${appId.replace('.', '/')}/module/**/*")
+            include("**/${android.defaultConfig.applicationId!!.replace('.', '/')}/module/**/*")
         }
         classDirectories.setFrom(dirs)
         executionData(taskUnitTest)
