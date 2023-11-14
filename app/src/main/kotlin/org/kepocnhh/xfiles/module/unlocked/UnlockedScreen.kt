@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
@@ -55,6 +57,8 @@ import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.screenHeight
 import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.compose.toPaddings
+import sp.ax.jc.animations.tween.fade.FadeVisibility
+import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
@@ -193,8 +197,15 @@ internal fun UnlockedScreen(
         }
         else -> error("Orientation $orientation is not supported!")
     }
-    if (addItemState.value) {
-        // todo animation
+    // todo shadow
+    FadeVisibility(
+        visible = addItemState.value,
+    ) {
+        Spacer(modifier = Modifier.fillMaxSize().background(Colors.black))
+    }
+    SlideHVisibility(
+        visible = addItemState.value,
+    ) {
         AddItemScreen(
             onAdd = { title, secret ->
                 viewModel.addValue(key, title = title, secret = secret)
@@ -202,7 +213,7 @@ internal fun UnlockedScreen(
             },
             onCancel = {
                 addItemState.value = false
-            }
+            },
         )
     }
 }
