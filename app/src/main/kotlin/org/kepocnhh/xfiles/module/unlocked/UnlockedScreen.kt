@@ -1,10 +1,12 @@
 package org.kepocnhh.xfiles.module.unlocked
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.PersistableBundle
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -53,6 +55,7 @@ import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
+import org.kepocnhh.xfiles.util.android.findActivity
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.ColorIndication
@@ -161,6 +164,18 @@ internal fun UnlockedScreen(
                 context = context,
                 expected = clipboardHashState.value,
             )
+        }
+    }
+    DisposableEffect(Unit) {
+        context
+            .findActivity<Activity>()
+            ?.window
+            ?.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        onDispose {
+            context
+                .findActivity<Activity>()
+                ?.window
+                ?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
     /*
