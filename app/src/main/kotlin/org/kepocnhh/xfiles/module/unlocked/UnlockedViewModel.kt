@@ -18,10 +18,11 @@ import javax.crypto.spec.IvParameterSpec
 
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
-        class OnCopy(val secret: String) : Broadcast
+        data class OnCopy(val secret: String) : Broadcast
         class OnShow(val secret: String) : Broadcast
     }
 
+    private val logger = injection.loggers.newLogger("[Unlocked|VM]")
     private val _operations = MutableStateFlow(0)
     val loading = _operations
         .map {
@@ -114,6 +115,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     fun requestToCopy(key: SecretKey, id: String) {
         loading {
+            logger.debug("request to copy: $id")
             val secret = withContext(injection.contexts.default) {
                 JSONObject(decrypt(key).toString(Charsets.UTF_8))
                     .getJSONObject(id)

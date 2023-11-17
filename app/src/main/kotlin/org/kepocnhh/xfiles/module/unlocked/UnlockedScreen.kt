@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles.module.unlocked
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.res.Configuration
 import android.os.PersistableBundle
 import androidx.activity.compose.BackHandler
@@ -111,35 +112,55 @@ internal fun ShowDialog(
     )
 }
 
+private fun ClipboardManager.getPrimaryClipTextOrNull(): CharSequence? {
+    if (!hasPrimaryClip()) return null
+    val primaryClip = primaryClip ?: return null
+    if (primaryClip.itemCount != 1) return null
+    return primaryClip.getItemAt(0).text
+}
+
+private fun clearClipboardIfNeeded(context: Context, expected: Int?) {
+    if (expected == null) return
+    val clipboardManager = context.getSystemService(ClipboardManager::class.java) ?: return
+    val actual = clipboardManager
+        .getPrimaryClipTextOrNull()
+        ?.hashCode()
+    if (actual != null && actual != expected) return
+    clipboardManager.text = ""
+}
+
 @Composable
 internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
+    val logger = App.newLogger(tag = "[Unlocked|Screen]")
 //    KeepScreenOn() // todo
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lockedState = remember { mutableStateOf(false) }
     val markStartState = remember { mutableStateOf(TimeSource.Monotonic.markNow()) }
-    val timeout = 10.seconds // todo
+    val clipboardHashState = remember { mutableStateOf<Int?>(null) }
+    val lockedTimeout = 60.seconds
+    val clipboardTimeout = 30.seconds
     DisposableEffect(Unit) {
         scope.launch {
             withContext(Dispatchers.Default) {
-                var elapsed = markStartState.value.elapsedNow()
-                while (markStartState.value.elapsedNow() < timeout && !lockedState.value) {
-                    delay(0.1.seconds)
-                    if (elapsed.inWholeSeconds != markStartState.value.elapsedNow().inWholeSeconds) {
-                        println("[Unlocked]: elapsed: ${markStartState.value.elapsedNow()}")
-                        elapsed = markStartState.value.elapsedNow()
-                    }
+                while (markStartState.value.elapsedNow() < lockedTimeout && !lockedState.value) {
+                    delay(0.25.seconds)
                 }
                 if (!lockedState.value) {
+                    logger.debug("locked by timeout")
                     broadcast(UnlockedScreen.Broadcast.Lock)
                 }
             }
         }
         onDispose {
             lockedState.value = true
+            clearClipboardIfNeeded(
+                context = context,
+                expected = clipboardHashState.value,
+            )
         }
     }
     /*
@@ -154,7 +175,6 @@ internal fun UnlockedScreen(
     }
     */
     val viewModel = App.viewModel<UnlockedViewModel>()
-    val logger = App.newLogger(tag = "[Unlocked|Screen]")
     val deleteState = remember { mutableStateOf<EncryptedValue?>(null) }
     LaunchedEffect(deleteState.value) {
         markStartState.value = TimeSource.Monotonic.markNow()
@@ -191,6 +211,7 @@ internal fun UnlockedScreen(
             logger.debug("broadcast: $broadcast")
             when (broadcast) {
                 is UnlockedViewModel.Broadcast.OnCopy -> {
+                    markStartState.value = TimeSource.Monotonic.markNow()
                     val clip = ClipData.newPlainText("secret", broadcast.secret)
                     clip.description.extras = PersistableBundle().also {
                         it.putBoolean("android.content.extra.IS_SENSITIVE", true)
@@ -199,6 +220,27 @@ internal fun UnlockedScreen(
                     if (clipboardManager != null) {
                         clipboardManager.setPrimaryClip(clip)
                         context.showToast("Copied.") // todo
+                        val markStart = TimeSource.Monotonic.markNow()
+                        val expected = broadcast.secret.hashCode()
+                        clipboardHashState.value = expected
+                        scope.launch {
+                            withContext(Dispatchers.Default) {
+                                while (!lockedState.value) {
+                                    // https://stackoverflow.com/a/59864381
+                                    val actual = clipboardManager.getPrimaryClipTextOrNull()?.hashCode()
+                                    when {
+                                        actual != null && actual != expected -> break
+                                        markStart.elapsedNow() < clipboardTimeout -> delay(0.25.seconds)
+                                        else -> {
+                                            clipboardManager.text = ""
+                                            clipboardHashState.value = null
+                                            logger.debug("clipboard cleared")
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 is UnlockedViewModel.Broadcast.OnShow -> {
