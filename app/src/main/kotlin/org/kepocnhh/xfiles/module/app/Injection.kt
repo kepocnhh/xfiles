@@ -5,14 +5,20 @@ import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.EncryptedFileProvider
 import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.PathNames
+import org.kepocnhh.xfiles.provider.data.EncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.LocalDataProvider
 import org.kepocnhh.xfiles.provider.security.SecurityProvider
 
 internal data class Injection(
     val loggers: LoggerFactory,
     val contexts: Contexts,
-    val files: EncryptedFileProvider,
+    val encrypted: Encrypted,
     val local: LocalDataProvider,
     val security: (SecurityServices) -> SecurityProvider,
     val pathNames: PathNames,
+)
+
+internal data class Encrypted(
+    val files: EncryptedFileProvider,
+    val local: EncryptedLocalDataProvider,
 )

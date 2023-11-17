@@ -44,6 +44,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     private fun decrypt(key: SecretKey): ByteArray {
         val iv = injection
+            .encrypted
             .files
             .readText(injection.pathNames.symmetric)
             .let(::JSONObject)
@@ -55,7 +56,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             .decrypt(
                 key = key,
                 params = IvParameterSpec(iv),
-                encrypted = injection.files.readBytes(injection.pathNames.dataBase),
+                encrypted = injection.encrypted.files.readBytes(injection.pathNames.dataBase),
             )
     }
 
@@ -63,10 +64,10 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         key: SecretKey,
         decrypted: ByteArray,
     ) {
-        val jsonSym = JSONObject(injection.files.readText(injection.pathNames.symmetric))
+        val jsonSym = JSONObject(injection.encrypted.files.readText(injection.pathNames.symmetric))
         val services = injection.local.services ?: TODO()
         val cipher = injection.security(services).getCipher()
-        injection.files.writeBytes(
+        injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.dataBase,
             bytes = cipher.encrypt(
                 key = key,
@@ -74,7 +75,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                 decrypted = decrypted,
             ),
         )
-        injection.files.writeBytes(
+        injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.dataBaseSignature,
             bytes = injection.security(services)
                 .getSignature()
@@ -84,6 +85,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                             key = key,
                             params = IvParameterSpec(jsonSym.getString("ivPrivate").base64()),
                             encrypted = injection
+                                .encrypted
                                 .files
                                 .readText(injection.pathNames.asymmetric)
                                 .let(::JSONObject)

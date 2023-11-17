@@ -47,7 +47,7 @@ internal class SettingsViewModel(private val injection: Injection) : AbstractVie
     fun requestDatabase() {
         injection.launch {
             _databaseExists.value = withContext(injection.contexts.default) {
-                injection.files.exists("db.json.enc")
+                injection.encrypted.files.exists("db.json.enc")
             }
         }
     }

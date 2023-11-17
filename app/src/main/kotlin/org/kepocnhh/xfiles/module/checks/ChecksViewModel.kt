@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.module.checks
 
+import android.os.Build
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,8 @@ import org.kepocnhh.xfiles.util.security.getServiceOrNull
 import org.kepocnhh.xfiles.util.security.requireService
 import org.kepocnhh.xfiles.util.security.toSecurityService
 import java.security.NoSuchAlgorithmException
+import java.util.Arrays
+import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
 internal class ChecksViewModel(private val injection: Injection) : AbstractViewModel() {
@@ -28,6 +31,7 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
 
     enum class ChecksType {
         SECURITY_SERVICES,
+        IDS,
     }
 
     private val logger = injection.loggers.newLogger("[Checks|VM]")
@@ -75,6 +79,26 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                     }
                     logger.debug("services: $services")
                     injection.local.services = services
+                }
+                ChecksType.IDS -> {
+                    if (injection.encrypted.local.deviceId == null) {
+                        val deviceId = mapOf(
+                            "manufacturer" to Build.MANUFACTURER,
+                            "brand" to Build.BRAND,
+                            "model" to Build.MODEL,
+                            "device" to Build.DEVICE,
+                            "supported_abis" to Build.SUPPORTED_ABIS.joinToString(separator = "/"),
+                        ).entries.joinToString(separator = "-") { (key, value) ->
+                            "$key:$value"
+                        }
+                        injection.encrypted.local.deviceId = deviceId
+                        logger.debug("deviceId: $deviceId")
+                    }
+                    if (injection.encrypted.local.appId == null) {
+                        val appId = UUID.randomUUID()
+                        injection.encrypted.local.appId = appId
+                        logger.debug("appId: $appId")
+                    }
                 }
             }
             _state.value = State.OnChecks(null)

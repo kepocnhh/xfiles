@@ -35,6 +35,7 @@ import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Durations
+import org.kepocnhh.xfiles.module.app.Encrypted
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.Sizes
@@ -47,6 +48,7 @@ import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.PathNames
+import org.kepocnhh.xfiles.provider.data.FinalEncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
@@ -179,7 +181,10 @@ internal class App : Application() {
                 main = Dispatchers.Main,
                 default = Dispatchers.Default,
             ),
-            files = FinalEncryptedFileProvider(context = this),
+            encrypted = Encrypted(
+                files = FinalEncryptedFileProvider(context = this),
+                local = FinalEncryptedLocalDataProvider(context = this)
+            ),
             local = FinalLocalDataProvider(
                 context = this,
                 defaults = Defaults(
