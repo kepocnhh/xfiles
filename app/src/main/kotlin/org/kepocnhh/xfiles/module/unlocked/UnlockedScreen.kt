@@ -24,12 +24,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +43,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
@@ -59,7 +65,11 @@ import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.SecretKey
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 internal object UnlockedScreen {
     sealed interface Broadcast {
@@ -108,6 +118,30 @@ internal fun UnlockedScreen(
 ) {
 //    KeepScreenOn() // todo
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val lockedState = remember { mutableStateOf(false) }
+    val markStartState = remember { mutableStateOf(TimeSource.Monotonic.markNow()) }
+    val timeout = 10.seconds // todo
+    DisposableEffect(Unit) {
+        scope.launch {
+            withContext(Dispatchers.Default) {
+                var elapsed = markStartState.value.elapsedNow()
+                while (markStartState.value.elapsedNow() < timeout && !lockedState.value) {
+                    delay(0.1.seconds)
+                    if (elapsed.inWholeSeconds != markStartState.value.elapsedNow().inWholeSeconds) {
+                        println("[Unlocked]: elapsed: ${markStartState.value.elapsedNow()}")
+                        elapsed = markStartState.value.elapsedNow()
+                    }
+                }
+                if (!lockedState.value) {
+                    broadcast(UnlockedScreen.Broadcast.Lock)
+                }
+            }
+        }
+        onDispose {
+            lockedState.value = true
+        }
+    }
     /*
     DisposableEffect(Unit) {
         context.notifyAndStartForeground<ObserverService>(
@@ -122,6 +156,9 @@ internal fun UnlockedScreen(
     val viewModel = App.viewModel<UnlockedViewModel>()
     val logger = App.newLogger(tag = "[Unlocked|Screen]")
     val deleteState = remember { mutableStateOf<EncryptedValue?>(null) }
+    LaunchedEffect(deleteState.value) {
+        markStartState.value = TimeSource.Monotonic.markNow()
+    }
     DeletedDialog(
         state = deleteState,
         onConfirm = {
@@ -129,10 +166,18 @@ internal fun UnlockedScreen(
         },
     )
     val showState = remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(showState.value) {
+        if (showState.value != null) {
+            markStartState.value = TimeSource.Monotonic.markNow()
+        }
+    }
     ShowDialog(
         state = showState,
     )
     val addItemState = remember { mutableStateOf(false) }
+    LaunchedEffect(addItemState.value) {
+        markStartState.value = TimeSource.Monotonic.markNow()
+    }
     val loading by viewModel.loading.collectAsState(true)
     val encrypteds by viewModel.encrypteds.collectAsState(null)
     if (encrypteds == null) viewModel.requestValues(key)
