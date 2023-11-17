@@ -481,12 +481,11 @@ private fun EnterScreenPortrait(
     settingsState: MutableState<Boolean>,
     onBiometric: () -> Unit,
 ) {
-    val insets = LocalView.current.rootWindowInsets.toPaddings()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background)
-            .verticalPaddings(insets),
+            .padding(App.Theme.insets),
     ) {
         EnterScreenInfo(
             modifier = Modifier

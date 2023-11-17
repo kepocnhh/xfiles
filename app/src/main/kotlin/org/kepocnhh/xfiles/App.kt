@@ -8,6 +8,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -52,6 +54,7 @@ import org.kepocnhh.xfiles.provider.data.FinalEncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
+import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import sp.ax.jc.animations.style.LocalTweenStyle
 import sp.ax.jc.animations.style.TweenStyle
@@ -99,18 +102,19 @@ internal class App : Application() {
         private var _orientation: Orientation? = null
         val orientation: Orientation get() = checkNotNull(_orientation)
 
+        private var _insets: PaddingValues? = null
+        val insets: PaddingValues get() = checkNotNull(_insets) // todo
+
         @Composable
         fun Composition(
             themeState: ThemeState,
             content: @Composable () -> Unit,
         ) {
-            val logger = newLogger("[Composition]")
             val colors = when (themeState.colorsType) {
                 ColorsType.DARK -> Colors.dark
                 ColorsType.LIGHT -> Colors.light
                 ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.dark else Colors.light
             }
-            logger.debug("colors: $colors")
             val durations = Durations(
 //                animation = 250.milliseconds,
                 animation = 500.milliseconds,
@@ -123,6 +127,7 @@ internal class App : Application() {
                 fontFamily = FontFamily.Default,
                 fontSize = 14.sp, // todo
             )
+            _insets = LocalView.current.rootWindowInsets.toPaddings()
             CompositionLocalProvider(
                 LocalColors provides colors,
                 LocalDurations provides durations,

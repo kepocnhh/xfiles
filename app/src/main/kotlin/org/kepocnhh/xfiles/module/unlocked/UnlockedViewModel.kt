@@ -19,7 +19,7 @@ import javax.crypto.spec.IvParameterSpec
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         data class OnCopy(val secret: String) : Broadcast
-        class OnShow(val secret: String) : Broadcast
+        data class OnShow(val secret: String) : Broadcast
     }
 
     private val logger = injection.loggers.newLogger("[Unlocked|VM]")
@@ -107,19 +107,28 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
+    private fun decrypted(key: SecretKey): JSONObject {
+        return JSONObject(decrypt(key).toString(Charsets.UTF_8))
+    }
+
     fun requestValues(key: SecretKey) {
+        logger.debug("request values...")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                JSONObject(decrypt(key).toString(Charsets.UTF_8)).toMap()
+                decrypted(key)
+                    .getJSONObject("secrets")
+                    .toMap()
             }
         }
     }
 
     fun requestToCopy(key: SecretKey, id: String) {
+        logger.debug("request to copy: $id")
         loading {
             logger.debug("request to copy: $id")
             val secret = withContext(injection.contexts.default) {
-                JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                decrypted(key)
+                    .getJSONObject("secrets")
                     .getJSONObject(id)
                     .getString("secret")
             }
@@ -128,9 +137,11 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     fun requestToShow(key: SecretKey, id: String) {
+        logger.debug("request to show: $id")
         loading {
             val secret = withContext(injection.contexts.default) {
-                JSONObject(decrypt(key).toString(Charsets.UTF_8))
+                decrypted(key)
+                    .getJSONObject("secrets")
                     .getJSONObject(id)
                     .getString("secret")
             }
@@ -139,37 +150,45 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     fun addValue(key: SecretKey, title: String, secret: String) {
+        logger.debug("add: $title")
         check(title.isNotBlank())
         check(secret.isNotBlank())
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
-                jsonObject.put(
-                    generateSequence(UUID.randomUUID()::toString)
-                        .firstOrNull { !jsonObject.has(it) }
-                        ?: TODO(),
+                val decrypted = decrypted(key)
+                val secrets = decrypted.getJSONObject("secrets")
+                val id = generateSequence(UUID.randomUUID()::toString)
+                    .firstOrNull { !secrets.has(it) }
+                    ?: TODO()
+                logger.debug("generate id: $id")
+                secrets.put(
+                    id,
                     JSONObject().put("title", title).put("secret", secret),
                 )
+                decrypted.put("updated", System.currentTimeMillis())
                 encrypt(
                     key = key,
-                    decrypted = jsonObject.toString().toByteArray(),
+                    decrypted = decrypted.toString().toByteArray(),
                 )
-                jsonObject.toMap()
+                secrets.toMap()
             }
         }
     }
 
     fun deleteValue(key: SecretKey, id: String) {
+        logger.debug("delete: $id")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                val jsonObject = JSONObject(decrypt(key).toString(Charsets.UTF_8))
-                if (!jsonObject.has(id)) TODO()
-                jsonObject.remove(id)
+                val decrypted = decrypted(key)
+                val secrets = decrypted.getJSONObject("secrets")
+                if (!secrets.has(id)) TODO()
+                secrets.remove(id)
+                decrypted.put("updated", System.currentTimeMillis())
                 encrypt(
                     key = key,
-                    decrypted = jsonObject.toString().toByteArray(),
+                    decrypted = decrypted.toString().toByteArray(),
                 )
-                jsonObject.toMap()
+                secrets.toMap()
             }
         }
     }

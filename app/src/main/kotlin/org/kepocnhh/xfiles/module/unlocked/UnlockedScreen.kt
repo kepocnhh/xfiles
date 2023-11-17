@@ -215,7 +215,11 @@ internal fun UnlockedScreen(
     }
     val loading by viewModel.loading.collectAsState(true)
     val encrypteds by viewModel.encrypteds.collectAsState(null)
-    if (encrypteds == null) viewModel.requestValues(key)
+    LaunchedEffect(encrypteds) {
+        if (encrypteds == null) {
+            viewModel.requestValues(key)
+        }
+    }
     BackHandler {
         if (!loading) {
             broadcast(UnlockedScreen.Broadcast.Lock)

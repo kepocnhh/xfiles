@@ -11,6 +11,7 @@ import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.EncryptedFileProvider
 import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
@@ -24,6 +25,7 @@ import java.security.Provider
 import java.security.interfaces.DSAParams
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
+import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
@@ -103,7 +105,12 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 check(private.params)
             }
         }
-        val decrypted = "{}".toByteArray()
+        val decrypted = JSONObject()
+            .put("id", injection.encrypted.local.databaseId!!.toString())
+            .put("updated", System.currentTimeMillis())
+            .put("secrets", JSONObject())
+            .toString()
+            .toByteArray()
         val cipher = injection.security(services).getCipher()
         val key = injection.security(services)
             .getSecretKeyFactory()
@@ -124,11 +131,16 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     }
 
     fun createNewFile(pin: String, cipher: Cipher?) {
+        logger.debug("create...")
         injection.launch {
             _state.value = state.value!!.copy(loading = true)
             val key = withContext(injection.contexts.default) {
+                val databaseId = UUID.randomUUID()
+                logger.debug("databaseId: $databaseId")
+                injection.encrypted.local.databaseId = databaseId
                 val password = getPassword(pin = pin)
                 if (cipher != null) {
+                    logger.debug("cipher exists")
                     val encrypted = cipher.doFinal(password.toByteArray())
                     val biometric = JSONObject()
                         .put("password", encrypted.base64())
@@ -147,6 +159,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         injection.launch {
             _state.value = state.value!!.copy(loading = true)
             withContext(injection.contexts.default) {
+                injection.encrypted.local.databaseId = null
                 injection.encrypted.files.delete(injection.pathNames.dataBase)
             }
             _state.value = withContext(injection.contexts.default) {
@@ -166,14 +179,25 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     private fun getPassword(pin: String): String {
         val services = injection.local.services ?: TODO()
         val md = injection.security(services).getMessageDigest()
-        return md.digest(pin.toByteArray()).base64()
+        val bytes = listOf(
+            pin,
+            injection.encrypted.local.deviceId!!,
+            injection.encrypted.local.appId!!.toString(),
+            injection.encrypted.local.databaseId!!.toString(),
+        ).joinToString(separator = "").toByteArray()
+        return md.digest(bytes).base64()
+    }
+
+    private fun EncryptedFileProvider.readJson(pathname: String): JSONObject {
+        return JSONObject(readText(pathname))
     }
 
     private fun unlock(password: String, securitySettings: SecuritySettings): SecretKey {
         val services = injection.local.services ?: TODO()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val pbeIterations = SecurityUtil.getValue(securitySettings.pbeIterations)
-        val meta = JSONObject(injection.encrypted.files.readText(injection.pathNames.symmetric)).toKeyMeta()
+        val meta = injection.encrypted.files.readJson(injection.pathNames.symmetric).toKeyMeta()
+        logger.debug("salt: " + meta.salt.contentToString())
         val cipher = injection.security(services).getCipher()
         val key = injection.security(services)
             .getSecretKeyFactory()
@@ -189,7 +213,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 key = injection.security(services)
                     .getKeyFactory()
                     .generatePublic(
-                        bytes = JSONObject(injection.encrypted.files.readText(injection.pathNames.asymmetric))
+                        bytes = injection.encrypted.files.readJson(injection.pathNames.asymmetric)
                             .getString("public")
                             .base64(),
                     ),
@@ -197,10 +221,16 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 sig = injection.encrypted.files.readBytes(injection.pathNames.dataBaseSignature),
             )
         check(verified)
+        val actualId = JSONObject(decrypted.toString(Charsets.UTF_8))
+            .getString("id")
+            .let(UUID::fromString)
+        check(injection.encrypted.local.databaseId!! == actualId)
+        logger.debug("unlocked: $actualId")
         return key
     }
 
     fun unlockFile(pin: String) {
+        logger.debug("unlock...")
         injection.launch {
             _state.value = state.value!!.copy(loading = true)
             val result = withContext(injection.contexts.default) {
@@ -212,6 +242,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             }
             result.fold(
                 onFailure = {
+                    logger.warning("unlock error: $it")
                     _state.value = withContext(injection.contexts.default) {
                         State(exists = true, hasBiometric = injection.local.securitySettings.hasBiometric)
                     }
@@ -225,12 +256,12 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     }
 
     fun unlockFile(cipher: Cipher) {
+        logger.debug("unlock with cipher...")
         injection.launch {
             _state.value = state.value!!.copy(loading = true)
             val key = withContext(injection.contexts.default) {
                 val securitySettings = injection.local.securitySettings
-                val password = injection.encrypted.files.readText(injection.pathNames.biometric)
-                    .let(::JSONObject)
+                val password = injection.encrypted.files.readJson(injection.pathNames.biometric)
                     .getString("password")
                     .base64()
                     .let(cipher::doFinal)
@@ -245,8 +276,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         injection.launch {
             _state.value = state.value!!.copy(loading = true)
             val iv = withContext(injection.contexts.default) {
-                injection.encrypted.files.readText(injection.pathNames.biometric)
-                    .let(::JSONObject)
+                injection.encrypted.files.readJson(injection.pathNames.biometric)
                     .getString("iv")
                     .base64()
             }
