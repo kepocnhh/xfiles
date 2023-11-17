@@ -97,7 +97,7 @@ internal inline fun <reified T : Service> Context.notifyAndStartForeground(id: I
         context = this,
         title = title,
     )
-    notifyAndStartForeground(id = id, notification = notification)
+    notifyAndStartForeground<T>(id = id, notification = notification)
 }
 
 internal inline fun <reified T : Service> Context.stopForeground(
