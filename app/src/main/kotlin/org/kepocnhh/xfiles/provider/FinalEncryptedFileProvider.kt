@@ -1,8 +1,11 @@
 package org.kepocnhh.xfiles.provider
 
 import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedFile
 import androidx.security.crypto.MasterKeys
+import org.kepocnhh.xfiles.BuildConfig
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -14,7 +17,7 @@ internal class FinalEncryptedFileProvider(
         return EncryptedFile.Builder(
             this,
             context,
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+            MasterKeys.getOrCreate(getSpec()),
             EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB,
         ).build()
     }
@@ -36,6 +39,25 @@ internal class FinalEncryptedFileProvider(
         file.delete()
         file.encrypted().openFileOutput().use {
             it.write(bytes)
+        }
+    }
+
+    companion object {
+        private const val KEY_ALIAS = BuildConfig.APPLICATION_ID + ":encrypted:files"
+        private const val KEY_SIZE = 256
+
+        private fun getSpec(): KeyGenParameterSpec {
+            val purposes = KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            val blocks = KeyProperties.BLOCK_MODE_GCM
+//            val blocks = KeyProperties.BLOCK_MODE_CBC
+            val paddings = KeyProperties.ENCRYPTION_PADDING_NONE
+//            val paddings = KeyProperties.ENCRYPTION_PADDING_PKCS7
+            return KeyGenParameterSpec
+                .Builder(KEY_ALIAS, purposes)
+                .setBlockModes(blocks)
+                .setEncryptionPaddings(paddings)
+                .setKeySize(KEY_SIZE)
+                .build()
         }
     }
 }

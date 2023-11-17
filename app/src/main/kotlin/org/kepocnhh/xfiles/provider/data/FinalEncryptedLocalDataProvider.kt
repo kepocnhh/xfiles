@@ -13,7 +13,7 @@ import javax.crypto.KeyGenerator
 internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLocalDataProvider {
     private val preferences = EncryptedSharedPreferences.create(
         BuildConfig.APPLICATION_ID + "_encrypted_shared_preferences",
-        getOrCreate(KEY_ALIAS),
+        MasterKeys.getOrCreate(getSpec()),
         context,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
