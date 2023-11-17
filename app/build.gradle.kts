@@ -169,8 +169,8 @@ androidComponents.onVariants { variant ->
                 }
                 val applicationId by variant.applicationId
                 val expected = setOf(
-                    "android.permission.FOREGROUND_SERVICE",
-                    "android.permission.POST_NOTIFICATIONS",
+//                    "android.permission.FOREGROUND_SERVICE",
+//                    "android.permission.POST_NOTIFICATIONS",
                     "android.permission.USE_BIOMETRIC",
                     "android.permission.USE_FINGERPRINT",
                     "android.permission.VIBRATE",

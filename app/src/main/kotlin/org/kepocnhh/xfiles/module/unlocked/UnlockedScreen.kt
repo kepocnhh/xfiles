@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -46,17 +45,11 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.module.app.Colors
-import org.kepocnhh.xfiles.module.observer.ObserverService
 import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
-import org.kepocnhh.xfiles.util.android.ForegroundUtil
-import org.kepocnhh.xfiles.util.android.notifyAndStartForeground
 import org.kepocnhh.xfiles.util.android.showToast
-import org.kepocnhh.xfiles.util.android.stopForeground
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
-import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
-import org.kepocnhh.xfiles.util.compose.KeepScreenOn
 import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.screenHeight
@@ -115,6 +108,7 @@ internal fun UnlockedScreen(
 ) {
 //    KeepScreenOn() // todo
     val context = LocalContext.current
+    /*
     DisposableEffect(Unit) {
         context.notifyAndStartForeground<ObserverService>(
             id = ObserverService.TIMER_NOTIFICATION_ID,
@@ -124,6 +118,7 @@ internal fun UnlockedScreen(
             context.stopForeground<ObserverService>()
         }
     }
+    */
     val viewModel = App.viewModel<UnlockedViewModel>()
     val logger = App.newLogger(tag = "[Unlocked|Screen]")
     val deleteState = remember { mutableStateOf<EncryptedValue?>(null) }
