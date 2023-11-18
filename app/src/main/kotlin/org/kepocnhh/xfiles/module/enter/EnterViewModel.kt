@@ -163,7 +163,15 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             _state.value = state.value!!.copy(loading = true)
             withContext(injection.contexts.default) {
                 injection.encrypted.local.databaseId = null
-                injection.encrypted.files.delete(injection.pathNames.dataBase)
+                setOf(
+                    injection.pathNames.symmetric,
+                    injection.pathNames.asymmetric,
+                    injection.pathNames.dataBase,
+                    injection.pathNames.dataBaseSignature,
+                    injection.pathNames.biometric,
+                ).forEach { pathName ->
+                    injection.encrypted.files.delete(pathName)
+                }
             }
             _state.value = withContext(injection.contexts.default) {
                 State(exists = false, hasBiometric = injection.local.securitySettings.hasBiometric)

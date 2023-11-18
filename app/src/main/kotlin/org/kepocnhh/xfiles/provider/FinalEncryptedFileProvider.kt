@@ -27,7 +27,7 @@ internal class FinalEncryptedFileProvider(
     }
 
     override fun delete(pathname: String) {
-        check(context.filesDir.resolve(pathname).delete())
+        context.filesDir.resolve(pathname).delete()
     }
 
     override fun openInput(pathname: String): FileInputStream {
