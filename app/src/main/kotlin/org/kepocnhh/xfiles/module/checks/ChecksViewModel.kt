@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
@@ -81,18 +82,16 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                     injection.local.services = services
                 }
                 ChecksType.IDS -> {
-                    if (injection.encrypted.local.deviceId == null) {
-                        val deviceId = mapOf(
-                            "manufacturer" to Build.MANUFACTURER,
-                            "brand" to Build.BRAND,
-                            "model" to Build.MODEL,
-                            "device" to Build.DEVICE,
-                            "supported_abis" to Build.SUPPORTED_ABIS.joinToString(separator = "/"),
-                        ).entries.joinToString(separator = "-") { (key, value) ->
-                            "$key:$value"
-                        }
-                        injection.encrypted.local.deviceId = deviceId
-                        logger.debug("deviceId: $deviceId")
+                    if (injection.local.device == null) {
+                        val device = Device(
+                            manufacturer = Build.MANUFACTURER,
+                            brand = Build.BRAND,
+                            model = Build.MODEL,
+                            name = Build.DEVICE,
+                            supportedABIs = Build.SUPPORTED_ABIS.toSet(),
+                        )
+                        injection.local.device = device
+                        logger.debug("device: $device")
                     }
                     if (injection.encrypted.local.appId == null) {
                         val appId = UUID.randomUUID()

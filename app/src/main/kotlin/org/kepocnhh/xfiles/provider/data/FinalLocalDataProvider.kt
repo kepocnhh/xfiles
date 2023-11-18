@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import org.kepocnhh.xfiles.BuildConfig
 import org.kepocnhh.xfiles.entity.Defaults
+import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.entity.SecuritySettings
@@ -115,5 +116,49 @@ internal class FinalLocalDataProvider(
                 .putString("pbeIterations", value.pbeIterations.name)
                 .putBoolean("hasBiometric", value.hasBiometric)
                 .commit()
+        }
+
+    override var device: Device?
+        get() {
+            val exists = preferences.getBoolean("device:exists", false)
+            if (!exists) return null
+            return Device(
+                manufacturer = preferences
+                    .getString("manufacturer", null)
+                    .orEmpty(),
+                brand = preferences
+                    .getString("brand", null)
+                    .orEmpty(),
+                model = preferences
+                    .getString("model", null)
+                    .orEmpty(),
+                name = preferences
+                    .getString("name", null)
+                    .orEmpty(),
+                supportedABIs = preferences
+                    .getStringSet("supportedABIs", null)
+                    .orEmpty(),
+            )
+        }
+        set(value) {
+            if (value == null) {
+                preferences.edit()
+                    .putBoolean("device:exists", false)
+                    .remove("manufacturer")
+                    .remove("brand")
+                    .remove("model")
+                    .remove("name")
+                    .remove("supportedABIs")
+                    .commit()
+            } else {
+                preferences.edit()
+                    .putBoolean("device:exists", true)
+                    .putString("manufacturer", value.manufacturer)
+                    .putString("brand", value.brand)
+                    .putString("model", value.model)
+                    .putString("name", value.name)
+                    .putStringSet("supportedABIs", value.supportedABIs)
+                    .commit()
+            }
         }
 }

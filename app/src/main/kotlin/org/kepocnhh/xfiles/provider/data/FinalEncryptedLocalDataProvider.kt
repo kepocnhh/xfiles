@@ -19,22 +19,6 @@ internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLoca
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 
-    override var deviceId: String?
-        get() {
-            return preferences.getString("deviceId", null)
-        }
-        set(value) {
-            preferences
-                .edit()
-                .also {
-                    if (value == null) {
-                        it.remove("deviceId")
-                    } else {
-                        it.putString("deviceId", value)
-                    }
-                }
-                .commit()
-        }
     override var appId: UUID?
         get() {
             return preferences.getString("appId", null)?.let(UUID::fromString)
@@ -51,6 +35,7 @@ internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLoca
                 }
                 .commit()
         }
+
     override var databaseId: UUID?
         get() {
             return preferences.getString("databaseId", null)?.let(UUID::fromString)

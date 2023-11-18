@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecurityServices
@@ -20,6 +21,8 @@ import org.kepocnhh.xfiles.util.security.SecurityUtil
 import org.kepocnhh.xfiles.util.security.getServiceOrNull
 import org.kepocnhh.xfiles.util.security.requireService
 import org.kepocnhh.xfiles.util.security.toSecurityService
+import java.nio.ByteBuffer
+import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.Provider
 import java.security.interfaces.DSAParams
@@ -176,12 +179,30 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         )
     }
 
+    private fun Device.toUUID(): UUID {
+        // todo
+        val md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
+        val input = mapOf(
+            "manufacturer" to manufacturer,
+            "brand" to brand,
+            "model" to model,
+            "name" to name,
+            "supportedABIs" to supportedABIs.joinToString(prefix = "[", separator = ",", postfix = "]"),
+        ).entries.joinToString(separator = ",") { (key, value) ->
+            "$key=$value"
+        }
+        val digest = md.digest(input.toByteArray())
+        check(digest.size == 16)
+        val buffer = ByteBuffer.wrap(digest)
+        return UUID(buffer.long, buffer.long)
+    }
+
     private fun getPassword(pin: String): String {
         val services = injection.local.services ?: TODO()
         val md = injection.security(services).getMessageDigest()
         val bytes = listOf(
             pin,
-            injection.encrypted.local.deviceId!!,
+            injection.local.device!!.toUUID().toString(),
             injection.encrypted.local.appId!!.toString(),
             injection.encrypted.local.databaseId!!.toString(),
         ).joinToString(separator = "").toByteArray()
