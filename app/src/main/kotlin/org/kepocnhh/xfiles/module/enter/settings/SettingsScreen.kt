@@ -60,6 +60,7 @@ private fun Columns(modifier: Modifier, sizes: SettingsScreen.Sizes) {
             } else {
                 SettingsCipher(editable = !exists)
             }
+            SettingsVersion()
         }
     }
 }
