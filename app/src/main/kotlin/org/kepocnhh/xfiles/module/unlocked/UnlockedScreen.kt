@@ -44,6 +44,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,7 @@ import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
 import org.kepocnhh.xfiles.util.android.findActivity
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
+import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
@@ -498,15 +501,32 @@ private fun UnlockedScreenPortrait(
     ) {
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
         val insets = LocalView.current.rootWindowInsets.toPaddings()
+        FadeVisibility(
+            modifier = Modifier
+                .align(Alignment.Center),
+            visible = !loading && encrypteds != null && encrypteds.isEmpty(),
+        ) {
+            val text = "There are no entries yet.\nClick on [%s](+) to add a new one." // todo lang
+            val tag = "addItem"
+            ClickableText(
+                modifier = Modifier
+                    .padding(horizontal = App.Theme.sizes.small),
+                text = String.format(text, tag),
+                style = App.Theme.textStyle.copy(fontSize = 16.sp, textAlign = TextAlign.Center),
+                styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
+                onClick = {
+                    when (it) {
+                        tag -> onAdd()
+                    }
+                },
+            )
+        }
         when {
             encrypteds == null -> {
                 // todo
             }
             encrypteds.isEmpty() -> {
-                BasicText(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "no items", // todo
-                )
+                // noop
             }
             else -> {
                 Encrypteds(
