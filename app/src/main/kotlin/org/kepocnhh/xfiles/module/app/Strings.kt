@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 @Immutable
 internal interface Strings {
     val yes: String
+    val no: String
     val noDatabase: String
     val databaseExists: String
     val databaseDelete: String
@@ -31,6 +32,7 @@ internal interface Strings {
         val dsa: String,
         val keyLength: String,
         val iterations: String,
+        val hasBiometric: String,
     )
 
     val enter: Enter

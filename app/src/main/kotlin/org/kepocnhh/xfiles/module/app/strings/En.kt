@@ -4,6 +4,7 @@ import org.kepocnhh.xfiles.module.app.Strings
 
 internal object En : Strings {
     override val yes: String = "Yes"
+    override val no: String = "No"
 
     override val noDatabase = "There is no database yet. Enter the pin code to create a new secure database."
     override val databaseExists = "The database exists. Enter the pin code to unlock."
@@ -28,6 +29,7 @@ internal object En : Strings {
         pbe = "PBE",
         keyLength = "Key length",
         iterations = "Iterations",
+        hasBiometric = "Has biometric",
     )
 
     override val enter = Strings.Enter(

@@ -39,7 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
@@ -147,7 +149,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         }
     }
     val strings = App.Theme.strings
-    LaunchedEffect(Unit) {
+    LaunchedEffect(strings) {
         BiometricUtil.broadcast.collect { broadcast ->
             when (broadcast) {
                 is BiometricUtil.Broadcast.OnSucceeded -> {

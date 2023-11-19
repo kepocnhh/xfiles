@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,21 +39,16 @@ private fun SettingsCipher(cipher: SecurityService?) {
         modifier = Modifier
             .fillMaxWidth()
             .height(SettingsScreen.LocalSizes.current.rowHeight)
-            .padding(start = App.Theme.sizes.small, end = App.Theme.sizes.small),
+            .padding(horizontal = App.Theme.sizes.small),
     ) {
         BasicText(
             modifier = Modifier.align(Alignment.CenterStart),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
-            ),
+            style = App.Theme.textStyle,
             text = App.Theme.strings.settings.cipher,
         )
         BasicText(
             modifier = Modifier.align(Alignment.CenterEnd),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
@@ -102,28 +98,21 @@ internal fun SettingsAES(keyLength: SecuritySettings.AESKeyLength) {
             modifier = Modifier
                 .padding(start = App.Theme.sizes.small)
                 .align(Alignment.CenterStart),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontFamily = FontFamily.Monospace,
             ),
             text = App.Theme.strings.settings.aes,
         )
         BasicText(
             modifier = Modifier.align(Alignment.Center),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
-            ),
+            style = App.Theme.textStyle,
             text = App.Theme.strings.settings.keyLength,
         )
         BasicText(
             modifier = Modifier
                 .padding(end = App.Theme.sizes.small)
                 .align(Alignment.CenterEnd),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
@@ -144,13 +133,11 @@ internal fun SettingsDSAStrengthRow(
             .height(App.Theme.sizes.xxxl)
             .background(App.Theme.colors.background)
             .clickable(onClick = onClick)
-            .padding(start = App.Theme.sizes.small, end = App.Theme.sizes.small),
+            .padding(horizontal = App.Theme.sizes.small),
     ) {
         BasicText(
             modifier = Modifier.align(Alignment.Center),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
@@ -188,28 +175,21 @@ internal fun SettingsDSA(
             modifier = Modifier
                 .padding(start = App.Theme.sizes.small)
                 .align(Alignment.CenterStart),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontFamily = FontFamily.Monospace,
             ),
             text = App.Theme.strings.settings.dsa,
         )
         BasicText(
             modifier = Modifier.align(Alignment.Center),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
-            ),
+            style = App.Theme.textStyle,
             text = App.Theme.strings.settings.keyLength,
         )
         BasicText(
             modifier = Modifier
                 .padding(end = App.Theme.sizes.small)
                 .align(Alignment.CenterEnd),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
@@ -229,10 +209,7 @@ internal fun SettingsDSA(
                         color = App.Theme.colors.background,
                         shape = RoundedCornerShape(App.Theme.sizes.medium),
                     )
-                    .padding(
-                        top = App.Theme.sizes.medium,
-                        bottom = App.Theme.sizes.medium,
-                    ),
+                    .padding(vertical = App.Theme.sizes.medium),
             ) {
                 setOf(
                     SecuritySettings.DSAKeyLength.BITS_1024_1,
@@ -265,22 +242,18 @@ internal fun SettingsPBEIterationsRow(
             .height(App.Theme.sizes.xxxl)
             .background(App.Theme.colors.background)
             .clickable(onClick = onClick)
-            .padding(start = App.Theme.sizes.small, end = App.Theme.sizes.small),
+            .padding(horizontal = App.Theme.sizes.small),
     ) {
         BasicText(
             modifier = Modifier.align(Alignment.CenterStart),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
             ),
             text = getPretty(value),
         )
         BasicText(
             modifier = Modifier.align(Alignment.Center),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
@@ -318,28 +291,21 @@ internal fun SettingsPBE(
             modifier = Modifier
                 .padding(start = App.Theme.sizes.small)
                 .align(Alignment.CenterStart),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontFamily = FontFamily.Monospace,
             ),
             text = App.Theme.strings.settings.pbe,
         )
         BasicText(
             modifier = Modifier.align(Alignment.Center),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
-            ),
+            style = App.Theme.textStyle,
             text = App.Theme.strings.settings.iterations,
         )
         BasicText(
             modifier = Modifier
                 .padding(end = App.Theme.sizes.small)
                 .align(Alignment.CenterEnd),
-            style = TextStyle(
-                color = App.Theme.colors.foreground,
-                fontSize = 14.sp,
+            style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
             ),
             text = getPretty(iterations),
@@ -358,10 +324,7 @@ internal fun SettingsPBE(
                         color = App.Theme.colors.background,
                         shape = RoundedCornerShape(App.Theme.sizes.medium),
                     )
-                    .padding(
-                        top = App.Theme.sizes.medium,
-                        bottom = App.Theme.sizes.medium,
-                    ),
+                    .padding(vertical = App.Theme.sizes.medium),
             ) {
                 setOf(
                     SecuritySettings.PBEIterations.NUMBER_2_10,
@@ -374,7 +337,7 @@ internal fun SettingsPBE(
                         onClick = {
                             onSelectIterations(value)
                             dialogState.value = false
-                        }
+                        },
                     )
                 }
             }
@@ -386,12 +349,16 @@ internal fun SettingsPBE(
 internal fun SettingsCipher(editable: Boolean) {
     val viewModel = App.viewModel<SettingsViewModel>()
     val cipher by viewModel.cipher.collectAsState(null)
-    if (cipher == null) {
-        viewModel.requestCipher()
+    LaunchedEffect(Unit) {
+        if (cipher == null) {
+            viewModel.requestCipher()
+        }
     }
     val settings = viewModel.settings.collectAsState(null).value
-    if (settings == null) {
-        viewModel.requestSettings()
+    LaunchedEffect(Unit) {
+        if (settings == null) {
+            viewModel.requestSettings()
+        }
     }
     Column {
         SettingsCipher(cipher)
@@ -438,7 +405,7 @@ private fun SettingsHasBiometric(
         BasicText(
             modifier = Modifier.align(Alignment.CenterStart),
             style = App.Theme.textStyle,
-            text = "Has biometric", // todo lang
+            text = App.Theme.strings.settings.hasBiometric,
         )
         BasicText(
             modifier = Modifier.align(Alignment.CenterEnd),
@@ -446,7 +413,7 @@ private fun SettingsHasBiometric(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
-            text = if (hasBiometric) App.Theme.strings.yes else "no", // todo lang
+            text = if (hasBiometric) App.Theme.strings.yes else App.Theme.strings.no,
         )
     }
 }

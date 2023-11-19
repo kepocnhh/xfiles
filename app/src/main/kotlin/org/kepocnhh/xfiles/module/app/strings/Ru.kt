@@ -4,6 +4,7 @@ import org.kepocnhh.xfiles.module.app.Strings
 
 internal object Ru : Strings {
     override val yes: String = "Да"
+    override val no: String = "Нет"
 
     override val noDatabase = "Базы данных пока нет. Введите пин-код, чтобы создать новую защищенную базу данных."
     override val databaseExists = "База данных существует. Введите пинкод чтобы разблокировать."
@@ -28,10 +29,11 @@ internal object Ru : Strings {
         pbe = "PBE",
         keyLength = "Длина ключа",
         iterations = "Количество итераций",
+        hasBiometric = "Использовать биометрию",
     )
 
     override val enter = Strings.Enter(
-        cantAuthWithDC = TODO(),
-        unrecoverableDC = TODO(),
+        cantAuthWithDC = "Невозможно выполнить аутентификацию с использованием учетных данных устройства!",
+        unrecoverableDC = "Учетные данные устройства больше не могут использоваться для аутентификации!",
     )
 }
