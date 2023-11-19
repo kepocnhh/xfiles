@@ -34,9 +34,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -441,6 +443,9 @@ private fun Encrypteds(
     items: Map<String, String>,
     itemContent: @Composable (EncryptedValue) -> Unit,
 ) {
+    val visibleMap = remember {
+        items.map { (key, _) -> key to true }.toMutableStateMap()
+    }
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(itemsPadding, itemsAlign),
@@ -454,7 +459,12 @@ private fun Encrypteds(
         ) { index ->
             val id = keys[index]
             val title = items[id] ?: TODO()
-            itemContent(EncryptedValue(id = id, title = title))
+            SlideHVisibility(visible = visibleMap[id] ?: false) {
+                itemContent(EncryptedValue(id = id, title = title))
+            }
+            LaunchedEffect(id) {
+                visibleMap[id] = true
+            }
         }
     }
 }
