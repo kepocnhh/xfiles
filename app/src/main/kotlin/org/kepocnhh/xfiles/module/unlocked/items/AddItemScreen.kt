@@ -159,6 +159,16 @@ private fun KeyboardSwitch(
     }
 }
 
+private fun MutableMap<Focused, String>.putChar(
+    maxLength: Int,
+    focused: Focused,
+    char: Char,
+) {
+    if (this[focused].orEmpty().length < maxLength) {
+        this[focused] = this[focused].orEmpty() + char
+    }
+}
+
 @Composable
 private fun Keyboard(
     margin: PaddingValues,
@@ -215,13 +225,20 @@ private fun Keyboard(
                 style = textStyle,
             )
         }
+//        val maxLength = 4 // todo
+        val maxLength = 24
+        val enabled = values[focused].orEmpty().length < maxLength
         KeyboardRows(
             modifier = Modifier
                 .fillMaxWidth(),
-            enabled = true, // todo
+            enabled = enabled,
             rows = rowsState.value,
-            onClick = {
-                values[focused] = values[focused].orEmpty() + it
+            onClick = { char ->
+                values.putChar(
+                    maxLength = maxLength,
+                    focused = focused,
+                    char = char,
+                )
             },
         )
         Row(
@@ -239,8 +256,12 @@ private fun Keyboard(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .clickable(enabled = true) {
-                        values[focused] = values[focused].orEmpty() + ' '
+                    .clickable(enabled = enabled) {
+                        values.putChar(
+                            maxLength = maxLength,
+                            focused = focused,
+                            char = ' ',
+                        )
                     }
                     .wrapContentHeight(),
                 text = App.Theme.strings.keyboard.space,

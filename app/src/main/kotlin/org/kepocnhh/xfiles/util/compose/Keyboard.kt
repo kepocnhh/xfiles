@@ -1,6 +1,15 @@
 package org.kepocnhh.xfiles.util.compose
 
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +20,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -19,6 +36,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import sp.ax.jc.clicks.clicks
 
@@ -52,6 +77,87 @@ private fun Char.up(): Char {
     return this
 }
 
+fun Modifier.foo(
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+): Modifier {
+    return composed {
+        Modifier.foo(
+            enabled = enabled,
+            interactionSource = remember { MutableInteractionSource() },
+            indication = LocalIndication.current,
+            onClick = onClick,
+            onLongClick = onLongClick,
+        )
+    }
+}
+
+fun Modifier.foo(
+    enabled: Boolean = true,
+    interactionSource: MutableInteractionSource,
+    indication: Indication,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+): Modifier {
+    return composed {
+        val onClickState = rememberUpdatedState(onClick)
+        val onLongClickState = rememberUpdatedState(onLongClick)
+//        val currentPressInteractions = remember { mutableStateListOf<PressInteraction.Press>() }
+        val lastPressState = remember { mutableStateOf<PressInteraction.Press?>(null) }
+//        val currentPressState = remember { mutableStateOf<PressInteraction.Press?>(null) }
+//        LaunchedEffect(currentPressState.value, lastPressState.value) {
+//            val currentPress = currentPressState.value
+//            val lastPress = lastPressState.value
+//            if (currentPress == null) {
+//                // noop
+//            } else if (lastPress == null) {
+//                lastPressState.value = currentPress
+//            } else if (lastPress != currentPress) {
+//                println("[Foo]: press: " + lastPress.hashCode() + " last is not current")
+//                interactionSource.emit(PressInteraction.Cancel(lastPress))
+//                lastPressState.value = currentPress
+//            }
+//        }
+        LaunchedEffect(lastPressState.value, enabled) {
+            val lastPress = lastPressState.value
+            if (lastPress != null && !enabled) {
+                println("[Foo]: press: " + lastPress.hashCode() + " cancel") // todo
+                interactionSource.emit(PressInteraction.Cancel(lastPress))
+                lastPressState.value = null
+            }
+        }
+        Modifier
+            .indication(interactionSource = interactionSource, indication = indication)
+//            .hoverable(enabled = enabled, interactionSource = interactionSource)
+//            .focusable(enabled = enabled, interactionSource = interactionSource)
+            .pointerInput(enabled, interactionSource) {
+                detectTapGestures(
+                    onPress = { offset ->
+                        if (enabled) {
+                            val press = PressInteraction.Press(offset)
+                            println("[Foo]: press: " + press.hashCode()) // todo
+                            lastPressState.value = press
+                            interactionSource.emit(press)
+                            if (tryAwaitRelease()) {
+                                interactionSource.emit(PressInteraction.Release(press))
+                            } else {
+                                interactionSource.emit(PressInteraction.Cancel(press))
+                            }
+                            lastPressState.value = null
+                        }
+                    },
+                    onLongPress = {
+                        if (enabled) onLongClickState.value()
+                    },
+                    onTap = {
+                        if (enabled) onClickState.value()
+                    },
+                )
+            }
+    }
+}
+
 @Composable
 private fun KeyboardRow(
     height: Dp,
@@ -70,15 +176,16 @@ private fun KeyboardRow(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .clicks(
+//                    .combinedClickable() // todo
+                    .foo(
                         enabled = enabled,
                         onClick = {
                             onClick(it)
                         },
                         onLongClick = {
                             onClick(it.up())
-                        }
-                    )
+                        },
+                    ) // todo
                     .wrapContentHeight(),
                 text = it.toString(),
                 style = textStyle,
