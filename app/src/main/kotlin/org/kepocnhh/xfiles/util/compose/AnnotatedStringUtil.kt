@@ -27,6 +27,20 @@ internal fun AnnotatedString.Builder.append(
 }
 
 internal fun AnnotatedString.Builder.append(
+    color: Color,
+    char: Char,
+) {
+    val index = pushStyle(
+        SpanStyle(color = color),
+    )
+    try {
+        append(char)
+    } finally {
+        pop(index)
+    }
+}
+
+internal fun AnnotatedString.Builder.append(
     textStyle: TextStyle,
     text: String,
 ) {

@@ -15,16 +15,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -48,8 +51,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -77,6 +83,7 @@ import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import org.kepocnhh.xfiles.util.compose.append
 
 internal object UnlockedScreen {
     sealed interface Broadcast {
@@ -107,15 +114,52 @@ internal fun ShowDialog(
     state: MutableState<String?>,
 ) {
     val value = state.value ?: return
-    Dialog(
-        App.Theme.strings.yes to {
-            state.value = null
-        }, // todo
+    androidx.compose.ui.window.Dialog(
         onDismissRequest = {
             state.value = null
         },
-        message = value, // todo
-    )
+    ) {
+        Box(
+            modifier = Modifier
+                .defaultMinSize(minWidth = 280.dp, minHeight = Dp.Unspecified)
+                .background(color = App.Theme.colors.background, shape = RoundedCornerShape(28.dp))
+                .padding(PaddingValues(24.dp)),
+        ) {
+            val textStyle = if (value.length > 16) {
+                TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 2.sp,
+                )
+            } else {
+                TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 4.sp,
+                )
+            }
+            BasicText(
+                modifier = Modifier.align(Alignment.Center),
+                text = buildAnnotatedString {
+                    value.toCharArray().forEach {
+                        val color = if (Character.isDigit(it)) {
+                            Colors.digits
+                        } else if (Character.isUpperCase(it)) {
+                            App.Theme.colors.capitals
+                        } else if (Character.isLetter(it)) {
+                            App.Theme.colors.text
+                        } else {
+                            Colors.signs
+                        }
+                        append(color, it)
+                    }
+                },
+                minLines = 1,
+                maxLines = 1,
+                style = textStyle,
+            )
+        }
+    }
 }
 
 private fun ClipboardManager.getPrimaryClipTextOrNull(): CharSequence? {

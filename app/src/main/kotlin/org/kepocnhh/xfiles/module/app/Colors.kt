@@ -14,11 +14,14 @@ internal class Colors private constructor(
     val error: Color,
     val text: Color,
     val textHint: Color,
+    val capitals: Color,
     val icon: Color,
 ) {
     companion object {
         private val primary = Color(0xff1E88E5)
         private val error = Color(0xffe53935)
+        val digits = primary
+        val signs = Color(0xff09af00)
         private const val shift = 0x00101010
         private fun Color.shifted(shift: Int, times: Int): Color {
             check(shift != 0)
@@ -38,6 +41,7 @@ internal class Colors private constructor(
                 error = error,
                 text = white,
                 textHint = basement.shifted(shift, 4),
+                capitals = basement.shifted(shift, 10),
                 icon = white,
             )
         }
@@ -51,6 +55,7 @@ internal class Colors private constructor(
                 error = error,
                 text = black,
                 textHint = basement.shifted(-shift, 4),
+                capitals = basement.shifted(-shift, 10),
                 icon = black,
             )
         }
