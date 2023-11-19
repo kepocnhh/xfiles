@@ -63,13 +63,13 @@ internal fun Squares(
             cornerRadius = cornerRadius,
         )
         drawRoundRect(
-            color = color.copy(alpha = (alphaState.floatValue - 0.50f).ct(1f)),
+            color = color.copy(alpha = (alphaState.floatValue - 0.75f).ct(1f)),
             topLeft = Offset.Zero.copy(y = squareSize.height + paddingOffset.y),
             size = squareSize,
             cornerRadius = cornerRadius,
         )
         drawRoundRect(
-            color = color.copy(alpha = (alphaState.floatValue - 0.75f).ct(1f)),
+            color = color.copy(alpha = (alphaState.floatValue - 0.50f).ct(1f)),
             topLeft = Offset(
                 x = squareSize.width + paddingOffset.x,
                 y = squareSize.height + paddingOffset.y,
