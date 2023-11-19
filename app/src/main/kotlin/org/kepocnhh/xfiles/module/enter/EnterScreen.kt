@@ -77,12 +77,11 @@ internal object EnterScreen {
 
     enum class Error {
         UNLOCK,
-        SECURITY,
     }
 }
 
 @Composable
-internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) -> Unit) {
+internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val logger = App.newLogger("[Enter]")
     val viewModel = App.viewModel<EnterViewModel>()
     val state = viewModel.state.collectAsState().value
@@ -140,9 +139,6 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                     errorState.value = EnterScreen.Error.UNLOCK
                     context.getDefaultVibrator().vibrate(duration = durations.animation)
                 }
-                EnterViewModel.Broadcast.OnSecurityError -> {
-                    errorState.value = EnterScreen.Error.SECURITY
-                }
                 is EnterViewModel.Broadcast.OnBiometric -> {
                     logger.debug("on biometric...")
                     BiometricUtil.authenticate(activity, iv = broadcast.iv)
@@ -150,6 +146,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
             }
         }
     }
+    val strings = App.Theme.strings
     LaunchedEffect(Unit) {
         BiometricUtil.broadcast.collect { broadcast ->
             when (broadcast) {
@@ -170,11 +167,11 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                             }
                             BiometricUtil.Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE -> {
                                 viewModel.requestState()
-                                context.showToast("Cannot authenticate with device credentials!") // todo lang
+                                context.showToast(strings.enter.cantAuthWithDC)
                             }
                             BiometricUtil.Broadcast.OnError.Type.UNRECOVERABLE_KEY -> {
                                 viewModel.requestState()
-                                context.showToast("Device credentials can no longer be used for authentication!") // todo lang
+                                context.showToast(strings.enter.unrecoverableDC)
                             }
                             null -> TODO("Unlock. On biometric unknown error!")
                         }
@@ -185,7 +182,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                             }
                             BiometricUtil.Broadcast.OnError.Type.CAN_NOT_AUTHENTICATE -> {
                                 pinState.value = ""
-                                context.showToast("Cannot authenticate with device credentials!") // todo lang
+                                context.showToast(strings.enter.cantAuthWithDC)
                             }
                             else -> TODO("Create. On biometric unknown error: ${broadcast.type}")
                         }
@@ -195,18 +192,6 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
         }
     }
     val duration = App.Theme.durations.animation * 2
-    if (errorState.value == EnterScreen.Error.SECURITY) {
-        Dialog(
-            // todo
-            "ok" to {
-                onBack()
-            },
-            message = "foo bar", // todo
-            onDismissRequest = {
-                               // todo
-            },
-        )
-    }
     LaunchedEffect(errorState.value) {
         when (errorState.value) {
             EnterScreen.Error.UNLOCK -> {
@@ -216,9 +201,6 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                 pinState.value = ""
                 errorState.value = null
             }
-            EnterScreen.Error.SECURITY -> {
-                // noop
-            }
             null -> {
                 // noop
             }
@@ -227,19 +209,6 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
     // todo orientation
 //    when (LocalConfiguration.current.orientation) {
     when (App.Theme.orientation) {
-        App.Orientation.LANDSCAPE -> {
-            EnterScreenLandscape(
-                exists = state?.exists,
-                errorState = errorState,
-                pinState = pinState,
-                deleteDialogState = deleteDialogState,
-                settingsState = settingsState,
-                onBiometric = {
-                    TODO("orientation:landscape")
-                },
-                hasBiometric = state?.hasBiometric ?: false,
-            )
-        }
         App.Orientation.PORTRAIT -> {
             EnterScreenPortrait(
                 state = state,
@@ -253,6 +222,7 @@ internal fun EnterScreen(onBack: () -> Unit, broadcast: (EnterScreen.Broadcast) 
                 },
             )
         }
+        else -> error("Orientation ${App.Theme.orientation} is not supported!")
     }
     val orientation = LocalConfiguration.current.orientation
     val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
@@ -330,7 +300,7 @@ private fun EnterScreenInfo(
                 val tag = "databaseDelete"
                 ClickableText(
                     modifier = Modifier.fillMaxWidth(),
-                    text = App.Theme.strings.databaseDelete(tag),
+                    text = String.format(App.Theme.strings.databaseDelete, tag),
                     style = textStyle,
                     styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
                     onClick = {
@@ -381,9 +351,6 @@ private fun EnterScreenInfo(
                     }
                     offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)
                 }
-                EnterScreen.Error.SECURITY -> {
-                    // noop
-                }
                 null -> {
                     offsetState.value = maxOffset / 2
                 }
@@ -391,10 +358,7 @@ private fun EnterScreenInfo(
         }
         BasicText(
             modifier = Modifier
-                .padding(
-                    bottom = App.Theme.sizes.large,
-                    top = App.Theme.sizes.large,
-                )
+                .padding(vertical = App.Theme.sizes.large)
                 .align(Alignment.BottomCenter)
                 .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
             text = "*".repeat(pinState.value.length),
@@ -402,73 +366,9 @@ private fun EnterScreenInfo(
                 color = if (errorState.value == EnterScreen.Error.UNLOCK) App.Theme.colors.error else App.Theme.colors.foreground,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 24.sp,
+                letterSpacing = 24.sp,
             )
         )
-    }
-}
-
-@Composable
-private fun EnterScreenLandscape(
-    exists: Boolean?,
-    errorState: MutableState<EnterScreen.Error?>,
-    pinState: MutableState<String>,
-    deleteDialogState: MutableState<Boolean>,
-    settingsState: MutableState<Boolean>,
-    onBiometric: () -> Unit,
-    hasBiometric: Boolean,
-) {
-    val insets = LocalView.current.rootWindowInsets.toPaddings()
-    val layoutDirection = when (val i = LocalConfiguration.current.layoutDirection) {
-        View.LAYOUT_DIRECTION_LTR -> LayoutDirection.Ltr
-        View.LAYOUT_DIRECTION_RTL -> LayoutDirection.Rtl
-        else -> error("Layout direction $i is not supported!")
-    }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val parent = this
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(App.Theme.colors.background)
-                .padding(
-                    top = insets.calculateTopPadding(),
-                    end = insets.calculateEndPadding(layoutDirection),
-                ),
-        ) {
-            EnterScreenInfo(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f),
-                exists = exists,
-                errorState = errorState,
-                pinState = pinState,
-                deleteDialogState = deleteDialogState,
-            )
-            PinPad(
-                modifier = Modifier
-                    .width(parent.maxHeight)
-                    .align(Alignment.CenterVertically),
-                enabled = exists != null && errorState.value == null,
-                visibleDelete = pinState.value.isNotEmpty(),
-                rowHeight = 64.dp,
-                textStyle = TextStyle(
-                    textAlign = TextAlign.Center,
-                    color = App.Theme.colors.foreground,
-                    fontSize = 24.sp,
-                ),
-                onClick = { char ->
-                    pinState.value += char
-                },
-                onDelete = {
-                    pinState.value = ""
-                },
-                onSettings = {
-                    settingsState.value = true
-                },
-                onBiometric = onBiometric,
-                hasBiometric = hasBiometric,
-                exists = exists ?: false,
-            )
-        }
     }
 }
 

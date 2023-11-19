@@ -7,10 +7,7 @@ internal object En : Strings {
 
     override val noDatabase = "There is no database yet. Enter the pin code to create a new secure database."
     override val databaseExists = "The database exists. Enter the pin code to unlock."
-
-    override fun databaseDelete(tag: String): String {
-        return "Or you can [$tag](delete) the base."
-    }
+    override val databaseDelete = "Or you can [%s](delete) the base."
 
     override val dark = "Dark"
     override val light = "Light"
@@ -31,5 +28,10 @@ internal object En : Strings {
         pbe = "PBE",
         keyLength = "Key length",
         iterations = "Iterations",
+    )
+
+    override val enter = Strings.Enter(
+        cantAuthWithDC = "Cannot authenticate with device credentials!",
+        unrecoverableDC = "Device credentials can no longer be used for authentication!",
     )
 }

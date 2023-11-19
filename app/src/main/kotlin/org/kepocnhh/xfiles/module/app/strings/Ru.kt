@@ -7,10 +7,7 @@ internal object Ru : Strings {
 
     override val noDatabase = "Базы данных пока нет. Введите пин-код, чтобы создать новую защищенную базу данных."
     override val databaseExists = "База данных существует. Введите пинкод чтобы разблокировать."
-
-    override fun databaseDelete(tag: String): String {
-        return "Или вы можете [$tag](удалить) базу данных."
-    }
+    override val databaseDelete = "Или вы можете [%s](удалить) базу данных."
 
     override val dark = "Тёмные"
     override val light = "Светлые"
@@ -31,5 +28,10 @@ internal object Ru : Strings {
         pbe = "PBE",
         keyLength = "Длина ключа",
         iterations = "Количество итераций",
+    )
+
+    override val enter = Strings.Enter(
+        cantAuthWithDC = TODO(),
+        unrecoverableDC = TODO(),
     )
 }

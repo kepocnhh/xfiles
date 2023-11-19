@@ -7,7 +7,7 @@ internal interface Strings {
     val yes: String
     val noDatabase: String
     val databaseExists: String
-    fun databaseDelete(tag: String): String
+    val databaseDelete: String
     val dark: String
     val light: String
     val auto: String
@@ -31,5 +31,12 @@ internal interface Strings {
         val dsa: String,
         val keyLength: String,
         val iterations: String,
+    )
+
+    val enter: Enter
+
+    data class Enter(
+        val cantAuthWithDC: String,
+        val unrecoverableDC: String,
     )
 }

@@ -38,7 +38,6 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     sealed interface Broadcast {
         class OnUnlock(val key: SecretKey) : Broadcast
         object OnUnlockError : Broadcast
-        object OnSecurityError : Broadcast
         class OnBiometric(val iv: ByteArray) : Broadcast
     }
 

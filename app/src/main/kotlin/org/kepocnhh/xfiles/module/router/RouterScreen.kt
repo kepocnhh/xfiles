@@ -126,7 +126,6 @@ private fun OnChecked(onBack: () -> Unit) {
         ),
     ) {
         EnterScreen(
-            onBack = onBack,
             broadcast = { broadcast ->
                 when (broadcast) {
                     is EnterScreen.Broadcast.Unlock -> {
