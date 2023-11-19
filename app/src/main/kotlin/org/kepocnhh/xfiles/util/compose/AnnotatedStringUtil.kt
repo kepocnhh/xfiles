@@ -62,7 +62,6 @@ internal fun ClickableText(
     onClick: (String?) -> Unit
 ) {
     val split = ClickableTextUtil.regexTags.split(text)
-    println("[ASU]: split: $split")
     val matches = ClickableTextUtil
         .regexTags
         .findAll(text)

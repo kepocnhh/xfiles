@@ -13,6 +13,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
@@ -65,16 +66,12 @@ import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
-import org.kepocnhh.xfiles.util.compose.screenHeight
-import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.SecretKey
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
@@ -272,27 +269,6 @@ internal fun UnlockedScreen(
         }
     }
     when (val orientation = LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            UnlockedScreenLandscape(
-                loading = loading,
-                encrypteds = encrypteds,
-                onAdd = {
-                    addItemState.value = true
-                },
-                onLock = {
-                    broadcast(UnlockedScreen.Broadcast.Lock)
-                },
-                onShow = {
-                    viewModel.requestToShow(key, id = it.id)
-                },
-                onCopy = {
-                    viewModel.requestToCopy(key, id = it.id)
-                },
-                onDelete = {
-                    deleteState.value = it
-                },
-            )
-        }
         Configuration.ORIENTATION_PORTRAIT -> {
             UnlockedScreenPortrait(
                 loading = loading,
@@ -401,17 +377,14 @@ private fun EncryptedValueButton(
 private fun EncryptedValueItem(
     enabled: Boolean,
     value: EncryptedValue,
+    height: Dp,
     onShow: () -> Unit,
     onCopy: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val height = App.Theme.sizes.xxxl
     Box(
         modifier = Modifier
-            .padding(
-                start = App.Theme.sizes.small,
-                end = App.Theme.sizes.small,
-            )
+            .padding(horizontal = App.Theme.sizes.small)
             .background(App.Theme.colors.secondary, RoundedCornerShape(App.Theme.sizes.large))
             .fillMaxWidth()
             .height(height),
@@ -463,12 +436,14 @@ private fun Encrypteds(
     modifier: Modifier,
     enabled: Boolean,
     contentPadding: PaddingValues,
+    itemsPadding: Dp,
+    itemsAlign: Alignment.Vertical,
     items: Map<String, String>,
     itemContent: @Composable (EncryptedValue) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(App.Theme.sizes.small),
+        verticalArrangement = Arrangement.spacedBy(itemsPadding, itemsAlign),
         contentPadding = contentPadding,
         userScrollEnabled = enabled,
     ) {
@@ -494,11 +469,12 @@ private fun UnlockedScreenPortrait(
     onDelete: (EncryptedValue) -> Unit,
     onLock: () -> Unit,
 ) {
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
+        val constraintsScope: BoxWithConstraintsScope = this
         val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
         val insets = LocalView.current.rootWindowInsets.toPaddings()
         FadeVisibility(
@@ -529,108 +505,37 @@ private fun UnlockedScreenPortrait(
                 // noop
             }
             else -> {
-                Encrypteds(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center),
-                    enabled = !loading,
-                    contentPadding = PaddingValues(
+                val itemHeight = App.Theme.sizes.xxxl
+                val itemsPadding = App.Theme.sizes.small
+                val encryptedsHeight = itemHeight * encrypteds.size + itemsPadding * (encrypteds.size - 1)
+                val verticalPadding = App.Theme.sizes.small
+                val buttonsPadding = App.Theme.sizes.xxxl + App.Theme.sizes.small
+                val bottomPadding = insets.calculateBottomPadding() + buttonsPadding + verticalPadding
+                val contentPadding = when {
+                    encryptedsHeight / 2 < constraintsScope.maxHeight / 2 - bottomPadding -> PaddingValues(
                         start = insets.calculateStartPadding(layoutDirection),
-                        top = insets.calculateTopPadding() + App.Theme.sizes.small,
                         end = insets.calculateEndPadding(layoutDirection),
-                        bottom = insets.calculateBottomPadding() + App.Theme.sizes.small + App.Theme.sizes.small + App.Theme.sizes.xxxl,
-                    ),
-                    items = encrypteds,
-                    itemContent = { item ->
-                        EncryptedValueItem(
-                            enabled = !loading,
-                            value = item,
-                            onShow = {
-                                onShow(item)
-                            },
-                            onCopy = {
-                                onCopy(item)
-                            },
-                            onDelete = {
-                                onDelete(item)
-                            },
-                        )
-                    },
-                )
-            }
-        }
-        ButtonsRow(
-            modifier = Modifier
-                .padding(
-                    bottom = insets.calculateBottomPadding() + App.Theme.sizes.small,
-                    end = insets.calculateEndPadding(layoutDirection) + App.Theme.sizes.small,
-                )
-                .align(Alignment.BottomEnd),
-            enabled = encrypteds != null && !loading,
-            onAdd = onAdd,
-            onLock = onLock,
-        )
-        AnimatedFadeVisibility(
-            modifier = Modifier.align(Alignment.Center),
-            visible = loading,
-            duration = App.Theme.durations.animation,
-        ) {
-            Squares(
-                color = App.Theme.colors.foreground,
-                width = App.Theme.sizes.large,
-                padding = App.Theme.sizes.small,
-                radius = App.Theme.sizes.xs,
-            )
-        }
-    }
-}
-
-@Composable
-private fun UnlockedScreenLandscape(
-    loading: Boolean,
-    encrypteds: Map<String, String>?,
-    onAdd: () -> Unit,
-    onLock: () -> Unit,
-    onShow: (EncryptedValue) -> Unit,
-    onCopy: (EncryptedValue) -> Unit,
-    onDelete: (EncryptedValue) -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(App.Theme.colors.background),
-    ) {
-        val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
-        val insets = LocalView.current.rootWindowInsets.toPaddings()
-        val width = LocalConfiguration.current.screenWidth(insets)
-        val height = LocalConfiguration.current.screenHeight(insets)
-        when {
-            encrypteds == null -> {
-                // todo
-            }
-            encrypteds.isEmpty() -> {
-                BasicText(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "no items", // todo
-                )
-            }
-            else -> {
+                    )
+                    else -> PaddingValues(
+                        start = insets.calculateStartPadding(layoutDirection),
+                        top = insets.calculateTopPadding() + verticalPadding,
+                        end = insets.calculateEndPadding(layoutDirection),
+                        bottom = insets.calculateBottomPadding() + verticalPadding + buttonsPadding,
+                    )
+                }
                 Encrypteds(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center),
+                        .fillMaxSize(),
                     enabled = !loading,
-                    contentPadding = PaddingValues(
-                        top = insets.calculateTopPadding() + App.Theme.sizes.small,
-                        bottom = insets.calculateBottomPadding() + App.Theme.sizes.small,
-                        end = width - height,
-//                        end = width - (width / 3) * 2,
-                    ),
+                    contentPadding = contentPadding,
+                    itemsAlign = Alignment.CenterVertically,
+                    itemsPadding = itemsPadding,
                     items = encrypteds,
                     itemContent = { item ->
                         EncryptedValueItem(
                             enabled = !loading,
                             value = item,
+                            height = itemHeight,
                             onShow = {
                                 onShow(item)
                             },
