@@ -53,4 +53,12 @@ internal interface Strings {
         val securityServices: String,
         val ids: String,
     )
+
+    val unlocked: Unlocked
+
+    data class Unlocked(
+        val copied: String,
+        val noItems: String,
+        val deleteItem: String,
+    )
 }

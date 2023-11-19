@@ -60,6 +60,7 @@ import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
+import org.kepocnhh.xfiles.util.android.ClipDataUtil
 import org.kepocnhh.xfiles.util.android.findActivity
 import org.kepocnhh.xfiles.util.android.showToast
 import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
@@ -86,7 +87,7 @@ internal object UnlockedScreen {
 @Composable
 internal fun DeletedDialog(
     state: MutableState<EncryptedValue?>,
-    onConfirm: (EncryptedValue) -> Unit
+    onConfirm: (EncryptedValue) -> Unit,
 ) {
     val value = state.value ?: return
     Dialog(
@@ -97,7 +98,7 @@ internal fun DeletedDialog(
         onDismissRequest = {
             state.value = null
         },
-        message = "delete ${value.title}?", // todo
+        message = String.format(App.Theme.strings.unlocked.deleteItem, value.title),
     )
 }
 
@@ -139,8 +140,7 @@ internal fun UnlockedScreen(
     key: SecretKey,
     broadcast: (UnlockedScreen.Broadcast) -> Unit,
 ) {
-    val logger = App.newLogger(tag = "[Unlocked|Screen]")
-//    KeepScreenOn() // todo
+    val logger = App.newLogger(tag = "[Unlocked]")
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lockedState = remember { mutableStateOf(false) }
@@ -180,17 +180,6 @@ internal fun UnlockedScreen(
                 ?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
-    /*
-    DisposableEffect(Unit) {
-        context.notifyAndStartForeground<ObserverService>(
-            id = ObserverService.TIMER_NOTIFICATION_ID,
-            title = "unlocked",
-        )
-        onDispose {
-            context.stopForeground<ObserverService>()
-        }
-    }
-    */
     val viewModel = App.viewModel<UnlockedViewModel>()
     val deleteState = remember { mutableStateOf<EncryptedValue?>(null) }
     LaunchedEffect(deleteState.value) {
@@ -227,20 +216,21 @@ internal fun UnlockedScreen(
             broadcast(UnlockedScreen.Broadcast.Lock)
         }
     }
-    LaunchedEffect(Unit) {
+    val strings = App.Theme.strings
+    LaunchedEffect(strings) {
         viewModel.broadcast.collect { broadcast ->
             logger.debug("broadcast: $broadcast")
             when (broadcast) {
                 is UnlockedViewModel.Broadcast.OnCopy -> {
                     markStartState.value = TimeSource.Monotonic.markNow()
-                    val clip = ClipData.newPlainText("secret", broadcast.secret)
-                    clip.description.extras = PersistableBundle().also {
-                        it.putBoolean("android.content.extra.IS_SENSITIVE", true)
-                    }
                     val clipboardManager = context.getSystemService(ClipboardManager::class.java)
                     if (clipboardManager != null) {
+                        val clip = ClipDataUtil.newSecretText(
+                            label = "secret",
+                            text = broadcast.secret,
+                        )
                         clipboardManager.setPrimaryClip(clip)
-                        context.showToast("Copied.") // todo
+                        context.showToast(strings.unlocked.copied)
                         val markStart = TimeSource.Monotonic.markNow()
                         val expected = broadcast.secret.hashCode()
                         clipboardHashState.value = expected
@@ -492,12 +482,11 @@ private fun UnlockedScreenPortrait(
                 .align(Alignment.Center),
             visible = !loading && encrypteds != null && encrypteds.isEmpty(),
         ) {
-            val text = "There are no entries yet.\nClick on [%s](+) to add a new one." // todo lang
             val tag = "addItem"
             ClickableText(
                 modifier = Modifier
                     .padding(horizontal = App.Theme.sizes.small),
-                text = String.format(text, tag),
+                text = String.format(App.Theme.strings.unlocked.noItems, tag),
                 style = App.Theme.textStyle.copy(fontSize = 16.sp, textAlign = TextAlign.Center),
                 styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
                 onClick = {

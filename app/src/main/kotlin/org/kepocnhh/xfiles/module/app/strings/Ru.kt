@@ -46,4 +46,10 @@ internal object Ru : Strings {
         securityServices = "служб безопасности",
         ids = "идентификаторов",
     )
+
+    override val unlocked = Strings.Unlocked(
+        copied = "Скопировано.",
+        noItems = "Тут ещё нет записей.\nНажмите на [%s](+) чтобы добавить новую.",
+        deleteItem = "Удалить запись \"%s\"?"
+    )
 }

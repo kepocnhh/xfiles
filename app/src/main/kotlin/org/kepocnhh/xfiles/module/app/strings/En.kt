@@ -46,4 +46,10 @@ internal object En : Strings {
         securityServices = "security services",
         ids = "identifiers",
     )
+
+    override val unlocked = Strings.Unlocked(
+        copied = "Copied.",
+        noItems = "There are no entries yet.\nClick on [%s](+) to add a new one.",
+        deleteItem = "Delete entry \"%s\"?"
+    )
 }
