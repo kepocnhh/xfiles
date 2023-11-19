@@ -28,10 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -57,6 +59,7 @@ import org.kepocnhh.xfiles.util.compose.AnimatedHVisibility
 import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.Squares
+import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.screenHeight
 import org.kepocnhh.xfiles.util.compose.screenWidth
@@ -363,7 +366,23 @@ private fun EnterScreenInfo(
                 .padding(vertical = App.Theme.sizes.large)
                 .align(Alignment.BottomCenter)
                 .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
-            text = "*".repeat(pinState.value.length),
+//            text = "*".repeat(pinState.value.length),
+            text = buildAnnotatedString {
+                val maxLength = 4
+                val length = pinState.value.length
+                check(length in 0..maxLength)
+                if (length == maxLength) {
+                    append("*".repeat(maxLength))
+                } else {
+                    for (i in 0 until maxLength) {
+                        if (i < length) {
+                            append("*")
+                        } else {
+                            append(App.Theme.colors.secondary, "*")
+                        }
+                    }
+                }
+            },
             style = TextStyle(
                 color = if (errorState.value == EnterScreen.Error.UNLOCK) App.Theme.colors.error else App.Theme.colors.foreground,
                 fontFamily = FontFamily.Monospace,

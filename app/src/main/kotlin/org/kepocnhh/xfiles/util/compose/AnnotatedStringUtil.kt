@@ -13,6 +13,20 @@ import androidx.compose.ui.text.buildAnnotatedString
 import java.util.regex.Pattern
 
 internal fun AnnotatedString.Builder.append(
+    color: Color,
+    text: String,
+) {
+    val index = pushStyle(
+        SpanStyle(color = color),
+    )
+    try {
+        append(text)
+    } finally {
+        pop(index)
+    }
+}
+
+internal fun AnnotatedString.Builder.append(
     textStyle: TextStyle,
     text: String,
 ) {
