@@ -24,7 +24,7 @@ internal fun SettingsVersion() {
         BasicText(
             modifier = Modifier.align(Alignment.CenterStart),
             style = App.Theme.textStyle,
-            text = "Version", // todo lang
+            text = App.Theme.strings.settings.version,
         )
         BasicText(
             modifier = Modifier.align(Alignment.Center),

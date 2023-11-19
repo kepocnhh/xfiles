@@ -33,6 +33,7 @@ internal interface Strings {
         val keyLength: String,
         val iterations: String,
         val hasBiometric: String,
+        val version: String,
     )
 
     val enter: Enter

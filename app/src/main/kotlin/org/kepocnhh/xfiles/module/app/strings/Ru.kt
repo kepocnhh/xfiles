@@ -30,6 +30,7 @@ internal object Ru : Strings {
         keyLength = "Длина ключа",
         iterations = "Количество итераций",
         hasBiometric = "Использовать биометрию",
+        version = "Версия",
     )
 
     override val enter = Strings.Enter(

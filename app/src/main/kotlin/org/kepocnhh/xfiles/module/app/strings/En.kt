@@ -30,6 +30,7 @@ internal object En : Strings {
         keyLength = "Key length",
         iterations = "Iterations",
         hasBiometric = "Has biometric",
+        version = "Version",
     )
 
     override val enter = Strings.Enter(
