@@ -68,10 +68,8 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
         for (type in ChecksType.entries) {
             when (type) {
                 ChecksType.SECURITY_SERVICES -> {
-//                    delay(2.seconds)
                     if (injection.local.services != null) continue
                     _state.value = State.OnChecks(type)
-//                    delay(2.seconds)
                     val services = try {
                         getSecurityServices()
                     } catch (e: Throwable) {
@@ -83,6 +81,7 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                 }
                 ChecksType.IDS -> {
                     if (injection.local.device == null) {
+                        _state.value = State.OnChecks(type)
                         val device = Device(
                             manufacturer = Build.MANUFACTURER,
                             brand = Build.BRAND,
@@ -94,6 +93,7 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                         logger.debug("device: $device")
                     }
                     if (injection.encrypted.local.appId == null) {
+                        _state.value = State.OnChecks(type)
                         val appId = UUID.randomUUID()
                         injection.encrypted.local.appId = appId
                         logger.debug("appId: $appId")
@@ -107,7 +107,6 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
 
     fun runChecks() {
         injection.launch {
-//            injection.local.services = null // todo
             withContext(injection.contexts.default) {
                 runChecksInternal()
             }

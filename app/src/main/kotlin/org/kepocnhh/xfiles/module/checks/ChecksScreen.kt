@@ -29,9 +29,16 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 @Composable
+private fun toText(type: ChecksViewModel.ChecksType): String {
+    return when (type) {
+        ChecksViewModel.ChecksType.SECURITY_SERVICES -> App.Theme.strings.checks.securityServices
+        ChecksViewModel.ChecksType.IDS -> App.Theme.strings.checks.ids
+    }
+}
+
+@Composable
 private fun BoxScope.OnError(
     type: ChecksViewModel.ChecksType,
-    error: Throwable,
     onExit: () -> Unit,
 ) {
     Column(
@@ -45,7 +52,7 @@ private fun BoxScope.OnError(
                 .height(App.Theme.sizes.xxxl)
                 .wrapContentSize(),
             style = App.Theme.textStyle,
-            text = "check type $type error: $error", // todo
+            text = String.format(App.Theme.strings.checks.error, toText(type)),
         )
         BasicText(
             modifier = Modifier
@@ -56,7 +63,7 @@ private fun BoxScope.OnError(
                 }
                 .wrapContentSize(),
             style = App.Theme.textStyle.copy(color = App.Theme.colors.primary),
-            text = "Exit", // todo
+            text = App.Theme.strings.exit,
         )
     }
 }
@@ -69,15 +76,18 @@ private fun BoxScope.OnChecks(type: ChecksViewModel.ChecksType?) {
             .align(Alignment.Center),
     ) {
         Squares(
-            modifier = { Modifier.size(it).align(Alignment.CenterHorizontally) },
+            modifier = {
+                Modifier
+                    .size(it)
+                    .align(Alignment.CenterHorizontally) },
             color = App.Theme.colors.foreground,
             width = App.Theme.sizes.large,
             padding = App.Theme.sizes.small,
             radius = App.Theme.sizes.xs,
         )
         val text = when (type) {
-            null -> "Check..." // todo
-            else -> "Check ${type.name}..." // todo
+            null -> App.Theme.strings.checks.checking
+            else -> String.format(App.Theme.strings.checks.checkingType, toText(type))
         }
         BasicText(
             modifier = Modifier
@@ -95,6 +105,7 @@ internal fun ChecksScreen(
     onComplete: () -> Unit,
     onExit: () -> Unit,
 ) {
+    val logger = App.newLogger("[Checks]")
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,7 +113,6 @@ internal fun ChecksScreen(
     ) {
         val markStart = TimeSource.Monotonic.markNow()
         val delay = App.Theme.durations.animation
-//        val delay = 5.seconds
         val viewModel = App.viewModel<ChecksViewModel>()
         LaunchedEffect(Unit) {
             viewModel
@@ -120,8 +130,14 @@ internal fun ChecksScreen(
         }
         val state = viewModel.state.collectAsState().value
         LaunchedEffect(state) {
-            if (state == null) {
-                viewModel.runChecks()
+            when (state) {
+                is ChecksViewModel.State.OnError -> {
+                    logger.warning("type: ${state.type} error: ${state.error}")
+                }
+                null -> viewModel.runChecks()
+                else -> {
+                    // noop
+                }
             }
         }
         when (state) {
@@ -129,7 +145,7 @@ internal fun ChecksScreen(
                 OnChecks(type = state.type)
             }
             is ChecksViewModel.State.OnError -> {
-                OnError(type = state.type, error = state.error, onExit = onExit)
+                OnError(type = state.type, onExit = onExit)
             }
             null -> {
                 OnChecks(type = null)

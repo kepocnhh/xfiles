@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 internal interface Strings {
     val yes: String
     val no: String
+    val exit: String
     val noDatabase: String
     val databaseExists: String
     val databaseDelete: String
@@ -41,5 +42,15 @@ internal interface Strings {
     data class Enter(
         val cantAuthWithDC: String,
         val unrecoverableDC: String,
+    )
+
+    val checks: Checks
+
+    data class Checks(
+        val checking: String,
+        val checkingType: String,
+        val error: String,
+        val securityServices: String,
+        val ids: String,
     )
 }

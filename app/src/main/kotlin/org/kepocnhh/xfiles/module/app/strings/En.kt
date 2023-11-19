@@ -5,6 +5,7 @@ import org.kepocnhh.xfiles.module.app.Strings
 internal object En : Strings {
     override val yes: String = "Yes"
     override val no: String = "No"
+    override val exit: String = "Exit"
 
     override val noDatabase = "There is no database yet. Enter the pin code to create a new secure database."
     override val databaseExists = "The database exists. Enter the pin code to unlock."
@@ -36,5 +37,13 @@ internal object En : Strings {
     override val enter = Strings.Enter(
         cantAuthWithDC = "Cannot authenticate with device credentials!",
         unrecoverableDC = "Device credentials can no longer be used for authentication!",
+    )
+
+    override val checks = Strings.Checks(
+        checking = "Checking...",
+        checkingType = "Checking of %s...",
+        error = "Check of %s failed!",
+        securityServices = "security services",
+        ids = "identifiers",
     )
 }
