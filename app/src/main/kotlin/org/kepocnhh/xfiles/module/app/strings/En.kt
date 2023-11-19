@@ -52,4 +52,17 @@ internal object En : Strings {
         noItems = "There are no entries yet.\nClick on [%s](+) to add a new one.",
         deleteItem = "Delete entry \"%s\"?"
     )
+
+    override val addItem = Strings.AddItem(
+        promptTitle = "Come up with a name for your secret:",
+        promptSecret = "Enter your secret here:",
+        hintTitle = "Title",
+        hintSecret = "Secret",
+        next = "next",
+        done = "done",
+    )
+
+    override val keyboard = Strings.Keyboard(
+        space = "space",
+    )
 }

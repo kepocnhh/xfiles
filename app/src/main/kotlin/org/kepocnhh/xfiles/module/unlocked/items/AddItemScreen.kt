@@ -84,8 +84,8 @@ private fun HintTextFocused(
         Focused.SECRET -> "*".repeat(values[focused].orEmpty().length)
     }
     val hint = when (focused) {
-        Focused.TITLE -> "Title" // todo
-        Focused.SECRET -> "Secret" // todo
+        Focused.TITLE -> App.Theme.strings.addItem.hintTitle
+        Focused.SECRET -> App.Theme.strings.addItem.hintSecret
     }
     val textStyle = when (focused) {
         Focused.TITLE -> TextStyle(
@@ -141,15 +141,9 @@ private fun KeyboardSwitch(
                     rowsState.value = Keyboard.letters
                 }
                 .wrapContentSize()
-                .padding(
-                    start = App.Theme.sizes.small,
-                    end = App.Theme.sizes.small,
-                ),
+                .padding(horizontal = App.Theme.sizes.small),
             text = "abc",
-            style = TextStyle(
-                color = App.Theme.colors.text,
-                fontSize = 14.sp, // todo
-            ),
+            style = App.Theme.textStyle,
         )
         BasicText(
             modifier = Modifier
@@ -158,15 +152,9 @@ private fun KeyboardSwitch(
                     rowsState.value = Keyboard.special
                 }
                 .wrapContentSize()
-                .padding(
-                    start = App.Theme.sizes.small,
-                    end = App.Theme.sizes.small,
-                ),
+                .padding(horizontal = App.Theme.sizes.small),
             text = "!@#",
-            style = TextStyle(
-                color = App.Theme.colors.text,
-                fontSize = 14.sp, // todo
-            ),
+            style = App.Theme.textStyle,
         )
     }
 }
@@ -213,8 +201,8 @@ private fun Keyboard(
                 fontSize = 14.sp, // todo
             ) // todo
             val text = when (focused) {
-                Focused.TITLE -> "next"
-                Focused.SECRET -> "done"
+                Focused.TITLE -> App.Theme.strings.addItem.next
+                Focused.SECRET -> App.Theme.strings.addItem.done
             }
             BasicText(
                 modifier = Modifier
@@ -255,7 +243,7 @@ private fun Keyboard(
                         values[focused] = values[focused].orEmpty() + ' '
                     }
                     .wrapContentHeight(),
-                text = "space",
+                text = App.Theme.strings.keyboard.space,
                 style = textStyle,
             )
             Box(
@@ -313,13 +301,9 @@ private fun AddItemScreenPortrait(
         verticalArrangement = Arrangement.Bottom,
     ) {
         BasicText(
-            modifier = Modifier
-                .padding(horizontal = App.Theme.sizes.small),
-            text = "Come up with a name for your secret:", // todo
-            style = TextStyle(
-                color = App.Theme.colors.text,
-                fontSize = 14.sp,
-            ),
+            modifier = Modifier.padding(horizontal = App.Theme.sizes.small),
+            text = App.Theme.strings.addItem.promptTitle,
+            style = App.Theme.textStyle,
         )
         Spacer(modifier = Modifier.height(App.Theme.sizes.small))
         HintTextFocused(
@@ -347,13 +331,9 @@ private fun AddItemScreenPortrait(
         ) {
             Spacer(modifier = Modifier.height(App.Theme.sizes.small))
             BasicText(
-                modifier = Modifier
-                    .padding(horizontal = App.Theme.sizes.small),
-                text = "Enter your secret here:", // todo
-                style = TextStyle(
-                    color = App.Theme.colors.text,
-                    fontSize = 14.sp,
-                ),
+                modifier = Modifier.padding(horizontal = App.Theme.sizes.small),
+                text = App.Theme.strings.addItem.promptSecret,
+                style = App.Theme.textStyle,
             )
             Spacer(modifier = Modifier.height(App.Theme.sizes.small))
             HintTextFocused(
@@ -409,9 +389,6 @@ internal fun AddItemScreen(
     val focusedState = remember { mutableStateOf<Focused?>(null) }
     val valuesState = remember { mutableStateMapOf<Focused, String>() }
     when (val orientation = LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            TODO("AddItemScreen:ORIENTATION_LANDSCAPE")
-        }
         Configuration.ORIENTATION_PORTRAIT -> {
             AddItemScreenPortrait(
                 focusedState = focusedState,

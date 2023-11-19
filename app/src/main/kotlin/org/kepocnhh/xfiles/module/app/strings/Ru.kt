@@ -52,4 +52,17 @@ internal object Ru : Strings {
         noItems = "Тут ещё нет записей.\nНажмите на [%s](+) чтобы добавить новую.",
         deleteItem = "Удалить запись \"%s\"?"
     )
+
+    override val addItem = Strings.AddItem(
+        promptTitle = "Придумайте название своему секрету:",
+        promptSecret = "Введите свой секрет сюда:",
+        hintTitle = "Название",
+        hintSecret = "Секрет",
+        next = "далее",
+        done = "сохранить",
+    )
+
+    override val keyboard = Strings.Keyboard(
+        space = "пробел",
+    )
 }

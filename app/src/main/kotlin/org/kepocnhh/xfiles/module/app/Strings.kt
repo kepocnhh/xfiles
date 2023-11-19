@@ -61,4 +61,21 @@ internal interface Strings {
         val noItems: String,
         val deleteItem: String,
     )
+
+    val addItem: AddItem
+
+    data class AddItem(
+        val promptTitle: String,
+        val promptSecret: String,
+        val hintTitle: String,
+        val hintSecret: String,
+        val next: String,
+        val done: String,
+    )
+
+    val keyboard: Keyboard
+
+    data class Keyboard(
+        val space: String,
+    )
 }
