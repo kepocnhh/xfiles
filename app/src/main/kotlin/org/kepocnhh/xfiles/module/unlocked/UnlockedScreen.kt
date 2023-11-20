@@ -186,8 +186,10 @@ internal fun UnlockedScreen(
     val lockedState = remember { mutableStateOf(false) }
     val markStartState = remember { mutableStateOf(TimeSource.Monotonic.markNow()) }
     val clipboardHashState = remember { mutableStateOf<Int?>(null) }
+    val showHashState = remember { mutableStateOf<Int?>(null) }
     val lockedTimeout = 60.seconds
     val clipboardTimeout = 30.seconds
+    val showTimeout = 30.seconds
     DisposableEffect(Unit) {
         scope.launch {
             withContext(Dispatchers.Default) {
@@ -256,7 +258,7 @@ internal fun UnlockedScreen(
             broadcast(UnlockedScreen.Broadcast.Lock)
         }
     }
-    val strings = App.Theme.strings
+    val strings = App.Theme.strings // todo rememberUpdatedState
     LaunchedEffect(strings) {
         viewModel.broadcast.collect { broadcast ->
             logger.debug("broadcast: $broadcast")
@@ -296,6 +298,26 @@ internal fun UnlockedScreen(
                 }
                 is UnlockedViewModel.Broadcast.OnShow -> {
                     showState.value = broadcast.secret
+                    val markStart = TimeSource.Monotonic.markNow()
+                    val expected = broadcast.secret.hashCode()
+                    showHashState.value = expected
+                    scope.launch {
+                        withContext(Dispatchers.Default) {
+                            while (!lockedState.value) {
+                                when {
+                                    showState.value == null -> break
+                                    showHashState.value != expected -> break
+                                    markStart.elapsedNow() < showTimeout -> delay(0.25.seconds)
+                                    else -> {
+                                        showState.value = null
+                                        showHashState.value = null
+                                        logger.debug("The secret is hidden by timeout.")
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
