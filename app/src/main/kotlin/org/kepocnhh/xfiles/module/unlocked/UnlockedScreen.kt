@@ -1,11 +1,9 @@
 package org.kepocnhh.xfiles.module.unlocked
 
 import android.app.Activity
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
-import android.os.PersistableBundle
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -37,7 +33,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +49,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,6 +70,7 @@ import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
 import org.kepocnhh.xfiles.util.compose.Squares
+import org.kepocnhh.xfiles.util.compose.append
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.animations.tween.fade.FadeVisibility
@@ -83,7 +80,6 @@ import sp.ax.jc.dialogs.Dialog
 import javax.crypto.SecretKey
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
-import org.kepocnhh.xfiles.util.compose.append
 
 internal object UnlockedScreen {
     sealed interface Broadcast {
@@ -425,23 +421,22 @@ private fun EncryptedValueItem(
             .fillMaxWidth()
             .height(height),
     ) {
-        BasicText(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = height / 2),
-            text = value.title,
-            style = TextStyle(
-                fontSize = 14.sp,
-                color = App.Theme.colors.foreground,
-            ),
-        )
         val buttonSize = App.Theme.sizes.large
         Row(
             modifier = Modifier
-                .padding(end = (height - buttonSize) / 2)
-                .align(Alignment.CenterEnd),
+                .fillMaxSize()
+                .padding(start = height / 2, end = (height - buttonSize) / 2),
             horizontalArrangement = Arrangement.spacedBy(App.Theme.sizes.xs),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            BasicText(
+                modifier = Modifier.weight(1f),
+                text = value.title,
+                style = App.Theme.textStyle,
+                overflow = TextOverflow.Ellipsis,
+                minLines = 1,
+                maxLines = 1,
+            )
             EncryptedValueButton(
                 enabled = enabled,
                 size = buttonSize,
