@@ -1,8 +1,15 @@
+import com.android.build.api.variant.ComponentIdentity
+import sp.gx.core.GitHub
 import sp.gx.core.camelCase
 import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
 import sp.gx.core.kebabCase
+
+val gh = GitHub.Repository(
+    owner = "kepocnhh",
+    name = rootProject.name,
+)
 
 repositories {
     google()
@@ -17,9 +24,38 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version Version.detekt
 }
 
+fun ComponentIdentity.getVersion(): String {
+    check(flavorName!!.isEmpty())
+    return when (buildType) {
+        "debug", "examine" -> kebabCase(
+            android.defaultConfig.versionName!!,
+            name,
+            android.defaultConfig.versionCode!!.toString(),
+        )
+        "release" -> kebabCase(
+            android.defaultConfig.versionName!!,
+            android.defaultConfig.versionCode!!.toString(),
+        )
+        else -> error("Build type \"${buildType}\" is not supported!")
+    }
+}
+
 android {
     namespace = "org.kepocnhh.xfiles"
     compileSdk = Version.Android.compileSdk
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                // https://stackoverflow.com/a/71834475/4398606
+                it.configure<JacocoTaskExtension> {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = namespace
@@ -37,6 +73,33 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
             manifestPlaceholders["buildType"] = name
+        }
+        getByName("release") {
+            applicationIdSuffix = ""
+            versionNameSuffix = ""
+            manifestPlaceholders["buildType"] = name
+            enableUnitTestCoverage = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.create(name) {
+                storeFile = properties["STORE_FILE"]?.toString()?.let(::File)
+                storePassword = properties["STORE_PASSWORD"]?.toString()
+                keyPassword = storePassword
+                keyAlias = name
+            }
+        }
+        create("examine") {
+            val parent = getByName("release")
+            initWith(parent)
+            sourceSets.getByName(name) {
+                res.srcDir("src/${parent.name}/res")
+                kotlin.srcDir("src/${parent.name}/kotlin")
+            }
+            applicationIdSuffix = ".$name"
+            enableUnitTestCoverage = true
+            testBuildType = name
+            signingConfig = getByName("debug").signingConfig
         }
     }
 
