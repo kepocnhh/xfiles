@@ -19,3 +19,4 @@ Encrypted data storage application.
 - [ ] animations slide + fade
 - [ ] animations content
 - [ ] biometric
+- [ ] app icon
