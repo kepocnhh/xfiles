@@ -7,7 +7,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools:r8:8.2.33") // https://stackoverflow.com/questions/56639818 'already has a mapping'
+//        classpath("com.android.tools:r8:8.2.33") // https://stackoverflow.com/questions/56639818 'already has a mapping'
         classpath("com.android.tools.build:gradle:8.1.4")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Version.kotlin}")
     }
