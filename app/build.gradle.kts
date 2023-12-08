@@ -1,12 +1,16 @@
 import com.android.build.api.variant.ComponentIdentity
 import io.gitlab.arturbosch.detekt.Detekt
+import sp.gx.core.Badge
 import sp.gx.core.GitHub
+import sp.gx.core.Markdown
 import sp.gx.core.camelCase
+import sp.gx.core.check
 import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
 import sp.gx.core.kebabCase
 import sp.gx.core.slashCase
+import sp.gx.core.resolve
 
 val gh = GitHub.Repository(
     owner = "kepocnhh",
@@ -232,6 +236,38 @@ fun getDetektUnitTestConfigs(): Iterable<File> {
     }
 }
 
+fun checkReadme(variant: ComponentIdentity) {
+    task(camelCase("check", variant.name, "Readme")) {
+        doLast {
+            val badge = Markdown.image(
+                text = "version",
+                url = Badge.url(
+                    label = "version",
+                    message = variant.getVersion(),
+                    color = "2962ff",
+                ),
+            )
+            val fileName = "${gh.name}-${variant.getVersion()}.apk"
+            val releaseLink = Markdown.link("release", gh.url().resolve("releases", "tag", variant.getVersion()))
+            val apkLink = Markdown.link("apk", gh.url().resolve("releases", "download", variant.getVersion(), fileName))
+            val expected = setOf(
+                badge,
+                "GitHub $releaseLink",
+                "Download $apkLink",
+            )
+            val report = layout.buildDirectory.get()
+                .dir("reports/analysis/readme")
+                .dir(variant.name)
+                .file("index.html")
+                .asFile
+            rootDir.resolve("README.md").check(
+                expected = expected,
+                report = report,
+            )
+        }
+    }
+}
+
 val ktlint: Configuration by configurations.creating
 
 androidComponents.onVariants { variant ->
@@ -266,6 +302,7 @@ androidComponents.onVariants { variant ->
                 sources = variant.sources.kotlin!!.all.get().map { it.asFile },
             )
         }
+        checkReadme(variant)
         val checkManifestTask = task(camelCase("checkManifest", variant.name)) {
             dependsOn(camelCase("compile", variant.name, "Sources"))
             doLast {
