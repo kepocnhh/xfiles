@@ -1,16 +1,13 @@
 package org.kepocnhh.xfiles.util.compose
 
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.TextUnit
-import org.kepocnhh.xfiles.module.app.Strings
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.text.buildAnnotatedString
-import java.util.regex.Pattern
 
 internal fun AnnotatedString.Builder.append(
     color: Color,
@@ -87,7 +84,7 @@ internal fun ClickableText(
     text: String,
     style: TextStyle = TextStyle.Default,
     styles: Map<String, TextStyle>,
-    onClick: (String?) -> Unit
+    onClick: (String?) -> Unit,
 ) {
     val split = ClickableTextUtil.regexTags.split(text)
     val matches = ClickableTextUtil
@@ -134,6 +131,6 @@ internal fun ClickableText(
         text = annotated,
         onClick = { offset ->
             onClick(annotated.getStringAnnotations(offset, offset).singleOrNull()?.tag)
-        }
+        },
     )
 }

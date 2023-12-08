@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 
-internal fun WindowInsets.toPaddings(density: Float) : PaddingValues {
+internal fun WindowInsets.toPaddings(density: Float): PaddingValues {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         getInsets(WindowInsets.Type.systemBars()).let {
             PaddingValues(
@@ -28,6 +28,6 @@ internal fun WindowInsets.toPaddings(density: Float) : PaddingValues {
 }
 
 @Composable
-internal fun WindowInsets.toPaddings(density: Density = LocalDensity.current) : PaddingValues {
+internal fun WindowInsets.toPaddings(density: Density = LocalDensity.current): PaddingValues {
     return toPaddings(density = density.density)
 }

@@ -21,7 +21,7 @@ internal data class SecuritySettings(
      * L = 2048, N = 224
      * L = 2048, N = 256
      * L = 3072, N = 256
-    */
+     */
     enum class DSAKeyLength {
         BITS_1024_1,
         BITS_1024_2,

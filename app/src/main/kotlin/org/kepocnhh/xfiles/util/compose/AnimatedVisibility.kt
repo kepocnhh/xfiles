@@ -2,8 +2,6 @@ package org.kepocnhh.xfiles.util.compose
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -14,22 +12,16 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import kotlin.math.absoluteValue
 import kotlin.time.Duration
 
 @Composable
@@ -40,7 +32,7 @@ internal fun AnimatedHVisibility(
     duration: Duration,
     initialOffsetX: (fullWidth: Int) -> Int = { -it },
     targetOffsetX: (fullWidth: Int) -> Int = initialOffsetX,
-    content: @Composable AnimatedVisibilityScope.() -> Unit
+    content: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -52,48 +44,6 @@ internal fun AnimatedHVisibility(
         ),
         exit = slideOutHAndFade(
             durationMillis = duration.inWholeMilliseconds.toInt(),
-            targetOffsetX = targetOffsetX,
-        ),
-        content = content,
-    )
-}
-
-@Composable
-internal fun AnimatedHVisibilityShadow(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-    modifierShadow: Modifier = modifier,
-    colorShadow: Color = Color.Black,
-    label: String = "AnimatedHVisibilityShadow",
-    duration: Duration,
-    initialOffsetX: (fullWidth: Int) -> Int = { -it },
-    targetOffsetX: (fullWidth: Int) -> Int = initialOffsetX,
-    content: @Composable AnimatedVisibilityScope.() -> Unit,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifierShadow,
-        label = label,
-        enter = fadeIn(tween(duration.inWholeMilliseconds.toInt())),
-        exit = fadeOut(tween(duration.inWholeMilliseconds.toInt())),
-        content = {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorShadow),
-            )
-        },
-    )
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        label = label,
-        enter = slideInHorizontally(
-            animationSpec = tween(duration.inWholeMilliseconds.toInt()),
-            initialOffsetX = initialOffsetX,
-        ),
-        exit = slideOutHorizontally(
-            animationSpec = tween(duration.inWholeMilliseconds.toInt()),
             targetOffsetX = targetOffsetX,
         ),
         content = content,
@@ -163,7 +113,7 @@ internal fun AnimatedFadeVisibility(
     modifier: Modifier = Modifier,
     label: String = "AnimatedFadeVisibility",
     duration: Duration,
-    content: @Composable AnimatedVisibilityScope.() -> Unit
+    content: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -183,7 +133,7 @@ internal fun ExpandVertically(
     duration: Duration,
     expandFrom: Alignment.Vertical = Alignment.Top,
     shrinkTowards: Alignment.Vertical = Alignment.Bottom,
-    content: @Composable AnimatedVisibilityScope.() -> Unit
+    content: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -196,32 +146,6 @@ internal fun ExpandVertically(
         exit = shrinkVertically(
             animationSpec = tween(duration.inWholeMilliseconds.toInt()),
             shrinkTowards = shrinkTowards,
-        ),
-        content = content,
-    )
-}
-
-@Composable
-internal fun SlideInVFade(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-    label: String = "SlideInVFade",
-    duration: Duration,
-    initialOffsetY: (fullHeight: Int) -> Int = { it },
-    targetOffsetY: (fullHeight: Int) -> Int = initialOffsetY,
-    content: @Composable AnimatedVisibilityScope.() -> Unit
-) {
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        label = label,
-        enter = slideInVFade(
-            durationMillis = duration.inWholeMilliseconds.toInt(),
-            initialOffsetY = initialOffsetY,
-        ),
-        exit = slideOutVAndFade(
-            durationMillis = duration.inWholeMilliseconds.toInt(),
-            targetOffsetY = targetOffsetY,
         ),
         content = content,
     )

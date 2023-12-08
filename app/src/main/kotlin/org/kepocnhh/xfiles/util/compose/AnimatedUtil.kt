@@ -3,18 +3,14 @@ package org.kepocnhh.xfiles.util.compose
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 
 internal fun slideInHAndFade(
     slideAnimationSpec: FiniteAnimationSpec<IntOffset>,
@@ -23,7 +19,7 @@ internal fun slideInHAndFade(
 ): EnterTransition {
     return slideInHorizontally(
         animationSpec = slideAnimationSpec,
-        initialOffsetX = initialOffsetX
+        initialOffsetX = initialOffsetX,
     ) + fadeIn(fadeAnimationSpec)
 }
 
@@ -34,7 +30,7 @@ internal fun slideInHAndFade(
     return slideInHAndFade(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
-        initialOffsetX = initialOffsetX
+        initialOffsetX = initialOffsetX,
     )
 }
 
@@ -45,7 +41,7 @@ internal fun slideOutHAndFade(
 ): ExitTransition {
     return slideOutHorizontally(
         animationSpec = slideAnimationSpec,
-        targetOffsetX = targetOffsetX
+        targetOffsetX = targetOffsetX,
     ) + fadeOut(fadeAnimationSpec)
 }
 
@@ -56,7 +52,7 @@ internal fun slideOutHAndFade(
     return slideOutHAndFade(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
-        targetOffsetX = targetOffsetX
+        targetOffsetX = targetOffsetX,
     )
 }
 
@@ -67,7 +63,7 @@ internal fun slideInVFade(
 ): EnterTransition {
     return slideInVertically(
         animationSpec = slideAnimationSpec,
-        initialOffsetY = initialOffsetY
+        initialOffsetY = initialOffsetY,
     ) + fadeIn(fadeAnimationSpec)
 }
 
@@ -78,7 +74,7 @@ internal fun slideInVFade(
     return slideInVFade(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
-        initialOffsetY = initialOffsetY
+        initialOffsetY = initialOffsetY,
     )
 }
 
@@ -89,7 +85,7 @@ internal fun slideOutVAndFade(
 ): ExitTransition {
     return slideOutVertically(
         animationSpec = slideAnimationSpec,
-        targetOffsetY = targetOffsetY
+        targetOffsetY = targetOffsetY,
     ) + fadeOut(fadeAnimationSpec)
 }
 
@@ -100,6 +96,6 @@ internal fun slideOutVAndFade(
     return slideOutVAndFade(
         slideAnimationSpec = tween(durationMillis),
         fadeAnimationSpec = tween(durationMillis),
-        targetOffsetY = targetOffsetY
+        targetOffsetY = targetOffsetY,
     )
 }

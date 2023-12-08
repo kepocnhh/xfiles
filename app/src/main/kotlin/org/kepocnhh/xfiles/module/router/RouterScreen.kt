@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,12 +28,9 @@ import sp.ax.jc.animations.style.TweenStyle
 import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.fade.fadeIn
 import sp.ax.jc.animations.tween.fade.fadeOut
-import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.animations.tween.slide.slideIn
 import sp.ax.jc.animations.tween.slide.slideOut
 import javax.crypto.SecretKey
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 private fun enterTransition(

@@ -13,15 +13,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.kepocnhh.xfiles.BuildConfig
-import java.security.AlgorithmParameterGenerator
-import java.security.AlgorithmParameters
 import java.security.KeyStore
-import java.security.SecureRandom
 import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 
 internal object BiometricUtil {
@@ -37,8 +33,10 @@ internal object BiometricUtil {
     }
 
     private val algorithm = KeyProperties.KEY_ALGORITHM_AES
+
 //    private val blocks = KeyProperties.BLOCK_MODE_GCM
     private val blocks = KeyProperties.BLOCK_MODE_CBC
+
 //    private val paddings = KeyProperties.ENCRYPTION_PADDING_NONE
     private val paddings = KeyProperties.ENCRYPTION_PADDING_PKCS7
     private val keyAlias = BuildConfig.APPLICATION_ID + ":foo:1" // todo
@@ -104,7 +102,7 @@ internal object BiometricUtil {
     }
 
     private fun getCipher(): Cipher {
-        return Cipher.getInstance( "$algorithm/$blocks/$paddings")
+        return Cipher.getInstance("$algorithm/$blocks/$paddings")
     }
 
     private fun getPromptInfo(): BiometricPrompt.PromptInfo {

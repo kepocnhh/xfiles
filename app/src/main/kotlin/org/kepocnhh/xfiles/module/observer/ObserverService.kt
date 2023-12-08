@@ -16,7 +16,7 @@ internal class ObserverService : Service() {
     private val scope = CoroutineScope(Dispatchers.Main + job)
 
     private fun onStartTimer() {
-
+        // todo
     }
 
     private fun onStartCommand(intent: Intent) {
@@ -57,7 +57,7 @@ internal class ObserverService : Service() {
     }
 
     enum class Action {
-        START_TIMER
+        START_TIMER,
     }
 
     companion object {

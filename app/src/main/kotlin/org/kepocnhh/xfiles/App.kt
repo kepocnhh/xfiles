@@ -1,24 +1,16 @@
 package org.kepocnhh.xfiles
 
 import android.app.Application
-import android.os.Build
-import android.view.OrientationEventListener
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
@@ -30,7 +22,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.entity.SecuritySettings
@@ -62,7 +53,6 @@ import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     enum class Orientation {
@@ -171,15 +161,6 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        object : OrientationEventListener(this) {
-            override fun onOrientationChanged(orientation: Int) {
-                println("[App]: orientation: $orientation")
-                _orientationFlow.value = when (orientation) {
-                    in 225..315 -> Orientation.LANDSCAPE
-                    else -> Orientation.PORTRAIT
-                }
-            }
-        }//.enable() // todo
         _injection = Injection(
             loggers = FinalLoggerFactory,
             contexts = Contexts(
@@ -188,7 +169,7 @@ internal class App : Application() {
             ),
             encrypted = Encrypted(
                 files = FinalEncryptedFileProvider(context = this),
-                local = FinalEncryptedLocalDataProvider(context = this)
+                local = FinalEncryptedLocalDataProvider(context = this),
             ),
             local = FinalLocalDataProvider(
                 context = this,
@@ -212,7 +193,7 @@ internal class App : Application() {
                 dataBase = "db.json.enc",
                 dataBaseSignature = "db.json.sig",
                 biometric = "biometric.enc",
-            )
+            ),
         )
     }
 

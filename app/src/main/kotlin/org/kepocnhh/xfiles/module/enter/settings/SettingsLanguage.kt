@@ -189,7 +189,7 @@ internal fun SettingsLanguage() {
                         onClick = {
                             themeViewModel.setLanguage(language)
                             dialogState.value = false
-                        }
+                        },
                     )
                 }
             }

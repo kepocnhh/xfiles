@@ -1,7 +1,6 @@
 package org.kepocnhh.xfiles.provider.security
 
 import android.os.Build
-import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecurityServices
 import java.security.AlgorithmParameterGenerator
 import java.security.AlgorithmParameters
@@ -30,12 +29,12 @@ private class MessageDigestProviderImpl(
 }
 
 private class CipherProviderImpl(
-    private val delegate: Cipher
+    private val delegate: Cipher,
 ) : CipherProvider {
     override fun encrypt(
         key: SecretKey,
         params: AlgorithmParameterSpec,
-        decrypted: ByteArray
+        decrypted: ByteArray,
     ): ByteArray {
         delegate.init(Cipher.ENCRYPT_MODE, key, params)
         return delegate.doFinal(decrypted)
@@ -44,7 +43,7 @@ private class CipherProviderImpl(
     override fun decrypt(
         key: SecretKey,
         params: AlgorithmParameterSpec,
-        encrypted: ByteArray
+        encrypted: ByteArray,
     ): ByteArray {
         delegate.init(Cipher.DECRYPT_MODE, key, params)
         return delegate.doFinal(encrypted)

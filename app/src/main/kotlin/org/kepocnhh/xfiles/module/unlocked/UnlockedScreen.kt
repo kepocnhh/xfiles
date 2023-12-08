@@ -350,9 +350,11 @@ internal fun UnlockedScreen(
     FadeVisibility(
         visible = addItemState.value,
     ) {
-        Spacer(modifier = Modifier
-            .fillMaxSize()
-            .background(Colors.black))
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Colors.black),
+        )
     }
     SlideHVisibility(
         visible = addItemState.value,

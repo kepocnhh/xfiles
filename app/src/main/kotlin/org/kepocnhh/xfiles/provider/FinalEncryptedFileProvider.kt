@@ -8,7 +8,6 @@ import androidx.security.crypto.MasterKeys
 import org.kepocnhh.xfiles.BuildConfig
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 
 internal class FinalEncryptedFileProvider(
     private val context: Context,

@@ -11,8 +11,8 @@ import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
 import sp.gx.core.kebabCase
-import sp.gx.core.slashCase
 import sp.gx.core.resolve
+import sp.gx.core.slashCase
 
 val gh = GitHub.Repository(
     owner = "kepocnhh",

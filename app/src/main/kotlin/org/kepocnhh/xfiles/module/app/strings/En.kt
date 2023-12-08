@@ -50,7 +50,7 @@ internal object En : Strings {
     override val unlocked = Strings.Unlocked(
         copied = "Copied.",
         noItems = "There are no entries yet.\nClick on [%s](+) to add a new one.",
-        deleteItem = "Delete entry \"%s\"?"
+        deleteItem = "Delete entry \"%s\"?",
     )
 
     override val addItem = Strings.AddItem(

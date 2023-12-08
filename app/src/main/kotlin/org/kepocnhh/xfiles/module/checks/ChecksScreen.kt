@@ -14,18 +14,13 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.Squares
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 @Composable
@@ -79,7 +74,8 @@ private fun BoxScope.OnChecks(type: ChecksViewModel.ChecksType?) {
             modifier = {
                 Modifier
                     .size(it)
-                    .align(Alignment.CenterHorizontally) },
+                    .align(Alignment.CenterHorizontally)
+            },
             color = App.Theme.colors.foreground,
             width = App.Theme.sizes.large,
             padding = App.Theme.sizes.small,

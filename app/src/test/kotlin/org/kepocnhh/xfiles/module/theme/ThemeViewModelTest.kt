@@ -29,7 +29,12 @@ internal class ThemeViewModelTest {
             check(language1 != language2)
             val injection = mockInjection(
                 contexts = mockContexts(),
-                local = MockLocalDataProvider(themeState = ThemeState(colorsType = colorsType1, language = language1))
+                local = MockLocalDataProvider(
+                    themeState = ThemeState(
+                        colorsType = colorsType1,
+                        language = language1,
+                    ),
+                ),
             )
             val viewModel = ThemeViewModel(injection)
             viewModel

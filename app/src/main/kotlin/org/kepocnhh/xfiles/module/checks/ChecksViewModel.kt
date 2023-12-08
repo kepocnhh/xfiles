@@ -1,7 +1,6 @@
 package org.kepocnhh.xfiles.module.checks
 
 import android.os.Build
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -16,9 +15,7 @@ import org.kepocnhh.xfiles.util.security.getServiceOrNull
 import org.kepocnhh.xfiles.util.security.requireService
 import org.kepocnhh.xfiles.util.security.toSecurityService
 import java.security.NoSuchAlgorithmException
-import java.util.Arrays
 import java.util.UUID
-import kotlin.time.Duration.Companion.seconds
 
 internal class ChecksViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {

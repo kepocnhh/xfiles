@@ -131,7 +131,7 @@ internal fun SettingsColors() {
             .height(SettingsScreen.LocalSizes.current.rowHeight)
             .clickable {
                 dialogState.value = true
-            }
+            },
     ) {
         Image(
             modifier = Modifier
@@ -191,7 +191,7 @@ internal fun SettingsColors() {
                         onClick = {
                             themeViewModel.setColorsType(colorsType)
                             dialogState.value = false
-                        }
+                        },
                     )
                 }
             }

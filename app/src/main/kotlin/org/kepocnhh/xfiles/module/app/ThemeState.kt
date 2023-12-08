@@ -3,13 +3,13 @@ package org.kepocnhh.xfiles.module.app
 internal enum class ColorsType {
     DARK,
     LIGHT,
-    AUTO
+    AUTO,
 }
 
 internal enum class Language {
     ENGLISH,
     RUSSIAN,
-    AUTO
+    AUTO,
 }
 
 internal data class ThemeState(

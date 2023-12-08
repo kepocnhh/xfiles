@@ -8,8 +8,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.KeyMeta
-import org.kepocnhh.xfiles.entity.SecurityService
-import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.EncryptedFileProvider
@@ -18,13 +16,8 @@ import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.SecurityUtil
-import org.kepocnhh.xfiles.util.security.getServiceOrNull
-import org.kepocnhh.xfiles.util.security.requireService
-import org.kepocnhh.xfiles.util.security.toSecurityService
 import java.nio.ByteBuffer
 import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
-import java.security.Provider
 import java.security.interfaces.DSAParams
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
