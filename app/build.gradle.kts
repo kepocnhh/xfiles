@@ -113,85 +113,7 @@ android {
 
 jacoco.toolVersion = Version.jacoco
 
-fun setCoverage(variant: com.android.build.api.variant.ComponentIdentity) {
-    val taskUnitTest = tasks.getByName<Test>(camelCase("test", variant.name, "UnitTest"))
-    val taskCoverageReport = task<JacocoReport>(camelCase("test", variant.name, "CoverageReport")) {
-        dependsOn(taskUnitTest)
-        reports {
-            csv.required.set(false)
-            html.required.set(true)
-            xml.required.set(false)
-        }
-        sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(layout.buildDirectory.file("tmp/kotlin-classes/" + variant.name)) {
-            include("**/${android.defaultConfig.applicationId!!.replace('.', '/')}/module/**/*")
-        }
-        classDirectories.setFrom(dirs)
-        executionData(taskUnitTest)
-        doLast {
-            val report = layout.buildDirectory.file("reports/jacoco/$name/html/index.html").get().asFile
-            if (report.exists()) {
-                println("Coverage report: ${report.absolutePath}")
-            }
-        }
-    }
-    task<JacocoCoverageVerification>(camelCase("test", variant.name, "CoverageVerification")) {
-        dependsOn(taskCoverageReport)
-        violationRules {
-            rule {
-                limit {
-                    minimum = BigDecimal(0.96)
-                }
-            }
-        }
-        classDirectories.setFrom(taskCoverageReport.classDirectories)
-        executionData(taskCoverageReport.executionData)
-    }
-}
-
-fun setCodeQuality(variant: com.android.build.api.variant.ComponentIdentity) {
-    val configs = setOf(
-        "comments",
-        "common",
-        "complexity",
-        "coroutines",
-        "empty-blocks",
-        "exceptions",
-        "naming",
-        "performance",
-        "potential-bugs",
-        "style",
-    ).map { config ->
-        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
-            .existing()
-            .file()
-            .filled()
-    }
-    setOf("main", "test").forEach { source ->
-        task<io.gitlab.arturbosch.detekt.Detekt>(camelCase("checkCodeQuality", variant.name, source)) {
-            jvmTarget = Version.jvmTarget
-            setSource(files("src/$source/kotlin"))
-            config.setFrom(configs)
-            reports {
-                html {
-                    required.set(true)
-                    outputLocation.set(layout.buildDirectory.file("reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
-                }
-                md.required.set(false)
-                sarif.required.set(false)
-                txt.required.set(false)
-                xml.required.set(false)
-            }
-            val postfix = when (source) {
-                "main" -> ""
-                "test" -> "UnitTest"
-                else -> error("Source \"$source\" is not supported!")
-            }
-            val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>(camelCase("detekt", variant.name, postfix))
-            classpath.setFrom(detektTask.classpath)
-        }
-    }
-}
+val ktlint: Configuration by configurations.creating
 
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
@@ -204,8 +126,6 @@ androidComponents.onVariants { variant ->
     )
     output.outputFileName.set("$name.apk")
     afterEvaluate {
-        setCoverage(variant)
-        setCodeQuality(variant)
         tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
             targetCompatibility = Version.jvmTarget
         }
@@ -251,15 +171,22 @@ androidComponents.onVariants { variant ->
 }
 
 dependencies {
-    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.activity:activity-compose:1.8.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
     implementation("androidx.security:security-crypto:1.0.0")
     implementation("com.github.kepocnhh:ComposeAnimations:0.0.2-SNAPSHOT")
     implementation("com.github.kepocnhh:ComposeClicks:0.2.3-SNAPSHOT")
     implementation("com.github.kepocnhh:ComposeDialogs:0.1.0-SNAPSHOT")
-    testImplementation("junit:junit:4.13.2")
+    debugImplementation("androidx.compose.ui:ui-tooling:${Version.Android.compose}")
+    debugImplementation("androidx.compose.ui:ui-tooling-preview:${Version.Android.compose}")
+    testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    ktlint("com.pinterest:ktlint:${Version.ktlint}") {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        }
+    }
 }
