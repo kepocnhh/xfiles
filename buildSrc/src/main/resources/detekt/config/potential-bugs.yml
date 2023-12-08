@@ -1,10 +1,10 @@
-# 2022/06/12
+# 2023/11/26
 
 potential-bugs:
   active: true
   AvoidReferentialEquality:
-    active: false
-
+    active: true
+    forbiddenTypePatterns: ['*']
   CastToNullableType:
     active: true
   Deprecation:
@@ -23,7 +23,7 @@ potential-bugs:
       'java.util.LinkedHashMap',
       'java.util.HashMap'
     ]
-  DuplicateCaseInWhenExpression:
+  ElseCaseInsteadOfExhaustiveWhen:
     active: true
   EqualsAlwaysReturnsTrueOrFalse:
     active: true
@@ -37,16 +37,22 @@ potential-bugs:
     active: true
   IgnoredReturnValue:
     active: true
-    restrictToAnnotatedMethods: false
+    restrictToConfig: false
     ignoreFunctionCall: [
+      android.content.SharedPreferences.Editor.commit,
+      java.lang.StringBuilder.append,
+      kotlin.TODO,
+      kotlin.also,
+      kotlin.checkNotNull,
       kotlin.collections.MutableList.add,
+      kotlin.collections.MutableMap.remove,
       kotlin.collections.MutableSet.add,
       kotlin.collections.MutableSet.addAll,
       kotlin.collections.removeAll,
       kotlin.error,
-      kotlin.TODO,
+      kotlinx.coroutines.flow.SharedFlow.collect,
       kotlinx.coroutines.launch,
-      kotlinx.coroutines.withContext
+      kotlinx.coroutines.withContext,
     ]
   ImplicitDefaultLocale:
     active: true
@@ -66,16 +72,15 @@ potential-bugs:
     active: true
   MissingPackageDeclaration:
     active: true
-  MissingWhenCase:
-    allowElseExpression: true
-    active: true
   NullCheckOnMutableProperty:
     active: true
   NullableToStringCall:
     active: true
-  RedundantElseInWhen:
+  PropertyUsedBeforeDeclaration:
     active: true
   UnconditionalJumpStatementInLoop:
+    active: true
+  UnnecessaryNotNullCheck:
     active: true
   UnnecessaryNotNullOperator:
     active: true

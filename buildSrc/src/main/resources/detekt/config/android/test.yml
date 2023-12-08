@@ -1,0 +1,18 @@
+# 2023/11/26
+
+potential-bugs:
+  active: true
+  IgnoredReturnValue:
+    active: true
+    restrictToConfig: false
+    ignoreFunctionCall: [
+      androidx.compose.ui.test.assert,
+      androidx.compose.ui.test.assertIsDisplayed,
+      androidx.compose.ui.test.assertTextEquals,
+      androidx.compose.ui.test.performClick,
+      androidx.compose.ui.test.performTouchInput,
+      androidx.test.espresso.ViewInteraction.perform,
+      kotlin.checkNotNull,
+      kotlin.error,
+      org.junit.Assert.assertThrows
+    ]

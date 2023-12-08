@@ -1,0 +1,13 @@
+# 2023/11/26
+
+style:
+  active: true
+  ForbiddenComment:
+    active: true
+    comments: []
+    allowedPatterns: ''
+
+complexity:
+  active: true
+  StringLiteralDuplication:
+    active: false
