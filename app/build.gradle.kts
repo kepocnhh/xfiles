@@ -1,4 +1,5 @@
 import com.android.build.api.variant.ComponentIdentity
+import com.android.build.gradle.internal.tasks.R8Task
 import io.gitlab.arturbosch.detekt.Detekt
 import sp.gx.core.Badge
 import sp.gx.core.GitHub
@@ -379,6 +380,16 @@ androidComponents.onVariants { variant ->
         }
         tasks.getByName(camelCase("assemble", variant.name)) {
             dependsOn(checkManifestTask)
+        }
+        if (variant.isMinifyEnabled) {
+            tasks.getByName<R8Task>(camelCase("minify", variant.name, "WithR8")) {
+                proguardConfigurations.add("-keepclassmembers class ${android.namespace}.module.**ViewModel { <init>(*); }")
+                val cryptoKeeps = setOf(
+                    "-dontwarn com.google.errorprone.annotations.Immutable",
+                    "-dontwarn javax.annotation.concurrent.GuardedBy",
+                )
+                proguardConfigurations.addAll(cryptoKeeps)
+            }
         }
     }
 }
