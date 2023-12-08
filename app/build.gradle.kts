@@ -1,10 +1,12 @@
 import com.android.build.api.variant.ComponentIdentity
+import io.gitlab.arturbosch.detekt.Detekt
 import sp.gx.core.GitHub
 import sp.gx.core.camelCase
 import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
 import sp.gx.core.kebabCase
+import sp.gx.core.slashCase
 
 val gh = GitHub.Repository(
     owner = "kepocnhh",
@@ -113,18 +115,129 @@ android {
 
 jacoco.toolVersion = Version.jacoco
 
+fun checkCoverage(variant: ComponentIdentity) {
+    val taskUnitTest = camelCase("test", variant.name, "UnitTest")
+    val executionData = layout.buildDirectory.get()
+        .dir("outputs/unit_test_code_coverage/${variant.name}UnitTest")
+        .file("$taskUnitTest.exec")
+    tasks.getByName<Test>(taskUnitTest) {
+        doLast {
+            executionData.existing().file().filled()
+        }
+    }
+    val taskCoverageReport = task<JacocoReport>(camelCase("assemble", variant.name, "CoverageReport")) {
+        dependsOn(taskUnitTest)
+        reports {
+            csv.required = false
+            html.required = true
+            xml.required = false
+        }
+        sourceDirectories.setFrom(file("src/main/kotlin"))
+        val root = layout.buildDirectory.get()
+            .dir("tmp/kotlin-classes")
+            .dir(variant.name)
+        val dirs = fileTree(root) {
+            val rootPackage = android.namespace!!.replace('.', '/')
+            val path = "**/$rootPackage/module/**"
+            setOf("Screen", "ViewModel").forEach { name ->
+                include(
+                    "$path/*$name.class",
+                    "$path/*${name}Kt.class",
+                )
+            }
+        }
+        classDirectories.setFrom(dirs)
+        executionData(executionData)
+        doLast {
+            val report = layout.buildDirectory.get()
+                .dir("reports/jacoco/$name/html")
+                .file("index.html")
+                .asFile
+            if (report.exists()) {
+                println("Coverage report: ${report.absolutePath}")
+            }
+        }
+    }
+    task<JacocoCoverageVerification>(camelCase("check", variant.name, "Coverage")) {
+        dependsOn(taskCoverageReport)
+        violationRules {
+            rule {
+                limit {
+                    minimum = BigDecimal(0.96)
+                }
+            }
+        }
+        classDirectories.setFrom(taskCoverageReport.classDirectories)
+        executionData(taskCoverageReport.executionData)
+    }
+}
+
+fun checkCodeQuality(variant: ComponentIdentity, configs: Iterable<File>, sources: Iterable<File>, postfix: String = "") {
+    task<Detekt>(camelCase("check", variant.name, "CodeQuality", postfix)) {
+        jvmTarget = Version.jvmTarget
+        setSource(sources)
+        config.setFrom(configs)
+        val report = layout.buildDirectory.get()
+            .dir("reports/analysis/code/quality")
+            .dir(slashCase(variant.name, postfix, "html"))
+            .file("index.html")
+            .asFile
+        reports {
+            html {
+                required = true
+                outputLocation = report
+            }
+            md.required = false
+            sarif.required = false
+            txt.required = false
+            xml.required = false
+        }
+        val detektTask = tasks.getByName<Detekt>(camelCase("detekt", variant.name, postfix))
+        classpath.setFrom(detektTask.classpath)
+        doFirst {
+            println("Analysis report: ${report.absolutePath}")
+        }
+    }
+}
+
+fun getDetektConfigs(): Iterable<File> {
+    return setOf(
+        "comments",
+        "common",
+        "complexity",
+        "coroutines",
+        "empty-blocks",
+        "exceptions",
+        "naming",
+        "performance",
+        "potential-bugs",
+        "style",
+    ).map { config ->
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
+            .existing()
+            .file()
+            .filled()
+    }
+}
+
+fun getDetektUnitTestConfigs(): Iterable<File> {
+    return setOf(
+        "android/test",
+        "test",
+    ).map { config ->
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
+            .existing()
+            .file()
+            .filled()
+    }
+}
+
 val ktlint: Configuration by configurations.creating
 
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    val name = kebabCase(
-        rootProject.name,
-        android.defaultConfig.versionName!!,
-        variant.name,
-        android.defaultConfig.versionCode.toString(),
-    )
-    output.outputFileName.set("$name.apk")
+    output.outputFileName = "${kebabCase(rootProject.name, variant.getVersion())}.apk"
     afterEvaluate {
         tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
             targetCompatibility = Version.jvmTarget
@@ -132,11 +245,26 @@ androidComponents.onVariants { variant ->
         tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
             kotlinOptions.jvmTarget = Version.jvmTarget
         }
-        tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "UnitTest", "JavaWithJavac")) {
-            targetCompatibility = Version.jvmTarget
-        }
-        tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "UnitTest", "Kotlin")) {
-            kotlinOptions.jvmTarget = Version.jvmTarget
+        if (variant.buildType == android.testBuildType) {
+            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "UnitTest", "JavaWithJavac")) {
+                targetCompatibility = Version.jvmTarget
+            }
+            tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "UnitTest", "Kotlin")) {
+                kotlinOptions.jvmTarget = Version.jvmTarget
+            }
+            checkCoverage(variant)
+            checkCodeQuality(
+                variant = variant,
+                configs = getDetektConfigs() + getDetektUnitTestConfigs(),
+                sources = files("src/test/kotlin"),
+                postfix = "UnitTest",
+            )
+        } else {
+            checkCodeQuality(
+                variant = variant,
+                configs = getDetektConfigs(),
+                sources = variant.sources.kotlin!!.all.get().map { it.asFile },
+            )
         }
         val checkManifestTask = task(camelCase("checkManifest", variant.name)) {
             dependsOn(camelCase("compile", variant.name, "Sources"))
