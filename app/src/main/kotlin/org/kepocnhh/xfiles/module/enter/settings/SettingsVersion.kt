@@ -18,7 +18,7 @@ internal fun SettingsVersion() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .padding(horizontal = App.Theme.sizes.small),
     ) {
         BasicText(

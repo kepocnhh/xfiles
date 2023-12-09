@@ -35,7 +35,7 @@ private fun SettingsCipher(cipher: SecurityService?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .padding(horizontal = App.Theme.sizes.small),
     ) {
         BasicText(
@@ -89,7 +89,7 @@ internal fun SettingsAES(keyLength: SecuritySettings.AESKeyLength) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight),
+            .height(App.Theme.sizes.xxxl),
     ) {
         BasicText(
             modifier = Modifier
@@ -163,7 +163,7 @@ internal fun SettingsDSA(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .clickable(enabled = editable) {
                 dialogState.value = true
             },
@@ -279,7 +279,7 @@ internal fun SettingsPBE(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .clickable(enabled = editable) {
                 dialogState.value = true
             },
@@ -357,6 +357,21 @@ internal fun SettingsCipher(editable: Boolean) {
             viewModel.requestSettings()
         }
     }
+    SettingsCipher(
+        editable = editable,
+        cipher = cipher,
+        settings = settings,
+        onSettings = viewModel::setSettings,
+    )
+}
+
+@Composable
+internal fun SettingsCipher(
+    editable: Boolean,
+    cipher: SecurityService?,
+    settings: SecuritySettings?,
+    onSettings: (SecuritySettings) -> Unit,
+) {
     Column {
         SettingsCipher(cipher)
         if (settings != null) {
@@ -365,21 +380,21 @@ internal fun SettingsCipher(editable: Boolean) {
                 editable = editable,
                 iterations = settings.pbeIterations,
                 onSelectIterations = {
-                    viewModel.setSettings(settings.copy(pbeIterations = it))
+                    onSettings(settings.copy(pbeIterations = it))
                 },
             )
             SettingsDSA(
                 editable = editable,
                 strength = settings.dsaKeyLength,
                 onSelectKeyLength = {
-                    viewModel.setSettings(settings.copy(dsaKeyLength = it))
+                    onSettings(settings.copy(dsaKeyLength = it))
                 },
             )
             SettingsHasBiometric(
                 hasBiometric = settings.hasBiometric,
                 editable = editable,
                 onClick = {
-                    viewModel.setSettings(settings.copy(hasBiometric = !settings.hasBiometric))
+                    onSettings(settings.copy(hasBiometric = !settings.hasBiometric))
                 },
             )
         }
@@ -395,7 +410,7 @@ private fun SettingsHasBiometric(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .clickable(enabled = editable, onClick = onClick)
             .padding(horizontal = App.Theme.sizes.small),
     ) {

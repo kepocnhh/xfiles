@@ -21,43 +21,17 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
 import org.kepocnhh.xfiles.util.compose.toPaddings
 
-internal object SettingsScreen {
-    val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
-
-    data class Sizes(val rowHeight: Dp)
-}
-
 @Composable
 internal fun SettingsScreen(onBack: () -> Unit) {
     BackHandler {
         onBack()
     }
-    when (LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            SettingsScreenLandscape()
-        }
-        else -> {
+    when (val orientation = LocalConfiguration.current.orientation) {
+        Configuration.ORIENTATION_PORTRAIT -> {
             SettingsScreenPortrait()
         }
-    }
-}
-
-@Composable
-private fun Columns(modifier: Modifier, sizes: SettingsScreen.Sizes) {
-    val viewModel = App.viewModel<SettingsViewModel>()
-    CompositionLocalProvider(
-        SettingsScreen.LocalSizes provides sizes,
-    ) {
-        Column(modifier = modifier) {
-            SettingsColors()
-            SettingsLanguage()
-            val exists = viewModel.databaseExists.collectAsState(null).value
-            if (exists == null) {
-                viewModel.requestDatabase()
-            } else {
-                SettingsCipher(editable = !exists)
-            }
-            SettingsVersion()
+        else -> {
+            TODO("Orientation $orientation is not supported!")
         }
     }
 }
@@ -69,26 +43,17 @@ private fun SettingsScreenPortrait() {
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
-        Columns(
-            modifier = Modifier.align(Alignment.Center),
-            sizes = SettingsScreen.Sizes(rowHeight = App.Theme.sizes.xxxl),
-        )
-    }
-}
-
-@Composable
-private fun SettingsScreenLandscape() {
-    val insets = LocalView.current.rootWindowInsets.toPaddings()
-    val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(App.Theme.colors.background)
-            .padding(end = insets.calculateEndPadding(layoutDirection)),
-    ) {
-        Columns(
-            modifier = Modifier.align(Alignment.Center),
-            sizes = SettingsScreen.Sizes(rowHeight = App.Theme.sizes.xl),
-        )
+        val viewModel = App.viewModel<SettingsViewModel>()
+        Column(modifier = Modifier.align(Alignment.Center)) {
+            SettingsColors()
+            SettingsLanguage()
+            val exists = viewModel.databaseExists.collectAsState(null).value
+            if (exists == null) {
+                viewModel.requestDatabase()
+            } else {
+                SettingsCipher(editable = !exists)
+            }
+            SettingsVersion()
+        }
     }
 }

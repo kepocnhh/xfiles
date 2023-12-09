@@ -28,6 +28,7 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.Strings
+import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.app.strings.En
 import org.kepocnhh.xfiles.module.app.strings.Ru
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
@@ -118,16 +119,27 @@ private fun SettingsLanguageRow(
 @Composable
 internal fun SettingsLanguage() {
     val themeViewModel = App.viewModel<ThemeViewModel>()
-    val theme = themeViewModel.state.collectAsState().value
-    if (theme == null) {
+    val themeState = themeViewModel.state.collectAsState().value
+    if (themeState == null) {
         themeViewModel.requestThemeState()
         return
     }
+    SettingsLanguage(
+        themeState = themeState,
+        onLanguage = themeViewModel::setLanguage,
+    )
+}
+
+@Composable
+internal fun SettingsLanguage(
+    themeState: ThemeState,
+    onLanguage: (Language) -> Unit,
+) {
     val dialogState = remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .clickable {
                 dialogState.value = true
             },
@@ -137,7 +149,7 @@ internal fun SettingsLanguage() {
                 .padding(start = App.Theme.sizes.small)
                 .size(App.Theme.sizes.medium)
                 .align(Alignment.CenterStart),
-            painter = painterResource(id = getIcon(theme.language)),
+            painter = painterResource(id = getIcon(themeState.language)),
             contentDescription = "language:icon",
         )
         BasicText(
@@ -157,7 +169,7 @@ internal fun SettingsLanguage() {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             ),
-            text = getText(theme.language),
+            text = getText(themeState.language),
         )
     }
     if (dialogState.value) {
@@ -185,9 +197,9 @@ internal fun SettingsLanguage() {
                 ).forEach { language ->
                     SettingsLanguageRow(
                         language = language,
-                        selected = theme.language == language,
+                        selected = themeState.language == language,
                         onClick = {
-                            themeViewModel.setLanguage(language)
+                            onLanguage(language)
                             dialogState.value = false
                         },
                     )

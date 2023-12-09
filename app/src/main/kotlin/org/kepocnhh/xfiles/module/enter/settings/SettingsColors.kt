@@ -29,6 +29,7 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.app.ColorsType
+import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 
@@ -124,11 +125,22 @@ internal fun SettingsColors() {
         themeViewModel.requestThemeState()
         return
     }
+    SettingsColors(
+        themeState = theme,
+        onColorsType = themeViewModel::setColorsType,
+    )
+}
+
+@Composable
+internal fun SettingsColors(
+    themeState: ThemeState,
+    onColorsType: (ColorsType) -> Unit,
+) {
     val dialogState = remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsScreen.LocalSizes.current.rowHeight)
+            .height(App.Theme.sizes.xxxl)
             .clickable {
                 dialogState.value = true
             },
@@ -138,7 +150,7 @@ internal fun SettingsColors() {
                 .padding(start = App.Theme.sizes.small)
                 .size(App.Theme.sizes.medium)
                 .align(Alignment.CenterStart),
-            painter = painterResource(id = getIcon(theme.colorsType)),
+            painter = painterResource(id = getIcon(themeState.colorsType)),
             contentDescription = "colors:icon",
             colorFilter = ColorFilter.tint(App.Theme.colors.foreground),
         )
@@ -159,41 +171,40 @@ internal fun SettingsColors() {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             ),
-            text = getText(theme.colorsType),
+            text = getText(themeState.colorsType),
         )
     }
-    if (dialogState.value) {
-        Dialog(
-            onDismissRequest = {
-                dialogState.value = false
-            },
+    if (!dialogState.value) return
+    Dialog(
+        onDismissRequest = {
+            dialogState.value = false
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = App.Theme.colors.background,
+                    shape = RoundedCornerShape(App.Theme.sizes.medium),
+                )
+                .padding(
+                    top = App.Theme.sizes.medium,
+                    bottom = App.Theme.sizes.medium,
+                ),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = App.Theme.colors.background,
-                        shape = RoundedCornerShape(App.Theme.sizes.medium),
-                    )
-                    .padding(
-                        top = App.Theme.sizes.medium,
-                        bottom = App.Theme.sizes.medium,
-                    ),
-            ) {
-                setOf(
-                    ColorsType.LIGHT,
-                    ColorsType.DARK,
-                    ColorsType.AUTO,
-                ).forEach { colorsType ->
-                    SettingsColorRow(
-                        colorsType = colorsType,
-                        selected = theme.colorsType == colorsType,
-                        onClick = {
-                            themeViewModel.setColorsType(colorsType)
-                            dialogState.value = false
-                        },
-                    )
-                }
+            setOf(
+                ColorsType.LIGHT,
+                ColorsType.DARK,
+                ColorsType.AUTO,
+            ).forEach { colorsType ->
+                SettingsColorRow(
+                    colorsType = colorsType,
+                    selected = themeState.colorsType == colorsType,
+                    onClick = {
+                        onColorsType(colorsType)
+                        dialogState.value = false
+                    },
+                )
             }
         }
     }
