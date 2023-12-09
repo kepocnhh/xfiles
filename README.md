@@ -20,3 +20,13 @@ Encrypted data storage application.
 - [ ] animations content
 - [ ] biometric
 - [ ] app icon
+
+---
+
+### preview
+- [ ] checks
+- [ ] enter
+- [ ] settings
+- [ ] router
+- [ ] unlocked
+- [ ] items
