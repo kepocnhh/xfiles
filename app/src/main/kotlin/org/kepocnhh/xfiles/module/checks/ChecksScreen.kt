@@ -98,44 +98,14 @@ private fun BoxScope.OnChecks(type: ChecksViewModel.ChecksType?) {
 
 @Composable
 internal fun ChecksScreen(
-    onComplete: () -> Unit,
+    state: ChecksViewModel.State?,
     onExit: () -> Unit,
 ) {
-    val logger = App.newLogger("[Checks]")
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
-        val markStart = TimeSource.Monotonic.markNow()
-        val delay = App.Theme.durations.animation
-        val viewModel = App.viewModel<ChecksViewModel>()
-        LaunchedEffect(Unit) {
-            viewModel
-                .broadcast
-                .collect {
-                    when (it) {
-                        ChecksViewModel.Broadcast.OnComplete -> {
-                            withContext(Dispatchers.Default) {
-                                delay(delay - markStart.elapsedNow())
-                            }
-                            onComplete()
-                        }
-                    }
-                }
-        }
-        val state = viewModel.state.collectAsState().value
-        LaunchedEffect(state) {
-            when (state) {
-                is ChecksViewModel.State.OnError -> {
-                    logger.warning("type: ${state.type} error: ${state.error}")
-                }
-                null -> viewModel.runChecks()
-                else -> {
-                    // noop
-                }
-            }
-        }
         when (state) {
             is ChecksViewModel.State.OnChecks -> {
                 OnChecks(type = state.type)
@@ -148,4 +118,45 @@ internal fun ChecksScreen(
             }
         }
     }
+}
+
+@Composable
+internal fun ChecksScreen(
+    onComplete: () -> Unit,
+    onExit: () -> Unit,
+) {
+    val logger = App.newLogger("[Checks]")
+    val markStart = TimeSource.Monotonic.markNow()
+    val delay = App.Theme.durations.animation
+    val viewModel = App.viewModel<ChecksViewModel>()
+    LaunchedEffect(Unit) {
+        viewModel
+            .broadcast
+            .collect {
+                when (it) {
+                    ChecksViewModel.Broadcast.OnComplete -> {
+                        withContext(Dispatchers.Default) {
+                            delay(delay - markStart.elapsedNow())
+                        }
+                        onComplete()
+                    }
+                }
+            }
+    }
+    val state = viewModel.state.collectAsState().value
+    LaunchedEffect(state) {
+        when (state) {
+            is ChecksViewModel.State.OnError -> {
+                logger.warning("type: ${state.type} error: ${state.error}")
+            }
+            null -> viewModel.runChecks()
+            else -> {
+                // noop
+            }
+        }
+    }
+    ChecksScreen(
+        state = state,
+        onExit = onExit,
+    )
 }
