@@ -117,20 +117,6 @@ private fun SettingsLanguageRow(
 }
 
 @Composable
-internal fun SettingsLanguage() {
-    val themeViewModel = App.viewModel<ThemeViewModel>()
-    val themeState = themeViewModel.state.collectAsState().value
-    if (themeState == null) {
-        themeViewModel.requestThemeState()
-        return
-    }
-    SettingsLanguage(
-        themeState = themeState,
-        onLanguage = themeViewModel::setLanguage,
-    )
-}
-
-@Composable
 internal fun SettingsLanguage(
     themeState: ThemeState,
     onLanguage: (Language) -> Unit,

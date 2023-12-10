@@ -118,20 +118,6 @@ private fun SettingsColorRow(
 }
 
 @Composable
-internal fun SettingsColors() {
-    val themeViewModel = App.viewModel<ThemeViewModel>()
-    val theme = themeViewModel.state.collectAsState().value
-    if (theme == null) {
-        themeViewModel.requestThemeState()
-        return
-    }
-    SettingsColors(
-        themeState = theme,
-        onColorsType = themeViewModel::setColorsType,
-    )
-}
-
-@Composable
 internal fun SettingsColors(
     themeState: ThemeState,
     onColorsType: (ColorsType) -> Unit,

@@ -11,10 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import org.kepocnhh.xfiles.App
-import org.kepocnhh.xfiles.BuildConfig
 
 @Composable
-internal fun SettingsVersion() {
+internal fun SettingsVersion(
+    versionName: String,
+    versionCode: Int,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -32,7 +34,7 @@ internal fun SettingsVersion() {
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
-            text = BuildConfig.VERSION_NAME,
+            text = versionName,
         )
         BasicText(
             modifier = Modifier.align(Alignment.CenterEnd),
@@ -40,7 +42,7 @@ internal fun SettingsVersion() {
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
             ),
-            text = BuildConfig.VERSION_CODE.toString(),
+            text = versionCode.toString(),
         )
     }
 }

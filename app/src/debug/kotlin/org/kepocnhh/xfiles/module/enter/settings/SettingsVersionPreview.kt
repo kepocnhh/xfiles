@@ -14,7 +14,10 @@ import org.kepocnhh.xfiles.module.app.ThemeState
 private fun SettingsVersionPreview(themeState: ThemeState) {
     App.Theme.Composition(themeState) {
         Box(modifier = Modifier.background(App.Theme.colors.background)) {
-            SettingsVersion()
+            SettingsVersion(
+                versionName = "foo",
+                versionCode = 42,
+            )
         }
     }
 }
