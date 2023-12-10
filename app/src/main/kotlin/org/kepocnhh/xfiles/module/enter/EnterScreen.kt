@@ -195,24 +195,17 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
             }
         }
     }
-    // todo orientation
-//    when (LocalConfiguration.current.orientation) {
-    when (App.Theme.orientation) {
-        App.Orientation.PORTRAIT -> {
-            EnterScreenPortrait(
-                state = state,
-                errorState = errorState,
-                pinState = pinState,
-                deleteDialogState = deleteDialogState,
-                settingsState = settingsState,
-                onBiometric = {
-                    logger.debug("request biometric...")
-                    viewModel.requestBiometric()
-                },
-            )
-        }
-        else -> error("Orientation ${App.Theme.orientation} is not supported!")
-    }
+    EnterScreen(
+        state = state,
+        errorState = errorState,
+        pinState = pinState,
+        deleteDialogState = deleteDialogState,
+        settingsState = settingsState,
+        onBiometric = {
+            logger.debug("request biometric...")
+            viewModel.requestBiometric()
+        },
+    )
     val orientation = LocalConfiguration.current.orientation
     val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
     val insets = LocalView.current.rootWindowInsets.toPaddings()
@@ -378,7 +371,7 @@ private fun EnterScreenInfo(
 }
 
 @Composable
-private fun EnterScreenPortrait(
+internal fun EnterScreen(
     state: EnterViewModel.State?,
     errorState: MutableState<EnterScreen.Error?>,
     pinState: MutableState<String>,

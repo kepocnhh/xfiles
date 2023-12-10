@@ -13,6 +13,7 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
+import org.kepocnhh.xfiles.provider.ThemeStateProvider
 
 @Composable
 private fun AddItemScreenPreview(
@@ -40,19 +41,6 @@ private fun AddItemScreenPreview(
             },
         )
     }
-}
-
-private class ThemeStateProvider : PreviewParameterProvider<ThemeState> {
-    override val values = sequenceOf(
-        ThemeState(
-            colorsType = ColorsType.DARK,
-            language = Language.ENGLISH,
-        ),
-        ThemeState(
-            colorsType = ColorsType.LIGHT,
-            language = Language.RUSSIAN,
-        ),
-    )
 }
 
 private class FocusedProvider : PreviewParameterProvider<Focused?> {
