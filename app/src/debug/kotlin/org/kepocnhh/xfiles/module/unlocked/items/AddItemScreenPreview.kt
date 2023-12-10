@@ -43,10 +43,6 @@ private fun AddItemScreenPreview(
     }
 }
 
-private class FocusedProvider : PreviewParameterProvider<Focused?> {
-    override val values = sequenceOf<Focused?>(null) + Focused.entries.asSequence()
-}
-
 @Preview(name = "ThemeState")
 @Composable
 private fun AddItemScreenThemeStatePreview(
@@ -65,6 +61,10 @@ private fun AddItemScreenThemeStatePreview(
         valuesState = valuesState,
         secretFieldState = secretFieldState,
     )
+}
+
+private class FocusedProvider : PreviewParameterProvider<Focused?> {
+    override val values = sequenceOf<Focused?>(null) + Focused.entries.asSequence()
 }
 
 @Preview(name = "Focused")

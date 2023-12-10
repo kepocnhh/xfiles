@@ -322,30 +322,25 @@ internal fun UnlockedScreen(
             }
         }
     }
-    when (val orientation = LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_PORTRAIT -> {
-            UnlockedScreenPortrait(
-                loading = loading,
-                encrypteds = encrypteds,
-                onShow = {
-                    viewModel.requestToShow(key, id = it.id)
-                },
-                onCopy = {
-                    viewModel.requestToCopy(key, id = it.id)
-                },
-                onAdd = {
-                    addItemState.value = true
-                },
-                onDelete = {
-                    deleteState.value = it
-                },
-                onLock = {
-                    broadcast(UnlockedScreen.Broadcast.Lock)
-                },
-            )
-        }
-        else -> error("Orientation $orientation is not supported!")
-    }
+    UnlockedScreen(
+        loading = loading,
+        encrypteds = encrypteds,
+        onShow = {
+            viewModel.requestToShow(key, id = it.id)
+        },
+        onCopy = {
+            viewModel.requestToCopy(key, id = it.id)
+        },
+        onAdd = {
+            addItemState.value = true
+        },
+        onDelete = {
+            deleteState.value = it
+        },
+        onLock = {
+            broadcast(UnlockedScreen.Broadcast.Lock)
+        },
+    )
     // todo shadow
     FadeVisibility(
         visible = addItemState.value,
@@ -523,7 +518,7 @@ private fun Encrypteds(
 }
 
 @Composable
-private fun UnlockedScreenPortrait(
+internal fun UnlockedScreen(
     loading: Boolean,
     encrypteds: Map<String, String>?,
     onShow: (EncryptedValue) -> Unit,
