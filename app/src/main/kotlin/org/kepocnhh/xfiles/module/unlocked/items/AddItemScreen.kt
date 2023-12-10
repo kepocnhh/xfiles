@@ -58,7 +58,7 @@ import org.kepocnhh.xfiles.util.compose.toPaddings
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 
-private enum class Focused {
+internal enum class Focused {
     TITLE, SECRET,
 }
 
@@ -288,17 +288,23 @@ private fun Keyboard(
     }
 }
 
+internal data class SecretFieldState(
+    val expand: Boolean,
+    val size: IntSize?,
+    val x: Float,
+)
+
 @Composable
-private fun AddItemScreenPortrait(
+internal fun AddItemScreen(
     focusedState: MutableState<Focused?>,
-    values: MutableMap<Focused, String>,
+    valuesState: MutableMap<Focused, String>,
+    secretFieldState: SecretFieldState,
+    onSecretFieldSize: (IntSize) -> Unit,
+    onShowSecretField: suspend () -> Unit,
+    onExpandSecretField: () -> Unit,
     onAdd: (String, String) -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
-    val secretFieldExpandState = remember { mutableStateOf(false) }
-    val secretFieldSizeState = remember { mutableStateOf<IntSize?>(null) }
-    val width = LocalView.current.width
-    val secretFieldXState = remember { Animatable(width.toFloat()) }
     Column(
         modifier = Modifier
             .clickable(
@@ -318,14 +324,13 @@ private fun AddItemScreenPortrait(
         )
         Spacer(modifier = Modifier.height(App.Theme.sizes.small))
         HintTextFocused(
-            values = values,
+            values = valuesState,
             focusedState = focusedState,
             focused = Focused.TITLE,
         )
-        LaunchedEffect(secretFieldExpandState.value, secretFieldSizeState.value) {
-            val size = secretFieldSizeState.value
-            if (secretFieldExpandState.value && size != null) {
-                secretFieldXState.animateTo(0f)
+        LaunchedEffect(secretFieldState.expand, secretFieldState.size) {
+            if (secretFieldState.expand && secretFieldState.size != null) {
+                onShowSecretField()
             }
         }
         Column(
@@ -334,11 +339,11 @@ private fun AddItemScreenPortrait(
                 .animateContentSize(
                     animationSpec = tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()),
                     finishedListener = { _, size ->
-                        secretFieldSizeState.value = size
+                        onSecretFieldSize(size)
                     },
                 )
-                .offset(x = secretFieldXState.value.toInt().px())
-                .heightIn(max = if (secretFieldExpandState.value) Dp.Unspecified else 0.dp),
+                .offset(x = secretFieldState.x.toInt().px())
+                .heightIn(max = if (secretFieldState.expand) Dp.Unspecified else 0.dp),
         ) {
             Spacer(modifier = Modifier.height(App.Theme.sizes.small))
             BasicText(
@@ -348,7 +353,7 @@ private fun AddItemScreenPortrait(
             )
             Spacer(modifier = Modifier.height(App.Theme.sizes.small))
             HintTextFocused(
-                values = values,
+                values = valuesState,
                 focusedState = focusedState,
                 focused = Focused.SECRET,
             )
@@ -366,16 +371,16 @@ private fun AddItemScreenPortrait(
             Keyboard(
                 margin = PaddingValues(bottom = insets.calculateBottomPadding()),
                 focused = focused,
-                values = values,
+                values = valuesState,
                 onAction = {
                     when (focused) {
                         Focused.TITLE -> {
                             focusedState.value = Focused.SECRET
-                            secretFieldExpandState.value = true
+                            onExpandSecretField()
                         }
                         Focused.SECRET -> {
-                            val title = values[Focused.TITLE]
-                            val secret = values[Focused.SECRET]
+                            val title = valuesState[Focused.TITLE]
+                            val secret = valuesState[Focused.SECRET]
                             if (title.isNullOrBlank() || secret.isNullOrEmpty()) {
                                 // todo
                             } else {
@@ -399,14 +404,27 @@ internal fun AddItemScreen(
     }
     val focusedState = remember { mutableStateOf<Focused?>(null) }
     val valuesState = remember { mutableStateMapOf<Focused, String>() }
-    when (val orientation = LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_PORTRAIT -> {
-            AddItemScreenPortrait(
-                focusedState = focusedState,
-                values = valuesState,
-                onAdd = onAdd,
-            )
-        }
-        else -> error("Orientation $orientation is not supported!")
-    }
+    val secretFieldExpandState = remember { mutableStateOf(false) }
+    val secretFieldSizeState = remember { mutableStateOf<IntSize?>(null) }
+    val width = LocalView.current.width
+    val secretFieldXState = remember { Animatable(width.toFloat()) }
+    AddItemScreen(
+        focusedState = focusedState,
+        valuesState = valuesState,
+        secretFieldState = SecretFieldState(
+            expand = secretFieldExpandState.value,
+            size = secretFieldSizeState.value,
+            x = secretFieldXState.value,
+        ),
+        onSecretFieldSize = {
+            secretFieldSizeState.value = it
+        },
+        onShowSecretField = {
+            secretFieldXState.animateTo(0f)
+        },
+        onExpandSecretField = {
+            secretFieldExpandState.value = true
+        },
+        onAdd = onAdd,
+    )
 }

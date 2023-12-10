@@ -24,9 +24,9 @@ Encrypted data storage application.
 ---
 
 ### preview
-- [ ] checks
+- [x] checks
 - [ ] enter
 - [x] settings
 - [ ] router
 - [ ] unlocked
-- [ ] items
+- [x] items

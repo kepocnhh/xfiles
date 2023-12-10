@@ -1,9 +1,6 @@
 package org.kepocnhh.xfiles.module.checks
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.ColorsType
