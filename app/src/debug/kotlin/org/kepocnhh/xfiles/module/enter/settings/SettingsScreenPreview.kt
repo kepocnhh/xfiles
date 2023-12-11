@@ -12,7 +12,6 @@ import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
 
-
 @Composable
 private fun SettingsScreenPreview(
     themeState: ThemeState,

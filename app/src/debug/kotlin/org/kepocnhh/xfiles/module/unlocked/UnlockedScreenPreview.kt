@@ -3,7 +3,6 @@ package org.kepocnhh.xfiles.module.unlocked
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language

@@ -3,7 +3,6 @@ package org.kepocnhh.xfiles.module.unlocked
 import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
