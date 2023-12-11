@@ -18,6 +18,7 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.SecurityUtil
 import java.nio.ByteBuffer
 import java.security.MessageDigest
+import java.security.PrivateKey
 import java.security.interfaces.DSAParams
 import java.security.interfaces.DSAPrivateKey
 import java.security.spec.DSAParameterSpec
@@ -65,6 +66,11 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             .put("ivPrivate", ivPrivate.base64())
     }
 
+    private fun check(key: PrivateKey) {
+        check(key is DSAPrivateKey)
+        check(key.params)
+    }
+
     private fun check(params: DSAParams) {
         val L = params.p.bitLength()
         val N = params.q.bitLength()
@@ -94,12 +100,9 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                     size = SecurityUtil.getValue(securitySettings.dsaKeyLength),
                     random = random,
                 )
-            generator.generate(params.getParameterSpec(DSAParameterSpec::class.java)).also {
-                val private = it.private
-                check(private is DSAPrivateKey)
-                check(private.params)
-            }
+            generator.generate(params.getParameterSpec(DSAParameterSpec::class.java))
         }
+        check(pair.private)
         val decrypted = JSONObject()
             .put("id", injection.encrypted.local.databaseId!!.toString())
             .put("updated", System.currentTimeMillis())

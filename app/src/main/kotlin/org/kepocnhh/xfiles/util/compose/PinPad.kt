@@ -109,9 +109,9 @@ internal fun PinPad(
                 .fillMaxWidth()
                 .height(rowHeight),
             enabled = enabled,
-            '1',
-            '2',
-            '3',
+            first = '1',
+            second = '2',
+            third = '3',
             textStyle = textStyle,
             onClick = onClick,
         )
@@ -120,9 +120,9 @@ internal fun PinPad(
                 .fillMaxWidth()
                 .height(rowHeight),
             enabled = enabled,
-            '4',
-            '5',
-            '6',
+            first = '4',
+            second = '5',
+            third = '6',
             textStyle = textStyle,
             onClick = onClick,
         )
@@ -131,9 +131,9 @@ internal fun PinPad(
                 .fillMaxWidth()
                 .height(rowHeight),
             enabled = enabled,
-            '7',
-            '8',
-            '9',
+            first = '7',
+            second = '8',
+            third = '9',
             textStyle = textStyle,
             onClick = onClick,
         )

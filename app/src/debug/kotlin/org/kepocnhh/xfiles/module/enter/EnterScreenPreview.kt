@@ -2,7 +2,6 @@ package org.kepocnhh.xfiles.module.enter
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -19,20 +18,20 @@ private fun EnterScreenPreview(
     state: EnterViewModel.State,
     error: EnterScreen.Error?,
     pin: String,
-    deleteDialog: Boolean,
-    settings: Boolean,
 ) {
     val errorState = rememberSaveable { mutableStateOf(error) }
     val pinState = rememberSaveable { mutableStateOf(pin) }
-    val deleteDialogState = remember { mutableStateOf(deleteDialog) }
-    val settingsState = remember { mutableStateOf(settings) }
     App.Theme.Composition(themeState) {
         EnterScreen(
             state = state,
             errorState = errorState,
             pinState = pinState,
-            deleteDialogState = deleteDialogState,
-            settingsState = settingsState,
+            onDelete = {
+                // noop
+            },
+            onSettings = {
+                // noop
+            },
             onBiometric = {
                 // noop
             },
@@ -55,8 +54,6 @@ private fun AddItemScreenThemeStatePreview(
         state = state,
         error = null,
         pin = "",
-        deleteDialog = false,
-        settings = false,
     )
 }
 
@@ -99,13 +96,8 @@ private fun AddItemScreenStatePreview(
         state = state,
         error = null,
         pin = "",
-        deleteDialog = false,
-        settings = false,
     )
 }
-
-// @Preview(name = "Error.UNLOCK") // todo
-// @Preview(name = "Delete") // todo
 
 @Preview(name = "Pin")
 @Composable
@@ -124,7 +116,5 @@ private fun AddItemScreenPinPreview() {
         state = state,
         error = null,
         pin = "123",
-        deleteDialog = false,
-        settings = false,
     )
 }

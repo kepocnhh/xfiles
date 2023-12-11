@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,8 +47,6 @@ import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.PinPad
 import org.kepocnhh.xfiles.util.compose.Squares
 import org.kepocnhh.xfiles.util.compose.append
-import org.kepocnhh.xfiles.util.compose.requireLayoutDirection
-import org.kepocnhh.xfiles.util.compose.screenHeight
 import org.kepocnhh.xfiles.util.compose.screenWidth
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.ct
@@ -70,38 +67,50 @@ internal object EnterScreen {
 }
 
 @Composable
+private fun DeleteDialog(
+    dialogState: MutableState<Boolean>,
+    onConfirm: () -> Unit,
+) {
+    if (!dialogState.value) return
+    Dialog(
+        App.Theme.strings.yes to {
+            onConfirm()
+            dialogState.value = false
+        },
+        message = App.Theme.strings.dialogs.databaseDelete,
+        onDismissRequest = { dialogState.value = false },
+    )
+}
+
+@Composable
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val logger = App.newLogger("[Enter]")
     val viewModel = App.viewModel<EnterViewModel>()
-    val state = viewModel.state.collectAsState().value
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
+    DeleteDialog(
+        dialogState = deleteDialogState,
+        onConfirm = {
+            viewModel.deleteFile()
+            BiometricUtil.deleteSecretKey() // todo
+            pinState.value = ""
+        },
+    )
     val settingsState = remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val activity = context.findActivity<FragmentActivity>() ?: TODO("No activity!")
-    if (deleteDialogState.value) {
-        Dialog(
-            App.Theme.strings.yes to {
-                viewModel.deleteFile()
-                BiometricUtil.deleteSecretKey() // todo
-                pinState.value = ""
-                deleteDialogState.value = false
-            },
-            message = App.Theme.strings.dialogs.databaseDelete,
-            onDismissRequest = { deleteDialogState.value = false },
-        )
-    }
     LaunchedEffect(settingsState.value) {
         if (!settingsState.value) {
             viewModel.requestState()
         }
     }
+    val state = viewModel.state.collectAsState().value
     LaunchedEffect(Unit) {
         if (state == null) {
             viewModel.requestState()
         }
     }
+    val context = LocalContext.current
+    val activity = context.findActivity<FragmentActivity>() ?: error("No activity!")
     LaunchedEffect(pinState.value) {
         if (pinState.value.length == 4) {
             val state = viewModel.state.value ?: TODO()
@@ -180,12 +189,11 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
             }
         }
     }
-    val duration = App.Theme.durations.animation * 2
     LaunchedEffect(errorState.value) {
         when (errorState.value) {
             EnterScreen.Error.UNLOCK -> {
                 withContext(Dispatchers.Default) {
-                    delay(duration)
+                    delay(durations.animation * 2)
                 }
                 pinState.value = ""
                 errorState.value = null
@@ -199,35 +207,25 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         state = state,
         errorState = errorState,
         pinState = pinState,
-        deleteDialogState = deleteDialogState,
-        settingsState = settingsState,
+        onDelete = {
+            deleteDialogState.value = true
+        },
+        onSettings = {
+            settingsState.value = true
+        },
         onBiometric = {
             logger.debug("request biometric...")
             viewModel.requestBiometric()
         },
     )
-    val orientation = LocalConfiguration.current.orientation
-    val layoutDirection = LocalConfiguration.current.requireLayoutDirection()
     val insets = LocalView.current.rootWindowInsets.toPaddings()
     val width = LocalConfiguration.current.screenWidth(insets)
-    val targetWidth = when (orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            LocalConfiguration.current.screenHeight(insets) + insets.calculateEndPadding(layoutDirection)
-        }
-        Configuration.ORIENTATION_PORTRAIT -> width
-        else -> TODO()
-    }
-    val colorShadow = when (orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> Colors.black.copy(alpha = 0.75f)
-        Configuration.ORIENTATION_PORTRAIT -> Colors.black
-        else -> TODO()
-    }
     AnimatedHOpen(
         visible = settingsState.value,
         width = width,
-        targetWidth = targetWidth,
+        targetWidth = width,
         duration = App.Theme.durations.animation,
-        colorShadow = colorShadow,
+        colorShadow = Colors.black,
         onShadow = {
             settingsState.value = false
         },
@@ -245,7 +243,7 @@ private fun EnterScreenInfo(
     modifier: Modifier,
     exists: Boolean?,
     errorState: MutableState<EnterScreen.Error?>,
-    deleteDialogState: MutableState<Boolean>,
+    onDelete: () -> Unit,
     pinState: MutableState<String>,
 ) {
     Box(modifier = modifier) {
@@ -287,9 +285,7 @@ private fun EnterScreenInfo(
                     styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
                     onClick = {
                         when (it) {
-                            tag -> {
-                                deleteDialogState.value = true
-                            }
+                            tag -> onDelete()
                         }
                     },
                 )
@@ -375,8 +371,8 @@ internal fun EnterScreen(
     state: EnterViewModel.State?,
     errorState: MutableState<EnterScreen.Error?>,
     pinState: MutableState<String>,
-    deleteDialogState: MutableState<Boolean>,
-    settingsState: MutableState<Boolean>,
+    onDelete: () -> Unit,
+    onSettings: () -> Unit,
     onBiometric: () -> Unit,
 ) {
     Column(
@@ -392,7 +388,7 @@ internal fun EnterScreen(
             exists = if (state == null) null else if (state.loading) null else state.exists,
             errorState = errorState,
             pinState = pinState,
-            deleteDialogState = deleteDialogState,
+            onDelete = onDelete,
         )
         PinPad(
             modifier = Modifier
@@ -402,9 +398,7 @@ internal fun EnterScreen(
             onDelete = {
                 pinState.value = ""
             },
-            onSettings = {
-                settingsState.value = true
-            },
+            onSettings = onSettings,
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,

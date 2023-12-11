@@ -6,7 +6,7 @@ import android.content.ContextWrapper
 import android.widget.Toast
 
 internal fun Context.showToast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    Toast.makeText(this, message, duration).show()
 }
 
 internal fun <T : Activity> Context.findActivity(): T? {

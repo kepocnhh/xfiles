@@ -23,15 +23,16 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     }
 
     private val logger = injection.loggers.newLogger("[Unlocked|VM]")
+
+    private val _encrypteds = MutableStateFlow<Map<String, String>?>(null)
+    val encrypteds = _encrypteds.asStateFlow()
+
     private val _operations = MutableStateFlow(0)
     val loading = _operations
         .map {
             encrypteds.value == null || it > 0
         }
         .stateIn(true)
-
-    private val _encrypteds = MutableStateFlow<Map<String, String>?>(null)
-    val encrypteds = _encrypteds.asStateFlow()
 
     private val _broadcast = MutableSharedFlow<Broadcast>()
     val broadcast = _broadcast.asSharedFlow()

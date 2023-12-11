@@ -39,7 +39,7 @@ internal object BiometricUtil {
 
 //    private val paddings = KeyProperties.ENCRYPTION_PADDING_NONE
     private val paddings = KeyProperties.ENCRYPTION_PADDING_PKCS7
-    private val keyAlias = BuildConfig.APPLICATION_ID + ":foo:1" // todo
+    private val keyAlias = BuildConfig.APPLICATION_ID + ":biometric"
     private val keySize = 256
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -58,8 +58,8 @@ internal object BiometricUtil {
         }
 
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-            val cryptoObject = result.cryptoObject ?: TODO("No crypto object!")
-            val cipher = cryptoObject.cipher ?: TODO("No cipher!")
+            val cryptoObject = result.cryptoObject ?: error("No crypto object!")
+            val cipher = cryptoObject.cipher ?: error("No cipher!")
             scope.launch {
                 _broadcast.emit(Broadcast.OnSucceeded(cipher = cipher))
             }
@@ -67,14 +67,17 @@ internal object BiometricUtil {
 
         override fun onAuthenticationFailed() {
             // Called when a biometric (e.g. fingerprint, face, etc.) is presented but not recognized as belonging to the user.
-            // todo
         }
     }
 
-    private fun getKeyOrCreate(): SecretKey {
-//        deleteSecretKey() // todo
+    private fun getKeyStore(): KeyStore {
         val keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
+        return keyStore
+    }
+
+    private fun getKeyOrCreate(): SecretKey {
+        val keyStore = getKeyStore()
         if (keyStore.containsAlias(keyAlias)) return keyStore.getKey(keyAlias, null) as SecretKey
         val purposes = KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
         val spec = KeyGenParameterSpec
@@ -92,8 +95,7 @@ internal object BiometricUtil {
     }
 
     fun deleteSecretKey() {
-        val keyStore = KeyStore.getInstance("AndroidKeyStore")
-        keyStore.load(null)
+        val keyStore = getKeyStore()
         try {
             keyStore.deleteEntry(keyAlias)
         } catch (e: Throwable) {
@@ -105,6 +107,7 @@ internal object BiometricUtil {
         return Cipher.getInstance("$algorithm/$blocks/$paddings")
     }
 
+    // todo strings
     private fun getPromptInfo(): BiometricPrompt.PromptInfo {
         return BiometricPrompt.PromptInfo.Builder()
             .setTitle("BiometricPrompt:${BuildConfig.APPLICATION_ID}:title") // todo
