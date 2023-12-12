@@ -12,6 +12,9 @@ import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.EncryptedFileProvider
+import org.kepocnhh.xfiles.provider.data.EncryptedLocalDataProvider
+import org.kepocnhh.xfiles.provider.data.LocalDataProvider
+import org.kepocnhh.xfiles.provider.data.requireServices
 import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
@@ -79,6 +82,14 @@ private fun Device.toUUID(): UUID {
     return UUID(buffer.long, buffer.long)
 }
 
+private fun EncryptedLocalDataProvider.requireDatabaseId(): UUID {
+    return databaseId ?: error("No database id!")
+}
+
+private fun EncryptedFileProvider.readJson(pathname: String): JSONObject {
+    return JSONObject(readText(pathname))
+}
+
 internal class EnterViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         class OnUnlock(val key: SecretKey) : Broadcast
@@ -110,21 +121,12 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
     }
 
-    @Suppress("NotImplementedDeclaration")
-    private fun requireServices(): SecurityServices {
-        return injection.local.services ?: TODO("No services!")
-    }
-
-    private fun requireDatabaseId(): UUID {
-        return injection.encrypted.local.databaseId ?: error("No database id!")
-    }
-
     private fun requireState(): State {
         return state.value ?: error("No state!")
     }
 
     private fun create(password: String, securitySettings: SecuritySettings): SecretKey {
-        val services = requireServices()
+        val services = injection.local.requireServices()
         val random = injection.security(services).getSecureRandom()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val blockSize = SecurityUtil.getBlockSize(securitySettings.aesKeyLength)
@@ -134,7 +136,10 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             ivDB = ByteArray(blockSize).also(random::nextBytes),
             ivPrivate = ByteArray(blockSize).also(random::nextBytes),
         )
-        injection.encrypted.files.writeBytes(injection.pathNames.symmetric, meta.toJson().toString().toByteArray())
+        injection.encrypted.files.writeBytes(
+            pathname = injection.pathNames.symmetric,
+            bytes = meta.toJson().toString().toByteArray(),
+        )
         val pair = injection.security(services).getKeyPairGenerator().let { generator ->
             val params = injection.security(services).getAlgorithmParameterGenerator()
                 .generate(
@@ -145,7 +150,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
         check(pair.private)
         val decrypted = JSONObject()
-            .put("id", requireDatabaseId().toString())
+            .put("id", injection.encrypted.local.requireDatabaseId().toString())
             .put("updated", System.currentTimeMillis())
             .put("secrets", JSONObject())
             .toString()
@@ -154,7 +159,10 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val key = injection.security(services)
             .getSecretKeyFactory()
             .generate(PBEKeySpec(password.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
-        injection.encrypted.files.writeBytes(injection.pathNames.dataBase, cipher.encrypt(key, IvParameterSpec(meta.ivDB), decrypted))
+        injection.encrypted.files.writeBytes(
+            pathname = injection.pathNames.dataBase,
+            bytes = cipher.encrypt(key, IvParameterSpec(meta.ivDB), decrypted),
+        )
         val private = cipher.encrypt(key, IvParameterSpec(meta.ivPrivate), pair.private.encoded)
         JSONObject()
             .put("public", pair.public.encoded.base64())
@@ -216,7 +224,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     }
 
     private fun getPassword(pin: String): String {
-        val services = requireServices()
+        val services = injection.local.requireServices()
         val md = injection.security(services).getMessageDigest()
         val device = injection.local.device ?: error("No device!")
         val appId = injection.encrypted.local.appId ?: error("No app id!")
@@ -224,17 +232,13 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             pin,
             device.toUUID().toString(),
             appId.toString(),
-            requireDatabaseId().toString(),
+            injection.encrypted.local.requireDatabaseId().toString(),
         ).joinToString(separator = "").toByteArray()
         return md.digest(bytes).base64()
     }
 
-    private fun EncryptedFileProvider.readJson(pathname: String): JSONObject {
-        return JSONObject(readText(pathname))
-    }
-
     private fun unlock(password: String, securitySettings: SecuritySettings): SecretKey {
-        val services = requireServices()
+        val services = injection.local.requireServices()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val pbeIterations = SecurityUtil.getValue(securitySettings.pbeIterations)
         val meta = injection.encrypted.files.readJson(injection.pathNames.symmetric).toKeyMeta()
@@ -265,7 +269,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val actualId = JSONObject(decrypted.toString(Charsets.UTF_8))
             .getString("id")
             .let(UUID::fromString)
-        check(requireDatabaseId() == actualId)
+        check(injection.encrypted.local.requireDatabaseId() == actualId)
         logger.debug("unlocked: $actualId")
         return key
     }

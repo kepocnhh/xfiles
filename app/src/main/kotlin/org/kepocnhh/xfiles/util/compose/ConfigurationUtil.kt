@@ -22,10 +22,7 @@ internal fun Configuration.requireLayoutDirection(): LayoutDirection {
 @Composable
 internal fun Configuration.screenWidth(insets: PaddingValues): Dp {
     val layoutDirection = requireLayoutDirection()
-    return screenWidthDp.dp + insets.calculateStartPadding(layoutDirection) + insets.calculateEndPadding(layoutDirection)
-}
-
-@Composable
-internal fun Configuration.screenHeight(insets: PaddingValues): Dp {
-    return screenHeightDp.dp + insets.calculateTopPadding() + insets.calculateBottomPadding()
+    val start = insets.calculateStartPadding(layoutDirection)
+    val end = insets.calculateEndPadding(layoutDirection)
+    return screenWidthDp.dp + start + end
 }

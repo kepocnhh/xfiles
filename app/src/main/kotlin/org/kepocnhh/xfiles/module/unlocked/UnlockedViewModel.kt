@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.data.requireServices
 import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
 import org.kepocnhh.xfiles.util.base64
@@ -16,6 +17,20 @@ import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+
+private fun JSONObject.toMap(): Map<String, String> {
+    return keys().asSequence().associateWith { id ->
+        getJSONObject(id).getString("title")
+    }
+}
+
+private fun JSONObject.getSecrets(): JSONObject {
+    return getJSONObject("secrets")
+}
+
+private fun JSONObject.getSecret(): String {
+    return getString("secret")
+}
 
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
@@ -38,12 +53,6 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     private val _broadcast = MutableSharedFlow<Broadcast>()
     val broadcast = _broadcast.asSharedFlow()
 
-    private fun JSONObject.toMap(): Map<String, String> {
-        return keys().asSequence().associateWith { id ->
-            getJSONObject(id).getString("title")
-        }
-    }
-
     private fun decrypt(key: SecretKey): ByteArray {
         val iv = injection
             .encrypted
@@ -52,7 +61,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             .let(::JSONObject)
             .getString("ivDB")
             .base64()
-        val services = requireServices()
+        val services = injection.local.requireServices()
         return injection.security(services)
             .getCipher()
             .decrypt(
@@ -67,7 +76,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         decrypted: ByteArray,
     ) {
         val jsonSym = JSONObject(injection.encrypted.files.readText(injection.pathNames.symmetric))
-        val services = requireServices()
+        val services = injection.local.requireServices()
         val cipher = injection.security(services).getCipher()
         injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.dataBase,
@@ -113,17 +122,12 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         return JSONObject(decrypt(key).toString(Charsets.UTF_8))
     }
 
-    @Suppress("NotImplementedDeclaration")
-    private fun requireServices(): SecurityServices {
-        return injection.local.services ?: TODO("No services!")
-    }
-
     fun requestValues(key: SecretKey) {
         logger.debug("request values...")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 decrypted(key)
-                    .getJSONObject("secrets")
+                    .getSecrets()
                     .toMap()
             }
         }
@@ -135,9 +139,9 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             logger.debug("request to copy: $id")
             val secret = withContext(injection.contexts.default) {
                 decrypted(key)
-                    .getJSONObject("secrets")
+                    .getSecrets()
                     .getJSONObject(id)
-                    .getString("secret")
+                    .getSecret()
             }
             _broadcast.emit(Broadcast.OnCopy(secret = secret))
         }
@@ -148,9 +152,9 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         loading {
             val secret = withContext(injection.contexts.default) {
                 decrypted(key)
-                    .getJSONObject("secrets")
+                    .getSecrets()
                     .getJSONObject(id)
-                    .getString("secret")
+                    .getSecret()
             }
             _broadcast.emit(Broadcast.OnShow(secret = secret))
         }
@@ -164,7 +168,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 val decrypted = decrypted(key)
-                val secrets = decrypted.getJSONObject("secrets")
+                val secrets = decrypted.getSecrets()
                 val id = generateSequence {
                     UUID.randomUUID().toString()
                 }.firstOrNull {
@@ -191,7 +195,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
                 val decrypted = decrypted(key)
-                val secrets = decrypted.getJSONObject("secrets")
+                val secrets = decrypted.getSecrets()
                 if (!secrets.has(id)) TODO()
                 secrets.remove(id)
                 decrypted.put("updated", System.currentTimeMillis())

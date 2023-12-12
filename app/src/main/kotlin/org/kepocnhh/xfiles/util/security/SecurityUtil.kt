@@ -9,7 +9,9 @@ import kotlin.math.pow
 
 internal object SecurityUtil {
     fun requireProvider(name: String): Provider {
-        return Security.getProviders().firstOrNull { it.name == name } ?: throw NoSuchProviderException("No such provider \"$name\"!")
+        return Security.getProviders().firstOrNull {
+            it.name == name
+        } ?: throw NoSuchProviderException("No such provider \"$name\"!")
     }
 
     fun getValue(settings: SecuritySettings.PBEIterations): Int {

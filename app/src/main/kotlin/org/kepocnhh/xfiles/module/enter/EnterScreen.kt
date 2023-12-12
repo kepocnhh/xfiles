@@ -343,6 +343,10 @@ private fun EnterScreenInfo(
                 }
             }
         }
+        val color = when (errorState.value) {
+            EnterScreen.Error.UNLOCK -> App.Theme.colors.error
+            else -> App.Theme.colors.foreground
+        }
         BasicText(
             modifier = Modifier
                 .padding(vertical = App.Theme.sizes.large)
@@ -366,7 +370,7 @@ private fun EnterScreenInfo(
                 }
             },
             style = TextStyle(
-                color = if (errorState.value == EnterScreen.Error.UNLOCK) App.Theme.colors.error else App.Theme.colors.foreground,
+                color = color,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 24.sp,
                 letterSpacing = 24.sp,

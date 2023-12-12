@@ -11,3 +11,8 @@ internal interface LocalDataProvider {
     var securitySettings: SecuritySettings
     var device: Device?
 }
+
+@Suppress("NotImplementedDeclaration")
+internal fun LocalDataProvider.requireServices(): SecurityServices {
+    return services ?: TODO("No services!")
+}

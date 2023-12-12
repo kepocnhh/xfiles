@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
-import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.ExpandVertically
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
@@ -53,6 +52,7 @@ import org.kepocnhh.xfiles.util.compose.TextFocused
 import org.kepocnhh.xfiles.util.compose.horizontalPaddings
 import org.kepocnhh.xfiles.util.compose.px
 import org.kepocnhh.xfiles.util.compose.toPaddings
+import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 
@@ -180,9 +180,8 @@ private fun Keyboard(
                 .height(App.Theme.sizes.xxl)
                 .fillMaxWidth(),
         ) {
-            AnimatedFadeVisibility(
+            FadeVisibility(
                 visible = focused == Focused.SECRET,
-                duration = App.Theme.durations.animation,
             ) {
                 KeyboardSwitch(
                     modifier = Modifier
@@ -356,10 +355,14 @@ internal fun AddItemScreen(
                 focused = Focused.SECRET,
             )
         }
+        val height = when (focusedState.value) {
+            null -> App.Theme.sizes.small + insets.calculateBottomPadding()
+            else -> App.Theme.sizes.small
+        }
         Spacer(
             modifier = Modifier
                 .animateContentSize(tween(App.Theme.durations.animation.inWholeMilliseconds.toInt()))
-                .height(if (focusedState.value != null) App.Theme.sizes.small else App.Theme.sizes.small + insets.calculateBottomPadding()),
+                .height(height),
         )
         ExpandVertically(
             visible = focusedState.value != null,

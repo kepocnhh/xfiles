@@ -8,6 +8,7 @@ import androidx.security.crypto.MasterKeys
 import org.kepocnhh.xfiles.BuildConfig
 import java.util.UUID
 
+@Suppress("StringLiteralDuplication")
 internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLocalDataProvider {
     private val preferences = EncryptedSharedPreferences.create(
         BuildConfig.APPLICATION_ID + "_encrypted_shared_preferences",

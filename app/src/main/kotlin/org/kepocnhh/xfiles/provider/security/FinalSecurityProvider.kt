@@ -124,7 +124,9 @@ internal class FinalSecurityProvider(
 
     override fun getAlgorithmParameterGenerator(): AlgorithmParameterGeneratorProvider {
         val service = services.asymmetric
-        return AlgorithmParameterGeneratorProviderImpl(AlgorithmParameterGenerator.getInstance(service.algorithm, service.provider))
+        return AlgorithmParameterGeneratorProviderImpl(
+            delegate = AlgorithmParameterGenerator.getInstance(service.algorithm, service.provider),
+        )
     }
 
     override fun getSignature(): SignatureProvider {

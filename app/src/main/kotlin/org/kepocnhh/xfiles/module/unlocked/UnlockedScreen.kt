@@ -61,9 +61,10 @@ import org.kepocnhh.xfiles.entity.EncryptedValue
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.unlocked.items.AddItemScreen
 import org.kepocnhh.xfiles.util.android.ClipDataUtil
+import org.kepocnhh.xfiles.util.android.clear
 import org.kepocnhh.xfiles.util.android.findActivity
+import org.kepocnhh.xfiles.util.android.getPrimaryClipTextOrNull
 import org.kepocnhh.xfiles.util.android.showToast
-import org.kepocnhh.xfiles.util.compose.AnimatedFadeVisibility
 import org.kepocnhh.xfiles.util.compose.ClickableText
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.FloatingActionButton
@@ -154,18 +155,6 @@ internal fun ShowDialog(
             )
         }
     }
-}
-
-private fun ClipboardManager.getPrimaryClipTextOrNull(): CharSequence? {
-    if (!hasPrimaryClip()) return null
-    val primaryClip = primaryClip ?: return null
-    if (primaryClip.itemCount != 1) return null
-    return primaryClip.getItemAt(0).text
-}
-
-@Suppress("Deprecation")
-private fun ClipboardManager.clear() {
-    text = ""
 }
 
 private fun clearClipboardIfNeeded(context: Context, expected: Int?) {
@@ -622,10 +611,9 @@ internal fun UnlockedScreen(
             onAdd = onAdd,
             onLock = onLock,
         )
-        AnimatedFadeVisibility(
+        FadeVisibility(
             modifier = Modifier.align(Alignment.Center),
             visible = loading,
-            duration = App.Theme.durations.animation,
         ) {
             Squares(
                 color = App.Theme.colors.foreground,

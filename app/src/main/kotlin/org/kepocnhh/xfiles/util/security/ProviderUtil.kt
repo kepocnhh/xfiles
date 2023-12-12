@@ -10,5 +10,6 @@ internal fun Provider.getServiceOrNull(type: String, algorithm: String): Provide
 }
 
 internal fun Provider.requireService(type: String, algorithm: String): Provider.Service {
-    return getServiceOrNull(type = type, algorithm = algorithm) ?: throw NoSuchAlgorithmException("No such algorithm $name:$type:$algorithm!")
+    return getServiceOrNull(type = type, algorithm = algorithm)
+        ?: throw NoSuchAlgorithmException("No such algorithm $name:$type:$algorithm!")
 }

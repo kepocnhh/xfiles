@@ -163,11 +163,10 @@ internal fun PinPad(
                         }
                     },
             ) {
-                AnimatedFadeVisibility(
+                FadeVisibility(
                     modifier = Modifier
                         .align(Alignment.Center),
                     visible = visibleDelete,
-                    duration = App.Theme.durations.animation,
                 ) {
                     Image(
                         modifier = Modifier
