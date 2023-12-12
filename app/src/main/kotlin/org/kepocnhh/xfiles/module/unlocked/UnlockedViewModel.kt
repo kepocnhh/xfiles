@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
@@ -51,7 +52,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             .let(::JSONObject)
             .getString("ivDB")
             .base64()
-        val services = injection.local.services ?: TODO()
+        val services = requireServices()
         return injection.security(services)
             .getCipher()
             .decrypt(
@@ -66,7 +67,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         decrypted: ByteArray,
     ) {
         val jsonSym = JSONObject(injection.encrypted.files.readText(injection.pathNames.symmetric))
-        val services = injection.local.services ?: TODO()
+        val services = requireServices()
         val cipher = injection.security(services).getCipher()
         injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.dataBase,
@@ -112,6 +113,11 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         return JSONObject(decrypt(key).toString(Charsets.UTF_8))
     }
 
+    @Suppress("NotImplementedDeclaration")
+    private fun requireServices(): SecurityServices {
+        return injection.local.services ?: TODO("No services!")
+    }
+
     fun requestValues(key: SecretKey) {
         logger.debug("request values...")
         loading {
@@ -150,6 +156,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
+    @Suppress("IgnoredReturnValue")
     fun addValue(key: SecretKey, title: String, secret: String) {
         logger.debug("add: $title")
         check(title.isNotBlank())
@@ -158,9 +165,11 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
             _encrypteds.value = withContext(injection.contexts.default) {
                 val decrypted = decrypted(key)
                 val secrets = decrypted.getJSONObject("secrets")
-                val id = generateSequence(UUID.randomUUID()::toString)
-                    .firstOrNull { !secrets.has(it) }
-                    ?: TODO()
+                val id = generateSequence {
+                    UUID.randomUUID().toString()
+                }.firstOrNull {
+                    !secrets.has(it)
+                } ?: error("Failed to generate ID!")
                 logger.debug("generate id: $id")
                 secrets.put(
                     id,
@@ -176,6 +185,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
+    @Suppress("IgnoredReturnValue")
     fun deleteValue(key: SecretKey, id: String) {
         logger.debug("delete: $id")
         loading {

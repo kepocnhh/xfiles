@@ -33,7 +33,7 @@ private fun AddItemScreenPreview(
             onShowSecretField = {
                 // noop
             },
-            onExpandSecretField = {
+            onExpandedSecretField = {
                 // noop
             },
             onAdd = { _, _ ->
@@ -51,7 +51,7 @@ private fun AddItemScreenThemeStatePreview(
     val focusedState = remember { mutableStateOf<Focused?>(null) }
     val valuesState = remember { mutableStateMapOf<Focused, String>() }
     val secretFieldState = SecretFieldState(
-        expand = false,
+        expanded = false,
         size = null,
         x = 0f,
     )
@@ -79,7 +79,7 @@ private fun AddItemScreenFocusedPreview(
     val focusedState = remember { mutableStateOf(focused) }
     val valuesState = remember { mutableStateMapOf<Focused, String>() }
     val secretFieldState = SecretFieldState(
-        expand = true,
+        expanded = true,
         size = null,
         x = 0f,
     )
@@ -118,7 +118,7 @@ private fun AddItemScreenValuesPreview(
     val focusedState = remember { mutableStateOf<Focused?>(null) }
     val valuesState = remember { values.toMutableStateMap() }
     val secretFieldState = SecretFieldState(
-        expand = true,
+        expanded = true,
         size = null,
         x = 0f,
     )

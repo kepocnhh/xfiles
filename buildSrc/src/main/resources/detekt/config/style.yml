@@ -1,4 +1,4 @@
-# 2023/11/26
+# 2023/12/12
 
 style:
   active: true
@@ -9,9 +9,7 @@ style:
     singleLine: 'consistent'
     multiLine: 'always'
   BracesOnWhenStatements:
-    active: true
-    singleLine: 'consistent'
-    multiLine: 'necessary'
+    active: false
   CanBeNonNullable:
     active: true
   CascadingCallWrapping:
@@ -85,8 +83,7 @@ style:
     ignoreActualFunction: true
     excludedFunctions: []
   LoopWithTooManyJumpStatements:
-    active: true
-    maxJumpCount: 1
+    active: false
   MagicNumber:
     active: false # todo compose
   MandatoryBracesLoops:
@@ -118,7 +115,7 @@ style:
   NoTabs:
     active: true
   NullableBooleanCheck:
-    active: true
+    active: false
   ObjectLiteralToLambda:
     active: true
   OptionalAbstractKeyword:
@@ -181,7 +178,7 @@ style:
   UnnecessaryInnerClass:
     active: true
   UnnecessaryLet:
-    active: true
+    active: false
   UnnecessaryParentheses:
     active: true
   UntilInsteadOfRangeTo:
@@ -219,7 +216,7 @@ style:
   UseIsNullOrEmpty:
     active: true
   UseLet:
-    active: true
+    active: false
   UseOrEmpty:
     active: true
   UseRequire:

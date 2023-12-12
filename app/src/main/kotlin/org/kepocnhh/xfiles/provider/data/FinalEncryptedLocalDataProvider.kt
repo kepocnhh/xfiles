@@ -6,9 +6,7 @@ import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import org.kepocnhh.xfiles.BuildConfig
-import java.security.KeyStore
 import java.util.UUID
-import javax.crypto.KeyGenerator
 
 internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLocalDataProvider {
     private val preferences = EncryptedSharedPreferences.create(
@@ -26,11 +24,11 @@ internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLoca
         set(value) {
             preferences
                 .edit()
-                .also {
+                .also { editor ->
                     if (value == null) {
-                        it.remove("appId")
+                        editor.remove("appId")
                     } else {
-                        it.putString("appId", value.toString())
+                        editor.putString("appId", value.toString())
                     }
                 }
                 .commit()
@@ -43,11 +41,11 @@ internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLoca
         set(value) {
             preferences
                 .edit()
-                .also {
+                .also { editor ->
                     if (value == null) {
-                        it.remove("databaseId")
+                        editor.remove("databaseId")
                     } else {
-                        it.putString("databaseId", value.toString())
+                        editor.putString("databaseId", value.toString())
                     }
                 }
                 .commit()
@@ -56,28 +54,6 @@ internal class FinalEncryptedLocalDataProvider(context: Context) : EncryptedLoca
     companion object {
         private const val KEY_ALIAS = BuildConfig.APPLICATION_ID + ":encrypted:shared:preferences"
         private const val KEY_SIZE = 256
-
-        private fun deleteSecretKey() {
-            val keyStore = KeyStore.getInstance("AndroidKeyStore")
-            keyStore.load(null)
-            try {
-                keyStore.deleteEntry(KEY_ALIAS)
-            } catch (e: Throwable) {
-                println("delete entry \"$KEY_ALIAS\" error: $e")
-            }
-        }
-
-        private fun getOrCreate(keyAlias: String): String {
-//            deleteSecretKey() // todo
-            val keyStore = KeyStore.getInstance("AndroidKeyStore")
-            keyStore.load(null)
-            if (keyStore.containsAlias(keyAlias)) return keyAlias
-            val algorithm = KeyProperties.KEY_ALGORITHM_AES
-            val keyGenerator = KeyGenerator.getInstance(algorithm, keyStore.provider)
-            keyGenerator.init(getSpec())
-            keyGenerator.generateKey()
-            return keyAlias
-        }
 
         private fun getSpec(): KeyGenParameterSpec {
             val purposes = KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT

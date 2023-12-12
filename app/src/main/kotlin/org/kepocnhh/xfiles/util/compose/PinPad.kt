@@ -39,14 +39,8 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .let {
-                    if (enabled) {
-                        it.clickable {
-                            onClick(first)
-                        }
-                    } else {
-                        it
-                    }
+                .clickable(enabled = enabled) {
+                    onClick(first)
                 }
                 .wrapContentHeight(),
             text = "$first",
@@ -56,14 +50,8 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .let {
-                    if (enabled) {
-                        it.clickable {
-                            onClick(second)
-                        }
-                    } else {
-                        it
-                    }
+                .clickable(enabled = enabled) {
+                    onClick(first)
                 }
                 .wrapContentHeight(),
             text = "$second",
@@ -73,14 +61,8 @@ private fun PinRow(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .let {
-                    if (enabled) {
-                        it.clickable {
-                            onClick(third)
-                        }
-                    } else {
-                        it
-                    }
+                .clickable(enabled = enabled) {
+                    onClick(first)
                 }
                 .wrapContentHeight(),
             text = "$third",
@@ -162,14 +144,8 @@ internal fun PinPad(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .let {
-                        if (enabled) {
-                            it.clickable {
-                                onClick(char)
-                            }
-                        } else {
-                            it
-                        }
+                    .clickable(enabled = enabled) {
+                        onClick(char)
                     }
                     .wrapContentHeight(),
                 text = "$char",
@@ -179,19 +155,11 @@ internal fun PinPad(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .let {
-                        if (!enabled) {
-                            it
-                        } else if (visibleDelete) {
-                            it.clickable {
-                                onDelete()
-                            }
+                    .clickable(enabled = enabled) {
+                        if (visibleDelete) {
+                            onDelete()
                         } else if (hasBiometric && exists) {
-                            it.clickable {
-                                onBiometric()
-                            }
-                        } else {
-                            it
+                            onBiometric()
                         }
                     },
             ) {

@@ -79,6 +79,7 @@ internal fun Squares(
         )
     }
     LaunchedEffect(alphaState.floatValue) {
+        @Suppress("InjectDispatcher")
         withContext(Dispatchers.Default) {
             delay(16)
         }

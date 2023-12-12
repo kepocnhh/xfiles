@@ -19,6 +19,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+import kotlin.time.Duration
 
 internal object BiometricUtil {
     sealed interface Broadcast {
@@ -32,15 +33,15 @@ internal object BiometricUtil {
         }
     }
 
-    private val algorithm = KeyProperties.KEY_ALGORITHM_AES
+    private const val algorithm = KeyProperties.KEY_ALGORITHM_AES
 
 //    private val blocks = KeyProperties.BLOCK_MODE_GCM
-    private val blocks = KeyProperties.BLOCK_MODE_CBC
+    private const val blocks = KeyProperties.BLOCK_MODE_CBC
 
 //    private val paddings = KeyProperties.ENCRYPTION_PADDING_NONE
-    private val paddings = KeyProperties.ENCRYPTION_PADDING_PKCS7
+    private const val paddings = KeyProperties.ENCRYPTION_PADDING_PKCS7
     private val keyAlias = BuildConfig.APPLICATION_ID + ":biometric"
-    private val keySize = 256
+    private const val keySize = 256
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private val _broadcast = MutableSharedFlow<Broadcast>()
@@ -76,6 +77,11 @@ internal object BiometricUtil {
         return keyStore
     }
 
+    @Suppress("Deprecation")
+    private fun KeyGenParameterSpec.Builder.setValidityDuration(duration: Duration): KeyGenParameterSpec.Builder {
+        return setUserAuthenticationValidityDurationSeconds(duration.inWholeSeconds.toInt())
+    }
+
     private fun getKeyOrCreate(): SecretKey {
         val keyStore = getKeyStore()
         if (keyStore.containsAlias(keyAlias)) return keyStore.getKey(keyAlias, null) as SecretKey
@@ -87,7 +93,7 @@ internal object BiometricUtil {
             .setKeySize(keySize)
             .setUserAuthenticationRequired(true)
             .setInvalidatedByBiometricEnrollment(true)
-            .setUserAuthenticationValidityDurationSeconds(0)
+            .setValidityDuration(Duration.ZERO)
             .build()
         val keyGenerator = KeyGenerator.getInstance(algorithm, keyStore.provider)
         keyGenerator.init(spec)
@@ -98,8 +104,8 @@ internal object BiometricUtil {
         val keyStore = getKeyStore()
         try {
             keyStore.deleteEntry(keyAlias)
-        } catch (e: Throwable) {
-            println("delete entry \"$keyAlias\" error: $e")
+        } catch (_: Throwable) {
+            // "delete entry \"$keyAlias\" error: $e"
         }
     }
 
@@ -114,7 +120,6 @@ internal object BiometricUtil {
             .setSubtitle("BiometricPrompt:${BuildConfig.APPLICATION_ID}:subtitle") // todo
             .setAllowedAuthenticators(authenticators)
             .setConfirmationRequired(true)
-            .setDeviceCredentialAllowed(true)
             .build()
     }
 
@@ -132,7 +137,7 @@ internal object BiometricUtil {
         }
         val key = try {
             getKeyOrCreate()
-        } catch (e: UnrecoverableKeyException) {
+        } catch (_: UnrecoverableKeyException) {
             scope.launch {
                 _broadcast.emit(Broadcast.OnError(Broadcast.OnError.Type.UNRECOVERABLE_KEY))
             }

@@ -52,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -136,17 +135,17 @@ internal fun ShowDialog(
             BasicText(
                 modifier = Modifier.align(Alignment.Center),
                 text = buildAnnotatedString {
-                    value.toCharArray().forEach {
-                        val color = if (Character.isDigit(it)) {
+                    value.toCharArray().forEach { char ->
+                        val color = if (Character.isDigit(char)) {
                             Colors.digits
-                        } else if (Character.isUpperCase(it)) {
+                        } else if (Character.isUpperCase(char)) {
                             App.Theme.colors.capitals
-                        } else if (Character.isLetter(it)) {
+                        } else if (Character.isLetter(char)) {
                             App.Theme.colors.text
                         } else {
                             Colors.signs
                         }
-                        append(color, it)
+                        append(color, char)
                     }
                 },
                 minLines = 1,
@@ -164,6 +163,11 @@ private fun ClipboardManager.getPrimaryClipTextOrNull(): CharSequence? {
     return primaryClip.getItemAt(0).text
 }
 
+@Suppress("Deprecation")
+private fun ClipboardManager.clear() {
+    text = ""
+}
+
 private fun clearClipboardIfNeeded(context: Context, expected: Int?) {
     if (expected == null) return
     val clipboardManager = context.getSystemService(ClipboardManager::class.java) ?: return
@@ -171,7 +175,7 @@ private fun clearClipboardIfNeeded(context: Context, expected: Int?) {
         .getPrimaryClipTextOrNull()
         ?.hashCode()
     if (actual != null && actual != expected) return
-    clipboardManager.text = ""
+    clipboardManager.clear()
 }
 
 @Composable
@@ -191,7 +195,7 @@ internal fun UnlockedScreen(
     val showTimeout = 30.seconds
     DisposableEffect(Unit) {
         scope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(App.contexts.default) {
                 while (markStartState.value.elapsedNow() < lockedTimeout && !lockedState.value) {
                     delay(0.25.seconds)
                 }
@@ -203,9 +207,10 @@ internal fun UnlockedScreen(
         }
         onDispose {
             lockedState.value = true
+            val expected: Int? = clipboardHashState.value
             clearClipboardIfNeeded(
                 context = context,
-                expected = clipboardHashState.value,
+                expected = expected,
             )
         }
     }
@@ -276,7 +281,7 @@ internal fun UnlockedScreen(
                         val expected = broadcast.secret.hashCode()
                         clipboardHashState.value = expected
                         scope.launch {
-                            withContext(Dispatchers.Default) {
+                            withContext(App.contexts.default) {
                                 while (!lockedState.value) {
                                     // https://stackoverflow.com/a/59864381
                                     val actual = clipboardManager.getPrimaryClipTextOrNull()?.hashCode()
@@ -284,7 +289,7 @@ internal fun UnlockedScreen(
                                         actual != null && actual != expected -> break
                                         markStart.elapsedNow() < clipboardTimeout -> delay(0.25.seconds)
                                         else -> {
-                                            clipboardManager.text = ""
+                                            clipboardManager.clear()
                                             clipboardHashState.value = null
                                             logger.debug("clipboard cleared")
                                             break
@@ -301,7 +306,7 @@ internal fun UnlockedScreen(
                     val expected = broadcast.secret.hashCode()
                     showHashState.value = expected
                     scope.launch {
-                        withContext(Dispatchers.Default) {
+                        withContext(App.contexts.default) {
                             while (!lockedState.value) {
                                 when {
                                     showState.value == null -> break

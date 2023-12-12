@@ -71,6 +71,7 @@ internal fun AnnotatedString.Builder.append(
     }
 }
 
+@Suppress("StringShouldBeRawString")
 private object ClickableTextUtil {
     const val all = "\\w\\d\\s.!?\\-+"
     val regexTags = "\\[[$all]+\\]\\([$all]+\\)".toRegex()

@@ -23,12 +23,6 @@ internal class Colors private constructor(
         val digits = primary
         val signs = Color(0xff09af00)
         private const val shift = 0x00101010
-        private fun Color.shifted(shift: Int, times: Int): Color {
-            check(shift != 0)
-            check(times > 0)
-            return Color(toArgb() + shift * times)
-        }
-
         val black = Color(0xff000000)
         val white = Color(0xffffffff)
         val dark = Color(0xff070707).let { basement ->
@@ -58,6 +52,12 @@ internal class Colors private constructor(
                 capitals = basement.shifted(-shift, 10),
                 icon = black,
             )
+        }
+
+        private fun Color.shifted(shift: Int, times: Int): Color {
+            check(shift != 0)
+            check(times > 0)
+            return Color(toArgb() + shift * times)
         }
     }
 }

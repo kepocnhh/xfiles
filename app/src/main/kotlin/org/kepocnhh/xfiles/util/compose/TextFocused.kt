@@ -24,6 +24,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import sp.ax.jc.clicks.clicks
 
+private fun Long.even(): Boolean {
+    return rem(2) == 0L
+}
+
 @Composable
 internal fun TextFocused(
     margin: PaddingValues,
@@ -61,6 +65,7 @@ internal fun TextFocused(
                 if (timeStart.value == null) {
                     timeStart.value = System.currentTimeMillis()
                 } else {
+                    @Suppress("InjectDispatcher")
                     withContext(Dispatchers.Default) {
                         delay(100)
                     }
@@ -78,7 +83,7 @@ internal fun TextFocused(
             !focused -> text
             start == null -> text
             millis == null -> text
-            ((millis - start) / 500) % 2 == 0L -> text + "_"
+            millis.minus(start).div(500).even() -> text + "_"
             else -> text
         }
         BasicText(

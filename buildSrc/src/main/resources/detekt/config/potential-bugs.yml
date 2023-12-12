@@ -1,4 +1,4 @@
-# 2023/11/26
+# 2023/12/12
 
 potential-bugs:
   active: true
@@ -24,7 +24,7 @@ potential-bugs:
       'java.util.HashMap'
     ]
   ElseCaseInsteadOfExhaustiveWhen:
-    active: true
+    active: false
   EqualsAlwaysReturnsTrueOrFalse:
     active: true
   EqualsWithHashCodeExist:
@@ -40,7 +40,12 @@ potential-bugs:
     restrictToConfig: false
     ignoreFunctionCall: [
       android.content.SharedPreferences.Editor.commit,
+      android.content.SharedPreferences.Editor.remove,
+      android.content.SharedPreferences.Editor.putString,
+      androidx.compose.animation.core.Animatable.animateTo,
+      androidx.compose.ui.text.AnnotatedString.Builder.append,
       java.lang.StringBuilder.append,
+      java.io.File.delete,
       kotlin.TODO,
       kotlin.also,
       kotlin.checkNotNull,

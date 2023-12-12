@@ -287,7 +287,7 @@ private fun Keyboard(
 }
 
 internal data class SecretFieldState(
-    val expand: Boolean,
+    val expanded: Boolean,
     val size: IntSize?,
     val x: Float,
 )
@@ -299,7 +299,7 @@ internal fun AddItemScreen(
     secretFieldState: SecretFieldState,
     onSecretFieldSize: (IntSize) -> Unit,
     onShowSecretField: suspend () -> Unit,
-    onExpandSecretField: () -> Unit,
+    onExpandedSecretField: () -> Unit,
     onAdd: (String, String) -> Unit,
 ) {
     val insets = LocalView.current.rootWindowInsets.toPaddings()
@@ -326,8 +326,8 @@ internal fun AddItemScreen(
             focusedState = focusedState,
             focused = Focused.TITLE,
         )
-        LaunchedEffect(secretFieldState.expand, secretFieldState.size) {
-            if (secretFieldState.expand && secretFieldState.size != null) {
+        LaunchedEffect(secretFieldState.expanded, secretFieldState.size) {
+            if (secretFieldState.expanded && secretFieldState.size != null) {
                 onShowSecretField()
             }
         }
@@ -341,7 +341,7 @@ internal fun AddItemScreen(
                     },
                 )
                 .offset(x = secretFieldState.x.toInt().px())
-                .heightIn(max = if (secretFieldState.expand) Dp.Unspecified else 0.dp),
+                .heightIn(max = if (secretFieldState.expanded) Dp.Unspecified else 0.dp),
         ) {
             Spacer(modifier = Modifier.height(App.Theme.sizes.small))
             BasicText(
@@ -365,7 +365,7 @@ internal fun AddItemScreen(
             visible = focusedState.value != null,
             duration = App.Theme.durations.animation,
         ) {
-            val focused = focusedState.value!! // todo
+            val focused = focusedState.value ?: error("No focused!")
             Keyboard(
                 margin = PaddingValues(bottom = insets.calculateBottomPadding()),
                 focused = focused,
@@ -374,7 +374,7 @@ internal fun AddItemScreen(
                     when (focused) {
                         Focused.TITLE -> {
                             focusedState.value = Focused.SECRET
-                            onExpandSecretField()
+                            onExpandedSecretField()
                         }
                         Focused.SECRET -> {
                             val title = valuesState[Focused.TITLE]
@@ -402,7 +402,7 @@ internal fun AddItemScreen(
     }
     val focusedState = remember { mutableStateOf<Focused?>(null) }
     val valuesState = remember { mutableStateMapOf<Focused, String>() }
-    val secretFieldExpandState = remember { mutableStateOf(false) }
+    val secretFieldExpandedState = remember { mutableStateOf(false) }
     val secretFieldSizeState = remember { mutableStateOf<IntSize?>(null) }
     val width = LocalView.current.width
     val secretFieldXState = remember { Animatable(width.toFloat()) }
@@ -410,7 +410,7 @@ internal fun AddItemScreen(
         focusedState = focusedState,
         valuesState = valuesState,
         secretFieldState = SecretFieldState(
-            expand = secretFieldExpandState.value,
+            expanded = secretFieldExpandedState.value,
             size = secretFieldSizeState.value,
             x = secretFieldXState.value,
         ),
@@ -420,8 +420,8 @@ internal fun AddItemScreen(
         onShowSecretField = {
             secretFieldXState.animateTo(0f)
         },
-        onExpandSecretField = {
-            secretFieldExpandState.value = true
+        onExpandedSecretField = {
+            secretFieldExpandedState.value = true
         },
         onAdd = onAdd,
     )

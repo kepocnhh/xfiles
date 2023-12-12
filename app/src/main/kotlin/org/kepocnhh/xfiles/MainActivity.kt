@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import org.kepocnhh.xfiles.module.router.RouterScreen
 import org.kepocnhh.xfiles.module.theme.ThemeViewModel
@@ -16,12 +17,15 @@ internal class MainActivity : AppCompatActivity() {
                 finish()
             }
             val themeViewModel = App.viewModel<ThemeViewModel>()
-            when (val themeState = themeViewModel.state.collectAsState().value) {
-                null -> themeViewModel.requestThemeState()
-                else -> {
-                    App.Theme.Composition(themeState = themeState) {
-                        RouterScreen(onBack = ::finish)
-                    }
+            val themeState = themeViewModel.state.collectAsState().value
+            LaunchedEffect(Unit) {
+                if (themeState == null) {
+                    themeViewModel.requestThemeState()
+                }
+            }
+            if (themeState != null) {
+                App.Theme.Composition(themeState = themeState) {
+                    RouterScreen(onBack = ::finish)
                 }
             }
         }

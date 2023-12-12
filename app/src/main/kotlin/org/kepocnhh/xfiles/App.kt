@@ -93,7 +93,7 @@ internal class App : Application() {
         val orientation: Orientation get() = checkNotNull(_orientation)
 
         private var _insets: PaddingValues? = null
-        val insets: PaddingValues get() = checkNotNull(_insets) // todo
+        val insets: PaddingValues get() = checkNotNull(_insets)
 
         @Composable
         fun Composition(
@@ -106,16 +106,13 @@ internal class App : Application() {
                 ColorsType.AUTO -> if (isSystemInDarkTheme()) Colors.dark else Colors.light
             }
             val durations = Durations(
-//                animation = 250.milliseconds,
                 animation = 500.milliseconds,
-//                animation = 2.seconds, // todo
             )
             _orientation = _orientationFlow.collectAsState().value
-            println("[App]: orientation: $orientation")
             _textStyle = TextStyle(
                 color = colors.text,
                 fontFamily = FontFamily.Default,
-                fontSize = 14.sp, // todo
+                fontSize = 14.sp,
             )
             _insets = LocalView.current.rootWindowInsets.toPaddings()
             CompositionLocalProvider(
@@ -159,8 +156,13 @@ internal class App : Application() {
         }
     }
 
+    @Suppress("InjectDispatcher")
     override fun onCreate() {
         super.onCreate()
+        _contexts = Contexts(
+            main = Dispatchers.Main,
+            default = Dispatchers.Default,
+        )
         _injection = Injection(
             loggers = FinalLoggerFactory,
             contexts = Contexts(
@@ -207,6 +209,9 @@ internal class App : Application() {
                     .newInstance(checkNotNull(_injection))
             }
         }
+        private val vmStores = mutableMapOf<String, ViewModelStore>()
+        private var _contexts: Contexts? = null
+        val contexts: Contexts get() = checkNotNull(_contexts)
 
         @Composable
         fun newLogger(tag: String): Logger {
@@ -214,8 +219,6 @@ internal class App : Application() {
                 checkNotNull(_injection).loggers.newLogger(tag)
             }
         }
-
-        private val vmStores = mutableMapOf<String, ViewModelStore>()
 
         @Composable
         inline fun <reified T : AbstractViewModel> viewModel(): T {

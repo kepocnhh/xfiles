@@ -12,6 +12,7 @@ import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
 
+@Suppress("StringLiteralDuplication")
 internal class FinalLocalDataProvider(
     context: Context,
     private val defaults: Defaults,
@@ -37,21 +38,6 @@ internal class FinalLocalDataProvider(
                 .putString("language", value.language.name)
                 .commit()
         }
-
-    private fun getSecurityService(key: String): SecurityService {
-        return SecurityService(
-            provider = preferences.getString("$key:provider", null)!!,
-            algorithm = preferences.getString("$key:algorithm", null)!!,
-        )
-    }
-
-    private fun SharedPreferences.Editor.put(key: String, service: SecurityService): SharedPreferences.Editor {
-        return putString("$key:provider", service.provider).putString("$key:algorithm", service.algorithm)
-    }
-
-    private fun SharedPreferences.Editor.removeSecurityService(key: String): SharedPreferences.Editor {
-        return remove("$key:provider").remove("$key:algorithm")
-    }
 
     override var services: SecurityServices?
         get() {
@@ -161,4 +147,19 @@ internal class FinalLocalDataProvider(
                     .commit()
             }
         }
+
+    private fun getSecurityService(key: String): SecurityService {
+        return SecurityService(
+            provider = preferences.getString("$key:provider", null) ?: error("No provider!"),
+            algorithm = preferences.getString("$key:algorithm", null) ?: error("No algorithm!"),
+        )
+    }
+
+    private fun SharedPreferences.Editor.put(key: String, service: SecurityService): SharedPreferences.Editor {
+        return putString("$key:provider", service.provider).putString("$key:algorithm", service.algorithm)
+    }
+
+    private fun SharedPreferences.Editor.removeSecurityService(key: String): SharedPreferences.Editor {
+        return remove("$key:provider").remove("$key:algorithm")
+    }
 }

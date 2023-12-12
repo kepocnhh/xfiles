@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.KeyMeta
+import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.EncryptedFileProvider
@@ -27,6 +28,56 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
+
+private fun KeyMeta.toJson(): JSONObject {
+    return JSONObject()
+        .put("salt", salt.base64())
+        .put("ivDB", ivDB.base64())
+        .put("ivPrivate", ivPrivate.base64())
+}
+
+private fun JSONObject.toKeyMeta(): KeyMeta {
+    return KeyMeta(
+        salt = getString("salt").base64(),
+        ivDB = getString("ivDB").base64(),
+        ivPrivate = getString("ivPrivate").base64(),
+    )
+}
+
+private fun check(key: PrivateKey) {
+    check(key is DSAPrivateKey)
+    check(key.params)
+}
+
+@Suppress("VariableNaming")
+private fun check(params: DSAParams) {
+    val L = params.p.bitLength()
+    val N = params.q.bitLength()
+    when (L) {
+        1024 -> check(N == 160)
+        2048 -> check(N == 224 || N == 256)
+        3072 -> check(N == 256)
+        else -> error("L is not 1024, 2048 or 3072!")
+    }
+}
+
+private fun Device.toUUID(): UUID {
+    // todo
+    val md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
+    val input = mapOf(
+        "manufacturer" to manufacturer,
+        "brand" to brand,
+        "model" to model,
+        "name" to name,
+        "supportedABIs" to supportedABIs.joinToString(prefix = "[", separator = ",", postfix = "]"),
+    ).entries.joinToString(separator = ",") { (key, value) ->
+        "$key=$value"
+    }
+    val digest = md.digest(input.toByteArray())
+    check(digest.size == 16)
+    val buffer = ByteBuffer.wrap(digest)
+    return UUID(buffer.long, buffer.long)
+}
 
 internal class EnterViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
@@ -59,31 +110,21 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
     }
 
-    private fun KeyMeta.toJson(): JSONObject {
-        return JSONObject()
-            .put("salt", salt.base64())
-            .put("ivDB", ivDB.base64())
-            .put("ivPrivate", ivPrivate.base64())
+    @Suppress("NotImplementedDeclaration")
+    private fun requireServices(): SecurityServices {
+        return injection.local.services ?: TODO("No services!")
     }
 
-    private fun check(key: PrivateKey) {
-        check(key is DSAPrivateKey)
-        check(key.params)
+    private fun requireDatabaseId(): UUID {
+        return injection.encrypted.local.databaseId ?: error("No database id!")
     }
 
-    private fun check(params: DSAParams) {
-        val L = params.p.bitLength()
-        val N = params.q.bitLength()
-        when (L) {
-            1024 -> check(N == 160)
-            2048 -> check(N == 224 || N == 256)
-            3072 -> check(N == 256)
-            else -> error("L is not 1024, 2048 or 3072!")
-        }
+    private fun requireState(): State {
+        return state.value ?: error("No state!")
     }
 
     private fun create(password: String, securitySettings: SecuritySettings): SecretKey {
-        val services = injection.local.services ?: TODO()
+        val services = requireServices()
         val random = injection.security(services).getSecureRandom()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val blockSize = SecurityUtil.getBlockSize(securitySettings.aesKeyLength)
@@ -104,7 +145,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
         check(pair.private)
         val decrypted = JSONObject()
-            .put("id", injection.encrypted.local.databaseId!!.toString())
+            .put("id", requireDatabaseId().toString())
             .put("updated", System.currentTimeMillis())
             .put("secrets", JSONObject())
             .toString()
@@ -131,7 +172,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     fun createNewFile(pin: String, cipher: Cipher?) {
         logger.debug("create...")
         injection.launch {
-            _state.value = state.value!!.copy(loading = true)
+            _state.value = requireState().copy(loading = true)
             val key = withContext(injection.contexts.default) {
                 val databaseId = UUID.randomUUID()
                 logger.debug("databaseId: $databaseId")
@@ -155,7 +196,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     fun deleteFile() {
         injection.launch {
-            _state.value = state.value!!.copy(loading = true)
+            _state.value = requireState().copy(loading = true)
             withContext(injection.contexts.default) {
                 injection.encrypted.local.databaseId = null
                 setOf(
@@ -174,40 +215,16 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         }
     }
 
-    private fun JSONObject.toKeyMeta(): KeyMeta {
-        return KeyMeta(
-            salt = getString("salt").base64(),
-            ivDB = getString("ivDB").base64(),
-            ivPrivate = getString("ivPrivate").base64(),
-        )
-    }
-
-    private fun Device.toUUID(): UUID {
-        // todo
-        val md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
-        val input = mapOf(
-            "manufacturer" to manufacturer,
-            "brand" to brand,
-            "model" to model,
-            "name" to name,
-            "supportedABIs" to supportedABIs.joinToString(prefix = "[", separator = ",", postfix = "]"),
-        ).entries.joinToString(separator = ",") { (key, value) ->
-            "$key=$value"
-        }
-        val digest = md.digest(input.toByteArray())
-        check(digest.size == 16)
-        val buffer = ByteBuffer.wrap(digest)
-        return UUID(buffer.long, buffer.long)
-    }
-
     private fun getPassword(pin: String): String {
-        val services = injection.local.services ?: TODO()
+        val services = requireServices()
         val md = injection.security(services).getMessageDigest()
+        val device = injection.local.device ?: error("No device!")
+        val appId = injection.encrypted.local.appId ?: error("No app id!")
         val bytes = listOf(
             pin,
-            injection.local.device!!.toUUID().toString(),
-            injection.encrypted.local.appId!!.toString(),
-            injection.encrypted.local.databaseId!!.toString(),
+            device.toUUID().toString(),
+            appId.toString(),
+            requireDatabaseId().toString(),
         ).joinToString(separator = "").toByteArray()
         return md.digest(bytes).base64()
     }
@@ -217,7 +234,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     }
 
     private fun unlock(password: String, securitySettings: SecuritySettings): SecretKey {
-        val services = injection.local.services ?: TODO()
+        val services = requireServices()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val pbeIterations = SecurityUtil.getValue(securitySettings.pbeIterations)
         val meta = injection.encrypted.files.readJson(injection.pathNames.symmetric).toKeyMeta()
@@ -248,7 +265,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val actualId = JSONObject(decrypted.toString(Charsets.UTF_8))
             .getString("id")
             .let(UUID::fromString)
-        check(injection.encrypted.local.databaseId!! == actualId)
+        check(requireDatabaseId() == actualId)
         logger.debug("unlocked: $actualId")
         return key
     }
@@ -256,7 +273,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     fun unlockFile(pin: String) {
         logger.debug("unlock...")
         injection.launch {
-            _state.value = state.value!!.copy(loading = true)
+            _state.value = requireState().copy(loading = true)
             val result = withContext(injection.contexts.default) {
                 runCatching {
                     val securitySettings = injection.local.securitySettings
@@ -265,8 +282,8 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 }
             }
             result.fold(
-                onFailure = {
-                    logger.warning("unlock error: $it")
+                onFailure = { error ->
+                    logger.warning("unlock error: $error")
                     _state.value = withContext(injection.contexts.default) {
                         State(exists = true, hasBiometric = injection.local.securitySettings.hasBiometric)
                     }
@@ -282,7 +299,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     fun unlockFile(cipher: Cipher) {
         logger.debug("unlock with cipher...")
         injection.launch {
-            _state.value = state.value!!.copy(loading = true)
+            _state.value = requireState().copy(loading = true)
             val key = withContext(injection.contexts.default) {
                 val securitySettings = injection.local.securitySettings
                 val password = injection.encrypted.files.readJson(injection.pathNames.biometric)
@@ -298,7 +315,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     fun requestBiometric() {
         injection.launch {
-            _state.value = state.value!!.copy(loading = true)
+            _state.value = requireState().copy(loading = true)
             val iv = withContext(injection.contexts.default) {
                 injection.encrypted.files.readJson(injection.pathNames.biometric)
                     .getString("iv")

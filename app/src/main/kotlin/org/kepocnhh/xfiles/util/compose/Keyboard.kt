@@ -41,6 +41,7 @@ internal object Keyboard {
     }
 }
 
+@Suppress("FunctionMinLength")
 private fun Char.up(): Char {
     if (!Character.isLowerCase(this)) return this
     val uppercased = uppercaseChar()
@@ -61,7 +62,7 @@ private fun KeyboardRow(
             .fillMaxWidth()
             .height(height),
     ) {
-        chars.forEach {
+        chars.forEach { char ->
             BasicText(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -69,14 +70,14 @@ private fun KeyboardRow(
                     .clicks(
                         enabled = enabled,
                         onClick = {
-                            onClick(it)
+                            onClick(char)
                         },
                         onLongClick = {
-                            onClick(it.up())
+                            onClick(char.up())
                         },
                     )
                     .wrapContentHeight(),
-                text = it.toString(),
+                text = char.toString(),
                 style = textStyle,
             )
         }

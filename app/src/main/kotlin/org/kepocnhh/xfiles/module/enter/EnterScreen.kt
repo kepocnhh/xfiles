@@ -1,6 +1,5 @@
 package org.kepocnhh.xfiles.module.enter
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +29,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
@@ -53,6 +51,7 @@ import org.kepocnhh.xfiles.util.ct
 import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.dialogs.Dialog
+import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import kotlin.math.absoluteValue
 
@@ -80,6 +79,25 @@ private fun DeleteDialog(
         message = App.Theme.strings.dialogs.databaseDelete,
         onDismissRequest = { dialogState.value = false },
     )
+}
+
+private fun onPin(viewModel: EnterViewModel, pin: String, onBiometric: () -> Unit) {
+    if (pin.length < 4) return
+    val state = viewModel.state.value ?: return
+    when {
+        state.exists -> viewModel.unlockFile(pin = pin)
+        state.hasBiometric -> onBiometric()
+        else -> viewModel.createNewFile(pin = pin, cipher = null)
+    }
+}
+
+private fun onBiometric(viewModel: EnterViewModel, cipher: Cipher, pin: String) {
+    val state = viewModel.state.value ?: error("No state!")
+    if (state.exists) {
+        viewModel.unlockFile(cipher = cipher)
+    } else {
+        viewModel.createNewFile(pin = pin, cipher = cipher)
+    }
 }
 
 @Composable
@@ -112,19 +130,14 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val context = LocalContext.current
     val activity = context.findActivity<FragmentActivity>() ?: error("No activity!")
     LaunchedEffect(pinState.value) {
-        if (pinState.value.length == 4) {
-            val state = viewModel.state.value ?: TODO()
-            if (state.exists) {
-                viewModel.unlockFile(pin = pinState.value)
-            } else {
-                if (state.hasBiometric) {
-                    logger.debug("has biometric...")
-                    BiometricUtil.authenticate(activity)
-                } else {
-                    viewModel.createNewFile(pin = pinState.value, cipher = null)
-                }
-            }
-        }
+        onPin(
+            viewModel = viewModel,
+            pin = pinState.value,
+            onBiometric = {
+                logger.debug("has biometric...")
+                BiometricUtil.authenticate(activity)
+            },
+        )
     }
     val durations = App.Theme.durations
     LaunchedEffect(Unit) {
@@ -150,15 +163,16 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
             when (broadcast) {
                 is BiometricUtil.Broadcast.OnSucceeded -> {
                     logger.debug("on biometric succeeded...")
-                    if (viewModel.state.value!!.exists) {
-                        viewModel.unlockFile(cipher = broadcast.cipher)
-                    } else {
-                        viewModel.createNewFile(pin = pinState.value, cipher = broadcast.cipher)
-                    }
+                    onBiometric(
+                        viewModel = viewModel,
+                        cipher = broadcast.cipher,
+                        pin = pinState.value,
+                    )
                 }
                 is BiometricUtil.Broadcast.OnError -> {
                     logger.debug("on biometric error...")
-                    if (viewModel.state.value!!.exists) {
+                    val exists = viewModel.state.value?.exists ?: error("No state!")
+                    if (exists) {
                         when (broadcast.type) {
                             BiometricUtil.Broadcast.OnError.Type.USER_CANCELED -> {
                                 viewModel.requestState()
@@ -192,7 +206,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     LaunchedEffect(errorState.value) {
         when (errorState.value) {
             EnterScreen.Error.UNLOCK -> {
-                withContext(Dispatchers.Default) {
+                withContext(App.contexts.default) {
                     delay(durations.animation * 2)
                 }
                 pinState.value = ""
@@ -254,16 +268,11 @@ private fun EnterScreenInfo(
                 start = App.Theme.sizes.small,
                 end = App.Theme.sizes.small,
             )
-        val initialOffsetX: (fullWidth: Int) -> Int = when (val orientation = LocalConfiguration.current.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> { it -> -it }
-            Configuration.ORIENTATION_PORTRAIT -> { it -> it }
-            else -> error("Orientation $orientation is not supported!")
-        }
         AnimatedHVisibility(
             modifier = modifier2,
             visible = exists == true,
             duration = App.Theme.durations.animation,
-            initialOffsetX = initialOffsetX,
+            initialOffsetX = { it },
         ) {
             Column {
                 val textStyle = TextStyle(
@@ -324,7 +333,7 @@ private fun EnterScreenInfo(
         LaunchedEffect(offsetState.value, errorState.value) {
             when (errorState.value) {
                 EnterScreen.Error.UNLOCK -> {
-                    withContext(Dispatchers.Default) {
+                    withContext(App.contexts.default) {
                         delay(16)
                     }
                     offsetState.value = (offsetState.value + 3.dp).ct(maxOffset)

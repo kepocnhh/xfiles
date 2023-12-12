@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
@@ -132,10 +131,10 @@ internal fun ChecksScreen(
     LaunchedEffect(Unit) {
         viewModel
             .broadcast
-            .collect {
-                when (it) {
+            .collect { broadcast ->
+                when (broadcast) {
                     ChecksViewModel.Broadcast.OnComplete -> {
-                        withContext(Dispatchers.Default) {
+                        withContext(App.contexts.default) {
                             delay(delay - markStart.elapsedNow())
                         }
                         onComplete()

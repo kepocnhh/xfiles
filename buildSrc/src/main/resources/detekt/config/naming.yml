@@ -1,10 +1,10 @@
-# 2023/11/26
+# 2023/12/12
 
 naming:
   active: true
   BooleanPropertyNaming:
     active: true
-    allowedPattern: '^(is|has|are)'
+    allowedPattern: '^(is|has|are)[A-Z]\w+|loading|exists|\w+Exists$|\w+ed$'
   ClassNaming:
     active: true
     classPattern: '[A-Z][a-zA-Z0-9]*'

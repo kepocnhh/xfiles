@@ -18,6 +18,7 @@ internal fun WindowInsets.toPaddings(density: Float): PaddingValues {
             )
         }
     } else {
+        @Suppress("Deprecation")
         PaddingValues(
             bottom = systemWindowInsetBottom.px(density),
             end = systemWindowInsetRight.px(density),

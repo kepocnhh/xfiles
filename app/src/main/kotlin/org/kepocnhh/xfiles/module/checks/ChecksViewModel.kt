@@ -49,15 +49,27 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                 type = "Cipher",
                 algorithm = it,
             )
-        }?.toSecurityService() ?: throw NoSuchAlgorithmException("No such algorithms ${provider.name}:Cipher:$ciphers!")
+        }?.toSecurityService() ?: throw NoSuchAlgorithmException(
+            "No such algorithms ${provider.name}:Cipher:$ciphers!",
+        )
         val platform = SecurityUtil.requireProvider("AndroidOpenSSL")
         return SecurityServices(
             cipher = cipher,
-            symmetric = provider.requireService(type = "SecretKeyFactory", algorithm = cipher.algorithm).toSecurityService(),
-            asymmetric = provider.requireService(type = "KeyPairGenerator", algorithm = "DSA").toSecurityService(),
-            signature = provider.requireService(type = "Signature", algorithm = "SHA256WithDSA").toSecurityService(),
-            hash = platform.requireService(type = "MessageDigest", algorithm = "SHA-512").toSecurityService(),
-            random = platform.requireService(type = "SecureRandom", algorithm = "SHA1PRNG").toSecurityService(),
+            symmetric = provider
+                .requireService(type = "SecretKeyFactory", algorithm = cipher.algorithm)
+                .toSecurityService(),
+            asymmetric = provider
+                .requireService(type = "KeyPairGenerator", algorithm = "DSA")
+                .toSecurityService(),
+            signature = provider
+                .requireService(type = "Signature", algorithm = "SHA256WithDSA")
+                .toSecurityService(),
+            hash = platform
+                .requireService(type = "MessageDigest", algorithm = "SHA-512")
+                .toSecurityService(),
+            random = platform
+                .requireService(type = "SecureRandom", algorithm = "SHA1PRNG")
+                .toSecurityService(),
         )
     }
 

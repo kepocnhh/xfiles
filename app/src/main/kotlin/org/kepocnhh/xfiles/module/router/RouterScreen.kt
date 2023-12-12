@@ -1,10 +1,8 @@
 package org.kepocnhh.xfiles.module.router
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,11 +17,9 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.checks.ChecksScreen
 import org.kepocnhh.xfiles.module.enter.EnterScreen
 import org.kepocnhh.xfiles.module.unlocked.UnlockedScreen
-import sp.ax.jc.animations.style.FadeStyle
 import sp.ax.jc.animations.style.LocalFadeStyle
 import sp.ax.jc.animations.style.LocalSlideHStyle
 import sp.ax.jc.animations.style.LocalTweenStyle
-import sp.ax.jc.animations.style.SlideStyle
 import sp.ax.jc.animations.style.TweenStyle
 import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.fade.fadeIn
@@ -71,26 +67,7 @@ private fun exitTransition(
 }
 
 @Composable
-private fun contentTransform(
-    tweenStyle: TweenStyle = LocalTweenStyle.current,
-    slideStyle: SlideStyle.Horizontal = LocalSlideHStyle.current,
-    fadeStyle: FadeStyle = LocalFadeStyle.current,
-): ContentTransform {
-    val enter = enterTransition(
-        tweenStyle = tweenStyle,
-        initialOffsetX = slideStyle.initialOffsetX,
-        initialAlpha = fadeStyle.initialAlpha,
-    )
-    val exit = exitTransition(
-        tweenStyle = tweenStyle,
-        targetOffsetX = slideStyle.targetOffsetX,
-        targetAlpha = fadeStyle.targetAlpha,
-    )
-    return enter togetherWith exit
-}
-
-@Composable
-private fun OnChecked(onBack: () -> Unit) {
+private fun OnChecked() {
     // todo start animation if visible on start
     val animatedState = rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(animatedState.value) {
@@ -143,7 +120,10 @@ private fun OnChecked(onBack: () -> Unit) {
         ),
     ) {
         UnlockedScreen(
-            key = remember { mutableStateOf(keyState.value!!) }.value,
+            key = remember {
+                val key = keyState.value ?: error("No key!")
+                mutableStateOf(key)
+            }.value,
         ) { broadcast ->
             when (broadcast) {
                 UnlockedScreen.Broadcast.Lock -> {
@@ -174,7 +154,7 @@ internal fun RouterScreen(onBack: () -> Unit) {
             )
         }
         if (checkedState.value) {
-            OnChecked(onBack = onBack)
+            OnChecked()
         }
     }
 }

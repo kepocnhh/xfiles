@@ -16,27 +16,18 @@ internal class ColorIndication(
     private val pressed: Color,
     private val hovered: Color,
 ) : Indication {
-    companion object {
-        fun create(color: Color): Indication {
-            return ColorIndication(
-                pressed = color.copy(alpha = .2f),
-                hovered = color.copy(alpha = .1f),
-            )
-        }
-    }
-
     private class ColorIndicationInstance(
         private val pressed: Color,
         private val hovered: Color,
-        private val isPressed: State<Boolean>,
-        private val isHovered: State<Boolean>,
-        private val isFocused: State<Boolean>,
+        private val pressedState: State<Boolean>,
+        private val hoveredState: State<Boolean>,
+        private val focusedState: State<Boolean>,
     ) : IndicationInstance {
         override fun ContentDrawScope.drawIndication() {
             drawContent()
-            if (isPressed.value) {
+            if (pressedState.value) {
                 drawRect(color = pressed, size = size)
-            } else if (isHovered.value || isFocused.value) {
+            } else if (hoveredState.value || focusedState.value) {
                 drawRect(color = hovered, size = size)
             }
         }
@@ -44,16 +35,25 @@ internal class ColorIndication(
 
     @Composable
     override fun rememberUpdatedInstance(interactionSource: InteractionSource): IndicationInstance {
-        val isPressed = interactionSource.collectIsPressedAsState()
-        val isHovered = interactionSource.collectIsHoveredAsState()
-        val isFocused = interactionSource.collectIsFocusedAsState()
+        val pressedState = interactionSource.collectIsPressedAsState()
+        val hoveredState = interactionSource.collectIsHoveredAsState()
+        val focusedState = interactionSource.collectIsFocusedAsState()
         return remember(interactionSource, pressed, hovered) {
             ColorIndicationInstance(
                 pressed = pressed,
                 hovered = hovered,
-                isPressed = isPressed,
-                isHovered = isHovered,
-                isFocused = isFocused,
+                pressedState = pressedState,
+                hoveredState = hoveredState,
+                focusedState = focusedState,
+            )
+        }
+    }
+
+    companion object {
+        fun create(color: Color): Indication {
+            return ColorIndication(
+                pressed = color.copy(alpha = .2f),
+                hovered = color.copy(alpha = .1f),
             )
         }
     }

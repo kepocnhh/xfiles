@@ -21,7 +21,8 @@ internal class SettingsViewModel(private val injection: Injection) : AbstractVie
     fun requestCipher() {
         injection.launch {
             _cipher.value = withContext(injection.contexts.default) {
-                injection.local.services!!.cipher
+                val services = injection.local.services ?: error("No services!")
+                services.cipher
             }
         }
     }
