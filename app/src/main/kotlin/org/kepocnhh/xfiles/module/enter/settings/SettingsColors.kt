@@ -116,6 +116,43 @@ private fun SettingsColorRow(
 }
 
 @Composable
+private fun SettingsColorsDialog(
+    selected: ColorsType,
+    onSelect: (ColorsType) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = App.Theme.colors.background,
+                    shape = RoundedCornerShape(App.Theme.sizes.medium),
+                )
+                .padding(
+                    top = App.Theme.sizes.medium,
+                    bottom = App.Theme.sizes.medium,
+                ),
+        ) {
+            setOf(
+                ColorsType.LIGHT,
+                ColorsType.DARK,
+                ColorsType.AUTO,
+            ).forEach { colorsType ->
+                SettingsColorRow(
+                    colorsType = colorsType,
+                    selected = selected == colorsType,
+                    onClick = {
+                        onSelect(colorsType)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun SettingsColors(
     themeState: ThemeState,
     onColorsType: (ColorsType) -> Unit,
@@ -158,38 +195,13 @@ internal fun SettingsColors(
             text = getText(themeState.colorsType),
         )
     }
-    if (!dialogState.value) return
-    Dialog(
-        onDismissRequest = {
-            dialogState.value = false
-        },
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = App.Theme.colors.background,
-                    shape = RoundedCornerShape(App.Theme.sizes.medium),
-                )
-                .padding(
-                    top = App.Theme.sizes.medium,
-                    bottom = App.Theme.sizes.medium,
-                ),
-        ) {
-            setOf(
-                ColorsType.LIGHT,
-                ColorsType.DARK,
-                ColorsType.AUTO,
-            ).forEach { colorsType ->
-                SettingsColorRow(
-                    colorsType = colorsType,
-                    selected = themeState.colorsType == colorsType,
-                    onClick = {
-                        onColorsType(colorsType)
-                        dialogState.value = false
-                    },
-                )
-            }
-        }
+    if (dialogState.value) {
+        SettingsColorsDialog(
+            selected = themeState.colorsType,
+            onSelect = onColorsType,
+            onDismiss = {
+                dialogState.value = false
+            },
+        )
     }
 }

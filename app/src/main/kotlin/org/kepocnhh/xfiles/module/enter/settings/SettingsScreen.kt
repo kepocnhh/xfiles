@@ -62,6 +62,7 @@ internal fun SettingsScreen(onBack: () -> Unit) {
     )
 }
 
+@Suppress("LongParameterList")
 @Composable
 internal fun SettingsScreen(
     themeState: ThemeState,

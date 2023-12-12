@@ -391,6 +391,7 @@ private fun ButtonsRow(
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 private fun EncryptedValueButton(
     enabled: Boolean,
@@ -417,6 +418,7 @@ private fun EncryptedValueButton(
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 private fun EncryptedValueItem(
     enabled: Boolean,
@@ -474,6 +476,7 @@ private fun EncryptedValueItem(
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 private fun Encrypteds(
     modifier: Modifier,
@@ -510,6 +513,7 @@ private fun Encrypteds(
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 internal fun UnlockedScreen(
     loading: Boolean,

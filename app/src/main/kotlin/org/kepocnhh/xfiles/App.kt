@@ -119,8 +119,6 @@ internal class App : Application() {
                 LocalColors provides colors,
                 LocalDurations provides durations,
                 LocalSizes provides Sizes(
-                    xxxs = 2.dp,
-                    xxs = 4.dp,
                     xs = 8.dp,
                     small = 16.dp,
                     medium = 24.dp,

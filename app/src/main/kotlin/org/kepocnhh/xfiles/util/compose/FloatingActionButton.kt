@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.App
 
+@Suppress("LongParameterList")
 @Composable
 internal fun FloatingActionButton(
     size: Dp = App.Theme.sizes.xxxl,

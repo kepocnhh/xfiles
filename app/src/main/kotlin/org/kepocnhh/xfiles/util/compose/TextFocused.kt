@@ -28,6 +28,7 @@ private fun Long.even(): Boolean {
     return rem(2) == 0L
 }
 
+@Suppress("LongParameterList")
 @Composable
 internal fun TextFocused(
     margin: PaddingValues,

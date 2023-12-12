@@ -291,6 +291,7 @@ internal data class SecretFieldState(
     val x: Float,
 )
 
+@Suppress("LongParameterList")
 @Composable
 internal fun AddItemScreen(
     focusedState: MutableState<Focused?>,

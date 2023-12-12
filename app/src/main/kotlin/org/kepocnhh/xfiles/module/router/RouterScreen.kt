@@ -82,9 +82,7 @@ private fun OnChecked() {
             initState.value = false
         }
     }
-    val tweenStyle = LocalTweenStyle.current.copy(
-//        duration = 2.seconds,
-    )
+    val tweenStyle = LocalTweenStyle.current.copy()
     // todo fade
     AnimatedVisibility(
 //        visible = keyState.value == null,

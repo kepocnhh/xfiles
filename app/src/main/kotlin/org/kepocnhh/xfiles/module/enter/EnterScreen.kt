@@ -19,9 +19,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -101,6 +103,36 @@ private fun onBiometric(viewModel: EnterViewModel, cipher: Cipher, pin: String) 
 }
 
 @Composable
+private fun Init(viewModel: EnterViewModel, settingsRequested: Boolean) {
+    LaunchedEffect(settingsRequested) {
+        if (!settingsRequested) {
+            viewModel.requestState()
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (viewModel.state.value == null) {
+            viewModel.requestState()
+        }
+    }
+}
+
+@Composable
+private fun ToSettings(settingsRequested: Boolean, onBack: () -> Unit) {
+    val insets = LocalView.current.rootWindowInsets.toPaddings()
+    val width = LocalConfiguration.current.screenWidth(insets)
+    AnimatedHOpen(
+        visible = settingsRequested,
+        width = width,
+        targetWidth = width,
+        duration = App.Theme.durations.animation,
+        colorShadow = Colors.black,
+        onShadow = onBack,
+    ) {
+        SettingsScreen(onBack = onBack)
+    }
+}
+
+@Composable
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val logger = App.newLogger("[Enter]")
     val viewModel = App.viewModel<EnterViewModel>()
@@ -116,17 +148,8 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
         },
     )
     val settingsState = remember { mutableStateOf(false) }
-    LaunchedEffect(settingsState.value) {
-        if (!settingsState.value) {
-            viewModel.requestState()
-        }
-    }
+    Init(viewModel, settingsRequested = settingsState.value)
     val state = viewModel.state.collectAsState().value
-    LaunchedEffect(Unit) {
-        if (state == null) {
-            viewModel.requestState()
-        }
-    }
     val context = LocalContext.current
     val activity = context.findActivity<FragmentActivity>() ?: error("No activity!")
     LaunchedEffect(pinState.value) {
@@ -232,23 +255,29 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
             viewModel.requestBiometric()
         },
     )
-    val insets = LocalView.current.rootWindowInsets.toPaddings()
-    val width = LocalConfiguration.current.screenWidth(insets)
-    AnimatedHOpen(
-        visible = settingsState.value,
-        width = width,
-        targetWidth = width,
-        duration = App.Theme.durations.animation,
-        colorShadow = Colors.black,
-        onShadow = {
+    ToSettings(
+        settingsRequested = settingsState.value,
+        onBack = {
             settingsState.value = false
         },
-    ) {
-        SettingsScreen(
-            onBack = {
-                settingsState.value = false
-            },
-        )
+    )
+}
+
+private fun buildPin(length: Int, color: Color): AnnotatedString {
+    return buildAnnotatedString {
+        val maxLength = 4
+        check(length in 0..maxLength)
+        if (length == maxLength) {
+            append("*".repeat(maxLength))
+        } else {
+            for (i in 0 until maxLength) {
+                if (i < length) {
+                    append("*")
+                } else {
+                    append(color, "*")
+                }
+            }
+        }
     }
 }
 
@@ -352,23 +381,10 @@ private fun EnterScreenInfo(
                 .padding(vertical = App.Theme.sizes.large)
                 .align(Alignment.BottomCenter)
                 .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
-//            text = "*".repeat(pinState.value.length),
-            text = buildAnnotatedString {
-                val maxLength = 4
-                val length = pinState.value.length
-                check(length in 0..maxLength)
-                if (length == maxLength) {
-                    append("*".repeat(maxLength))
-                } else {
-                    for (i in 0 until maxLength) {
-                        if (i < length) {
-                            append("*")
-                        } else {
-                            append(App.Theme.colors.secondary, "*")
-                        }
-                    }
-                }
-            },
+            text = buildPin(
+                length = pinState.value.length,
+                color = App.Theme.colors.secondary,
+            ),
             style = TextStyle(
                 color = color,
                 fontFamily = FontFamily.Monospace,
@@ -379,6 +395,7 @@ private fun EnterScreenInfo(
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 internal fun EnterScreen(
     state: EnterViewModel.State?,
@@ -408,22 +425,24 @@ internal fun EnterScreen(
                 .fillMaxWidth(),
             enabled = state != null && !state.loading && errorState.value == null,
             visibleDelete = pinState.value.isNotEmpty(),
-            onDelete = {
-                pinState.value = ""
-            },
-            onSettings = onSettings,
             rowHeight = App.Theme.sizes.xxxl,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,
                 color = App.Theme.colors.foreground,
                 fontSize = 24.sp,
             ),
-            onClick = { char ->
-                pinState.value += char
-            },
-            onBiometric = onBiometric,
             hasBiometric = state?.hasBiometric ?: false,
             exists = state?.exists ?: false,
+            listeners = PinPad.Listeners(
+                onClick = { char ->
+                    pinState.value += char
+                },
+                onBiometric = onBiometric,
+                onDelete = {
+                    pinState.value = ""
+                },
+                onSettings = onSettings,
+            ),
         )
     }
 }

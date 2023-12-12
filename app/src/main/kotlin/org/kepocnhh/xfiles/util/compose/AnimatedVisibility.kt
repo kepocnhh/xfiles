@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import kotlin.time.Duration
 
+@Suppress("LongParameterList")
 @Composable
 internal fun AnimatedHVisibility(
     visible: Boolean,
@@ -50,6 +51,7 @@ internal fun AnimatedHVisibility(
     )
 }
 
+@Suppress("LongParameterList")
 @Composable
 internal fun AnimatedHOpen(
     visible: Boolean,
@@ -106,6 +108,7 @@ internal fun AnimatedHOpen(
     )
 }
 
+@Suppress("LongParameterList")
 @Composable
 internal fun ExpandVertically(
     visible: Boolean,

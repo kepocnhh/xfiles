@@ -115,6 +115,43 @@ private fun SettingsLanguageRow(
 }
 
 @Composable
+private fun SettingsLanguageDialog(
+    selected: Language,
+    onSelect: (Language) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = App.Theme.colors.background,
+                    shape = RoundedCornerShape(App.Theme.sizes.medium),
+                )
+                .padding(
+                    top = App.Theme.sizes.medium,
+                    bottom = App.Theme.sizes.medium,
+                ),
+        ) {
+            setOf(
+                Language.ENGLISH,
+                Language.RUSSIAN,
+                Language.AUTO,
+            ).forEach { language ->
+                SettingsLanguageRow(
+                    language = language,
+                    selected = selected == language,
+                    onClick = {
+                        onSelect(language)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun SettingsLanguage(
     themeState: ThemeState,
     onLanguage: (Language) -> Unit,
@@ -157,38 +194,12 @@ internal fun SettingsLanguage(
         )
     }
     if (dialogState.value) {
-        Dialog(
-            onDismissRequest = {
+        SettingsLanguageDialog(
+            selected = themeState.language,
+            onSelect = onLanguage,
+            onDismiss = {
                 dialogState.value = false
             },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = App.Theme.colors.background,
-                        shape = RoundedCornerShape(App.Theme.sizes.medium),
-                    )
-                    .padding(
-                        top = App.Theme.sizes.medium,
-                        bottom = App.Theme.sizes.medium,
-                    ),
-            ) {
-                setOf(
-                    Language.ENGLISH,
-                    Language.RUSSIAN,
-                    Language.AUTO,
-                ).forEach { language ->
-                    SettingsLanguageRow(
-                        language = language,
-                        selected = themeState.language == language,
-                        onClick = {
-                            onLanguage(language)
-                            dialogState.value = false
-                        },
-                    )
-                }
-            }
-        }
+        )
     }
 }

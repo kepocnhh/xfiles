@@ -120,6 +120,40 @@ internal fun SettingsDSAStrengthRow(
 }
 
 @Composable
+private fun SettingsDSADialog(
+    selected: SecuritySettings.DSAKeyLength,
+    onSelect: (SecuritySettings.DSAKeyLength) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = App.Theme.colors.background,
+                    shape = RoundedCornerShape(App.Theme.sizes.medium),
+                )
+                .padding(vertical = App.Theme.sizes.medium),
+        ) {
+            setOf(
+                SecuritySettings.DSAKeyLength.BITS_1024_1,
+                SecuritySettings.DSAKeyLength.BITS_1024_2,
+                SecuritySettings.DSAKeyLength.BITS_1024_3,
+            ).forEach { value ->
+                SettingsDSAStrengthRow(
+                    value = value,
+                    selected = selected == value,
+                    onClick = {
+                        onSelect(value)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun SettingsDSA(
     editable: Boolean,
     strength: SecuritySettings.DSAKeyLength,
@@ -160,36 +194,13 @@ internal fun SettingsDSA(
         )
     }
     if (dialogState.value) {
-        Dialog(
-            onDismissRequest = {
+        SettingsDSADialog(
+            selected = strength,
+            onSelect = onSelectKeyLength,
+            onDismiss = {
                 dialogState.value = false
             },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = App.Theme.colors.background,
-                        shape = RoundedCornerShape(App.Theme.sizes.medium),
-                    )
-                    .padding(vertical = App.Theme.sizes.medium),
-            ) {
-                setOf(
-                    SecuritySettings.DSAKeyLength.BITS_1024_1,
-                    SecuritySettings.DSAKeyLength.BITS_1024_2,
-                    SecuritySettings.DSAKeyLength.BITS_1024_3,
-                ).forEach { value ->
-                    SettingsDSAStrengthRow(
-                        value = value,
-                        selected = strength == value,
-                        onClick = {
-                            onSelectKeyLength(value)
-                            dialogState.value = false
-                        },
-                    )
-                }
-            }
-        }
+        )
     }
 }
 
@@ -236,6 +247,40 @@ internal fun SettingsPBEIterationsRow(
 }
 
 @Composable
+private fun SettingsPBEDialog(
+    selected: SecuritySettings.PBEIterations,
+    onSelect: (SecuritySettings.PBEIterations) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = App.Theme.colors.background,
+                    shape = RoundedCornerShape(App.Theme.sizes.medium),
+                )
+                .padding(vertical = App.Theme.sizes.medium),
+        ) {
+            setOf(
+                SecuritySettings.PBEIterations.NUMBER_2_10,
+                SecuritySettings.PBEIterations.NUMBER_2_16,
+                SecuritySettings.PBEIterations.NUMBER_2_20,
+            ).forEach { value ->
+                SettingsPBEIterationsRow(
+                    value = value,
+                    selected = selected == value,
+                    onClick = {
+                        onSelect(value)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun SettingsPBE(
     editable: Boolean,
     iterations: SecuritySettings.PBEIterations,
@@ -275,36 +320,13 @@ internal fun SettingsPBE(
         )
     }
     if (dialogState.value) {
-        Dialog(
-            onDismissRequest = {
+        SettingsPBEDialog(
+            selected = iterations,
+            onSelect = onSelectIterations,
+            onDismiss = {
                 dialogState.value = false
             },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = App.Theme.colors.background,
-                        shape = RoundedCornerShape(App.Theme.sizes.medium),
-                    )
-                    .padding(vertical = App.Theme.sizes.medium),
-            ) {
-                setOf(
-                    SecuritySettings.PBEIterations.NUMBER_2_10,
-                    SecuritySettings.PBEIterations.NUMBER_2_16,
-                    SecuritySettings.PBEIterations.NUMBER_2_20,
-                ).forEach { value ->
-                    SettingsPBEIterationsRow(
-                        value = value,
-                        selected = iterations == value,
-                        onClick = {
-                            onSelectIterations(value)
-                            dialogState.value = false
-                        },
-                    )
-                }
-            }
-        }
+        )
     }
 }
 

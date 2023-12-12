@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 
+@Suppress("LongParameterList")
 @Immutable
 internal class Colors private constructor(
     val basement: Color,
