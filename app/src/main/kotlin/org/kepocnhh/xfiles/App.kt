@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
@@ -22,7 +21,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.kepocnhh.xfiles.entity.Defaults
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Colors
@@ -89,9 +87,6 @@ internal class App : Application() {
         private var _textStyle: TextStyle? = null
         val textStyle: TextStyle get() = checkNotNull(_textStyle)
 
-        private var _orientation: Orientation? = null
-        val orientation: Orientation get() = checkNotNull(_orientation)
-
         private var _insets: PaddingValues? = null
         val insets: PaddingValues get() = checkNotNull(_insets)
 
@@ -108,7 +103,6 @@ internal class App : Application() {
             val durations = Durations(
                 animation = 500.milliseconds,
             )
-            _orientation = _orientationFlow.collectAsState().value
             _textStyle = TextStyle(
                 color = colors.text,
                 fontFamily = FontFamily.Default,
@@ -198,7 +192,6 @@ internal class App : Application() {
     }
 
     companion object {
-        private val _orientationFlow = MutableStateFlow(Orientation.PORTRAIT)
         private var _injection: Injection? = null
         private val _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {

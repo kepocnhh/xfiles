@@ -79,4 +79,10 @@ internal interface Strings {
     data class Keyboard(
         val space: String,
     )
+
+    val biometric: Biometric
+
+    data class Biometric(
+        val promptTitle: CharSequence,
+    )
 }

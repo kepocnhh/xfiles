@@ -65,4 +65,8 @@ internal object Ru : Strings {
     override val keyboard = Strings.Keyboard(
         space = "пробел",
     )
+
+    override val biometric = Strings.Biometric(
+        promptTitle = "Подтвердите, чтобы разблокировать базу данных.",
+    )
 }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
@@ -132,6 +134,7 @@ private fun ToSettings(settingsRequested: Boolean, onBack: () -> Unit) {
     }
 }
 
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val logger = App.newLogger("[Enter]")
@@ -139,12 +142,17 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val pinState = rememberSaveable { mutableStateOf("") }
     val errorState = rememberSaveable { mutableStateOf<EnterScreen.Error?>(null) }
     val deleteDialogState = remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     DeleteDialog(
         dialogState = deleteDialogState,
         onConfirm = {
             viewModel.deleteFile()
-            BiometricUtil.deleteSecretKey() // todo
-            pinState.value = ""
+            coroutineScope.launch {
+                withContext(App.contexts.default) {
+                    BiometricUtil.deleteSecretKey()
+                }
+                pinState.value = ""
+            }
         },
     )
     val settingsState = remember { mutableStateOf(false) }
@@ -152,13 +160,17 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
     val activity = context.findActivity<FragmentActivity>() ?: error("No activity!")
+    val strings = App.Theme.strings
     LaunchedEffect(pinState.value) {
         onPin(
             viewModel = viewModel,
             pin = pinState.value,
             onBiometric = {
                 logger.debug("has biometric...")
-                BiometricUtil.authenticate(activity)
+                BiometricUtil.authenticate(
+                    activity = activity,
+                    title = strings.biometric.promptTitle,
+                )
             },
         )
     }
@@ -175,12 +187,15 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 }
                 is EnterViewModel.Broadcast.OnBiometric -> {
                     logger.debug("on biometric...")
-                    BiometricUtil.authenticate(activity, iv = broadcast.iv)
+                    BiometricUtil.authenticate(
+                        activity = activity,
+                        title = strings.biometric.promptTitle,
+                        iv = broadcast.iv,
+                    )
                 }
             }
         }
     }
-    val strings = App.Theme.strings
     LaunchedEffect(strings) {
         BiometricUtil.broadcast.collect { broadcast ->
             when (broadcast) {
@@ -208,7 +223,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                                 viewModel.requestState()
                                 context.showToast(strings.enter.unrecoverableDC)
                             }
-                            null -> TODO("Unlock. On biometric unknown error!")
+                            null -> error("Unlock. On biometric unknown error!")
                         }
                     } else {
                         when (broadcast.type) {
@@ -219,7 +234,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                                 pinState.value = ""
                                 context.showToast(strings.enter.cantAuthWithDC)
                             }
-                            else -> TODO("Create. On biometric unknown error: ${broadcast.type}")
+                            else -> error("Create. On biometric unknown error: ${broadcast.type}")
                         }
                     }
                 }
@@ -282,6 +297,36 @@ private fun buildPin(length: Int, color: Color): AnnotatedString {
 }
 
 @Composable
+private fun DatabaseExists(onDelete: () -> Unit) {
+    Column {
+        val textStyle = TextStyle(
+            color = App.Theme.colors.foreground,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center,
+        )
+        BasicText(
+            modifier = Modifier.fillMaxWidth(),
+            style = textStyle,
+            text = App.Theme.strings.databaseExists,
+        )
+        Spacer(modifier = Modifier.height(App.Theme.sizes.small))
+        val tag = "databaseDelete"
+        ClickableText(
+            modifier = Modifier.fillMaxWidth(),
+            text = String.format(App.Theme.strings.databaseDelete, tag),
+            style = textStyle,
+            styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
+            onClick = {
+                when (it) {
+                    tag -> onDelete()
+                }
+            },
+        )
+    }
+}
+
+@Suppress("LongMethod")
+@Composable
 private fun EnterScreenInfo(
     modifier: Modifier,
     exists: Boolean?,
@@ -293,43 +338,15 @@ private fun EnterScreenInfo(
         val modifier2 = Modifier
             .fillMaxWidth()
             .align(Alignment.Center)
-            .padding(
-                start = App.Theme.sizes.small,
-                end = App.Theme.sizes.small,
-            )
+            .padding(horizontal = App.Theme.sizes.small)
         AnimatedHVisibility(
             modifier = modifier2,
             visible = exists == true,
             duration = App.Theme.durations.animation,
             initialOffsetX = { it },
         ) {
-            Column {
-                val textStyle = TextStyle(
-                    color = App.Theme.colors.foreground,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                )
-                BasicText(
-                    modifier = Modifier.fillMaxWidth(),
-                    style = textStyle,
-                    text = App.Theme.strings.databaseExists,
-                )
-                Spacer(modifier = Modifier.height(App.Theme.sizes.small))
-                val tag = "databaseDelete"
-                ClickableText(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = String.format(App.Theme.strings.databaseDelete, tag),
-                    style = textStyle,
-                    styles = mapOf(tag to TextStyle(App.Theme.colors.primary)),
-                    onClick = {
-                        when (it) {
-                            tag -> onDelete()
-                        }
-                    },
-                )
-            }
+            DatabaseExists(onDelete = onDelete)
         }
-        // todo fade
         SlideHVisibility(
             modifier = Modifier
                 .fillMaxWidth()

@@ -63,7 +63,6 @@ private fun check(params: DSAParams) {
 }
 
 private fun Device.toUUID(): UUID {
-    // todo
     val md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
     val input = mapOf(
         "manufacturer" to manufacturer,

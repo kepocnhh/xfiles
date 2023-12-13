@@ -157,6 +157,7 @@ internal fun ShowDialog(
     }
 }
 
+@Suppress("CanBeNonNullable")
 private fun clearClipboardIfNeeded(context: Context, expected: Int?) {
     if (expected == null) return
     val clipboardManager = context.getSystemService(ClipboardManager::class.java) ?: return
@@ -167,6 +168,7 @@ private fun clearClipboardIfNeeded(context: Context, expected: Int?) {
     clipboardManager.clear()
 }
 
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 internal fun UnlockedScreen(
     key: SecretKey,
@@ -251,7 +253,7 @@ internal fun UnlockedScreen(
             broadcast(UnlockedScreen.Broadcast.Lock)
         }
     }
-    val strings = App.Theme.strings // todo rememberUpdatedState
+    val strings = App.Theme.strings
     LaunchedEffect(strings) {
         viewModel.broadcast.collect { broadcast ->
             logger.debug("broadcast: $broadcast")
@@ -334,7 +336,6 @@ internal fun UnlockedScreen(
             broadcast(UnlockedScreen.Broadcast.Lock)
         },
     )
-    // todo shadow
     FadeVisibility(
         visible = addItemState.value,
     ) {
@@ -502,7 +503,7 @@ private fun Encrypteds(
             key = { keys[it] },
         ) { index ->
             val id = keys[index]
-            val title = items[id] ?: TODO()
+            val title = items[id] ?: error("No title!")
             SlideHVisibility(visible = visibleMap[id] ?: false) {
                 itemContent(EncryptedValue(id = id, title = title))
             }
@@ -513,7 +514,7 @@ private fun Encrypteds(
     }
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 internal fun UnlockedScreen(
     loading: Boolean,
@@ -552,10 +553,7 @@ internal fun UnlockedScreen(
             )
         }
         when {
-            encrypteds == null -> {
-                // todo
-            }
-            encrypteds.isEmpty() -> {
+            encrypteds.isNullOrEmpty() -> {
                 // noop
             }
             else -> {
@@ -578,8 +576,7 @@ internal fun UnlockedScreen(
                     )
                 }
                 Encrypteds(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     enabled = !loading,
                     contentPadding = contentPadding,
                     itemsAlign = Alignment.CenterVertically,

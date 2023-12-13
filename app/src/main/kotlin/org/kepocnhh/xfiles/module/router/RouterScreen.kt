@@ -68,7 +68,6 @@ private fun exitTransition(
 
 @Composable
 private fun OnChecked() {
-    // todo start animation if visible on start
     val animatedState = rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(animatedState.value) {
         if (!animatedState.value) {
@@ -83,7 +82,6 @@ private fun OnChecked() {
         }
     }
     val tweenStyle = LocalTweenStyle.current.copy()
-    // todo fade
     AnimatedVisibility(
 //        visible = keyState.value == null,
         visible = animatedState.value && keyState.value == null,
@@ -106,7 +104,6 @@ private fun OnChecked() {
             },
         )
     }
-    // todo fade
     AnimatedVisibility(
 //        visible = keyState.value != null,
         visible = animatedState.value && keyState.value != null,

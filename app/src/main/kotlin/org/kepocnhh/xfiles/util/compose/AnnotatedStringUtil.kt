@@ -115,7 +115,7 @@ internal fun ClickableText(
                 check(!value.isNullOrEmpty())
                 append(
                     tag = tag,
-                    annotation = "", // todo
+                    annotation = "",
                     textStyle = styles[tag] ?: style,
                     text = value,
                 )

@@ -65,4 +65,8 @@ internal object En : Strings {
     override val keyboard = Strings.Keyboard(
         space = "space",
     )
+
+    override val biometric = Strings.Biometric(
+        promptTitle = "Verify biometric to unlock database.",
+    )
 }

@@ -14,16 +14,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import sp.ax.jc.clicks.clicks
 
 internal object Keyboard {
-    enum class Fun {
-        SPACE_BAR,
-        BACKSPACE,
-    }
-
     val letters = listOf(
         charArrayOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0'),
         charArrayOf('q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'),
@@ -93,19 +87,18 @@ internal fun KeyboardRows(
     onClick: (Char) -> Unit,
 ) {
     Column(modifier = modifier) {
+        val textStyle = App.Theme.textStyle.copy(
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+        )
         rows.forEach { chars ->
             KeyboardRow(
                 height = rowHeight,
                 enabled = enabled,
                 chars = chars,
                 onClick = onClick,
-                textStyle = TextStyle(
-                    color = App.Theme.colors.text,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp, // todo
-                ),
+                textStyle = textStyle,
             )
         }
     }

@@ -48,7 +48,7 @@ internal object BiometricUtil {
     val broadcast = _broadcast.asSharedFlow()
     private const val authenticators =
         BiometricManager.Authenticators.BIOMETRIC_STRONG or
-        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL
     private val callback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             val type = when (errorCode) {
@@ -115,11 +115,13 @@ internal object BiometricUtil {
         return Cipher.getInstance("$algorithm/$blocks/$paddings")
     }
 
-    // todo strings
-    private fun getPromptInfo(): BiometricPrompt.PromptInfo {
+    private fun getPromptInfo(
+        title: CharSequence,
+    ): BiometricPrompt.PromptInfo {
         return BiometricPrompt.PromptInfo.Builder()
-            .setTitle("BiometricPrompt:${BuildConfig.APPLICATION_ID}:title") // todo
-            .setSubtitle("BiometricPrompt:${BuildConfig.APPLICATION_ID}:subtitle") // todo
+            .setTitle(title)
+//            .setSubtitle(subtitle)
+//            .setDescription(description)
             .setAllowedAuthenticators(authenticators)
             .setConfirmationRequired(true)
             .build()
@@ -148,17 +150,26 @@ internal object BiometricUtil {
         return key
     }
 
-    fun authenticate(activity: FragmentActivity) {
+    fun authenticate(
+        activity: FragmentActivity,
+        title: CharSequence,
+    ) {
         val key = getKeyOrError(activity) ?: return
         val cipher = getCipher()
         cipher.init(Cipher.ENCRYPT_MODE, key)
-        BiometricPrompt(activity, callback).authenticate(getPromptInfo(), BiometricPrompt.CryptoObject(cipher))
+        val info = getPromptInfo(title = title)
+        BiometricPrompt(activity, callback).authenticate(info, BiometricPrompt.CryptoObject(cipher))
     }
 
-    fun authenticate(activity: FragmentActivity, iv: ByteArray) {
+    fun authenticate(
+        activity: FragmentActivity,
+        title: CharSequence,
+        iv: ByteArray,
+    ) {
         val key = getKeyOrError(activity) ?: return
         val cipher = getCipher()
         cipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(iv))
-        BiometricPrompt(activity, callback).authenticate(getPromptInfo(), BiometricPrompt.CryptoObject(cipher))
+        val info = getPromptInfo(title = title)
+        BiometricPrompt(activity, callback).authenticate(info, BiometricPrompt.CryptoObject(cipher))
     }
 }

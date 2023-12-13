@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,13 +41,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import org.kepocnhh.xfiles.util.compose.ExpandVertically
 import org.kepocnhh.xfiles.util.compose.Keyboard
 import org.kepocnhh.xfiles.util.compose.KeyboardRows
 import org.kepocnhh.xfiles.util.compose.TextFocused
+import org.kepocnhh.xfiles.util.compose.catchClicks
 import org.kepocnhh.xfiles.util.compose.horizontalPaddings
 import org.kepocnhh.xfiles.util.compose.px
 import org.kepocnhh.xfiles.util.compose.toPaddings
@@ -66,7 +65,6 @@ private fun HintTextFocused(
     focusedState: MutableState<Focused?>,
     focused: Focused,
 ) {
-    // todo paste
     val text = when (focused) {
         Focused.TITLE -> values[focused].orEmpty()
         Focused.SECRET -> "*".repeat(values[focused].orEmpty().length)
@@ -76,20 +74,13 @@ private fun HintTextFocused(
         Focused.SECRET -> App.Theme.strings.addItem.hintSecret
     }
     val textStyle = when (focused) {
-        Focused.TITLE -> TextStyle(
-            color = App.Theme.colors.text,
-            fontFamily = FontFamily.Default,
-            fontSize = 14.sp, // todo
-        )
-        Focused.SECRET -> TextStyle(
-            color = App.Theme.colors.text,
+        Focused.TITLE -> App.Theme.textStyle
+        Focused.SECRET -> App.Theme.textStyle.copy(
             fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp, // todo
         )
     }
-    val hintStyle = TextStyle(
+    val hintStyle = App.Theme.textStyle.copy(
         color = App.Theme.colors.textHint,
-        fontSize = 14.sp, // todo
     )
     TextFocused(
         margin = PaddingValues(
@@ -108,7 +99,7 @@ private fun HintTextFocused(
             focusedState.value = focused
         },
         onLongClick = {
-            // todo
+            // noop
         },
         focused = focusedState.value == focused,
     )
@@ -157,6 +148,7 @@ private fun MutableMap<Focused, String>.putChar(
     }
 }
 
+@Suppress("LongMethod")
 @Composable
 private fun Keyboard(
     margin: PaddingValues,
@@ -195,8 +187,8 @@ private fun Keyboard(
             val textStyle = TextStyle(
                 color = color,
                 textAlign = TextAlign.Center,
-                fontSize = 14.sp, // todo
-            ) // todo
+                fontSize = App.Theme.textStyle.fontSize,
+            )
             val text = when (focused) {
                 Focused.TITLE -> App.Theme.strings.addItem.next
                 Focused.SECRET -> App.Theme.strings.addItem.done
@@ -212,7 +204,6 @@ private fun Keyboard(
                 style = textStyle,
             )
         }
-//        val maxLength = 4 // todo
         val maxLength = 24
         val enabled = values[focused].orEmpty().length < maxLength
         KeyboardRows(
@@ -233,11 +224,9 @@ private fun Keyboard(
                 .fillMaxWidth()
                 .height(App.Theme.sizes.xxl),
         ) {
-            val textStyle = TextStyle(
-                color = App.Theme.colors.text,
+            val textStyle = App.Theme.textStyle.copy(
                 textAlign = TextAlign.Center,
-                fontSize = 14.sp, // todo
-            ) // todo
+            )
             Spacer(modifier = Modifier.width(64.dp))
             BasicText(
                 modifier = Modifier
@@ -291,7 +280,7 @@ internal data class SecretFieldState(
     val x: Float,
 )
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 internal fun AddItemScreen(
     focusedState: MutableState<Focused?>,
@@ -305,11 +294,7 @@ internal fun AddItemScreen(
     val insets = LocalView.current.rootWindowInsets.toPaddings()
     Column(
         modifier = Modifier
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {},
-            ) // todo clickable?
+            .catchClicks()
             .fillMaxSize()
             .background(App.Theme.colors.background)
             .horizontalPaddings(insets),
@@ -384,7 +369,7 @@ internal fun AddItemScreen(
                             val title = valuesState[Focused.TITLE]
                             val secret = valuesState[Focused.SECRET]
                             if (title.isNullOrBlank() || secret.isNullOrEmpty()) {
-                                // todo
+                                // noop
                             } else {
                                 onAdd(title, secret)
                             }
