@@ -1,6 +1,6 @@
 package org.kepocnhh.xfiles.provider
 
-internal class MockLoggerFactory : LoggerFactory {
+internal object MockLoggerFactory : LoggerFactory {
     override fun newLogger(tag: String): Logger {
         return MockLogger
     }
