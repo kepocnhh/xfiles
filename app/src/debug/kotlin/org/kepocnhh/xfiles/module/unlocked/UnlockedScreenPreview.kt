@@ -38,6 +38,7 @@ private fun UnlockedScreenPreview(
     }
 }
 
+@Suppress("FunctionMaxLength")
 @Preview(name = "ThemeState")
 @Composable
 private fun UnlockedScreenThemeStatePreview(
@@ -64,6 +65,7 @@ private fun UnlockedScreenLoadingPreview() {
     )
 }
 
+@Suppress("FunctionMaxLength")
 @Preview(name = "Encrypteds")
 @Composable
 private fun UnlockedScreenEncryptedsPreview() {

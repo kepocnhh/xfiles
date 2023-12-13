@@ -9,10 +9,12 @@ internal object FinalLoggerFactory : LoggerFactory {
 }
 
 private class AndroidLogger(private val tag: String) : Logger {
+    @Suppress("IgnoredReturnValue")
     override fun debug(message: String) {
         Log.d(tag, message)
     }
 
+    @Suppress("IgnoredReturnValue")
     override fun warning(message: String) {
         Log.w(tag, message)
     }
