@@ -16,6 +16,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
@@ -42,6 +46,9 @@ private fun BoxScope.OnError(
     ) {
         BasicText(
             modifier = Modifier
+                .semantics {
+                    contentDescription = "ChecksScreen:error"
+                }
                 .fillMaxWidth()
                 .height(App.Theme.sizes.xxxl)
                 .wrapContentSize(),
@@ -50,6 +57,10 @@ private fun BoxScope.OnError(
         )
         BasicText(
             modifier = Modifier
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "ChecksScreen:exit"
+                }
                 .fillMaxWidth()
                 .height(App.Theme.sizes.xxxl)
                 .clickable {

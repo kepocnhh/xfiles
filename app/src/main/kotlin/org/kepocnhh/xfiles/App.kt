@@ -155,6 +155,7 @@ internal class App : Application() {
             main = Dispatchers.Main,
             default = Dispatchers.Default,
         )
+        if (BuildConfig.BUILD_TYPE == "examine") return // todo
         _injection = Injection(
             loggers = FinalLoggerFactory,
             contexts = Contexts(
@@ -213,7 +214,7 @@ internal class App : Application() {
 
         @Composable
         inline fun <reified T : AbstractViewModel> viewModel(): T {
-            val key = T::class.java.simpleName
+            val key = T::class.java.name
             val (dispose, store) = synchronized(App::class.java) {
                 remember { !vmStores.containsKey(key) } to vmStores.getOrPut(key, ::ViewModelStore)
             }
