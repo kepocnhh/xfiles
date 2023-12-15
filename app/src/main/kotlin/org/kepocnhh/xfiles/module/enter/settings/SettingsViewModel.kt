@@ -6,6 +6,7 @@ import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.entity.SecurityService
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.data.requireServices
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 
 internal class SettingsViewModel(private val injection: Injection) : AbstractViewModel() {
@@ -21,7 +22,7 @@ internal class SettingsViewModel(private val injection: Injection) : AbstractVie
     fun requestCipher() {
         injection.launch {
             _cipher.value = withContext(injection.contexts.default) {
-                val services = injection.local.services ?: error("No services!")
+                val services = injection.local.requireServices()
                 services.cipher
             }
         }
@@ -48,7 +49,7 @@ internal class SettingsViewModel(private val injection: Injection) : AbstractVie
     fun requestDatabase() {
         injection.launch {
             _databaseExists.value = withContext(injection.contexts.default) {
-                injection.encrypted.files.exists("db.json.enc")
+                injection.encrypted.files.exists(injection.pathNames.dataBase)
             }
         }
     }

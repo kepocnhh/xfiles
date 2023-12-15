@@ -18,6 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.Dialog
@@ -374,6 +378,10 @@ private fun SettingsHasBiometric(
 ) {
     Box(
         modifier = Modifier
+            .semantics {
+                role = Role.Button
+                contentDescription = "SettingsScreen:cipher:biometric"
+            }
             .fillMaxWidth()
             .height(App.Theme.sizes.xxxl)
             .clickable(enabled = editable, onClick = onClick)
@@ -385,7 +393,11 @@ private fun SettingsHasBiometric(
             text = App.Theme.strings.settings.hasBiometric,
         )
         BasicText(
-            modifier = Modifier.align(Alignment.CenterEnd),
+            modifier = Modifier
+                .semantics {
+                    contentDescription = "SettingsScreen:cipher:biometric:value"
+                }
+                .align(Alignment.CenterEnd),
             style = App.Theme.textStyle.copy(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,

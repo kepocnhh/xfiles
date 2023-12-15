@@ -6,7 +6,7 @@ import org.kepocnhh.xfiles.provider.data.EncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.MockEncryptedLocalDataProvider
 
 internal fun mockEncrypted(
-    files: EncryptedFileProvider = MockEncryptedFileProvider,
+    files: EncryptedFileProvider = MockEncryptedFileProvider(),
     local: EncryptedLocalDataProvider = MockEncryptedLocalDataProvider(),
 ): Encrypted {
     return Encrypted(

@@ -2,9 +2,11 @@ package org.kepocnhh.xfiles.provider
 
 import java.io.FileInputStream
 
-internal object MockEncryptedFileProvider : EncryptedFileProvider {
+internal class MockEncryptedFileProvider(
+    private val exists: Set<String> = emptySet(),
+) : EncryptedFileProvider {
     override fun exists(pathname: String): Boolean {
-        TODO("Not yet implemented: exists")
+        return exists.contains(pathname)
     }
 
     override fun delete(pathname: String) {

@@ -406,6 +406,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:${Version.Android.compose}")
     debugImplementation("androidx.compose.ui:ui-tooling-preview:${Version.Android.compose}")
     testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
+    testImplementation("androidx.test.espresso:espresso-core:3.5.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.robolectric:robolectric:4.11.1")
     ktlint("com.pinterest:ktlint:${Version.ktlint}") {

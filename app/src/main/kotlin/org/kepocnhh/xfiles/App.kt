@@ -196,9 +196,10 @@ internal class App : Application() {
         private var _injection: Injection? = null
         private val _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val injection = checkNotNull(_injection) { "No injection!" }
                 return modelClass
                     .getConstructor(Injection::class.java)
-                    .newInstance(checkNotNull(_injection))
+                    .newInstance(injection)
             }
         }
         private val vmStores = mutableMapOf<String, ViewModelStore>()
