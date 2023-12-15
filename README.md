@@ -22,11 +22,3 @@ Encrypted data storage application.
 - [ ] app icon
 
 ---
-
-### preview
-- [x] checks
-- [x] enter
-- [x] settings
-- [ ] router
-- [x] unlocked
-- [x] items
