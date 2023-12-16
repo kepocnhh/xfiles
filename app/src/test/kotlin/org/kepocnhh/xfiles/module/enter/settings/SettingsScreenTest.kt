@@ -18,7 +18,6 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.TestActivity
 import org.kepocnhh.xfiles.clearStores
 import org.kepocnhh.xfiles.entity.mockSecurityServices
-import org.kepocnhh.xfiles.entity.mockSecuritySettings
 import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
