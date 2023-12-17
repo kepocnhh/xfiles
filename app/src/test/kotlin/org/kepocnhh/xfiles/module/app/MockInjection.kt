@@ -2,7 +2,9 @@ package org.kepocnhh.xfiles.module.app
 
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.provider.Contexts
+import org.kepocnhh.xfiles.provider.DeviceProvider
 import org.kepocnhh.xfiles.provider.LoggerFactory
+import org.kepocnhh.xfiles.provider.MockDeviceProvider
 import org.kepocnhh.xfiles.provider.MockLoggerFactory
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.LocalDataProvider
@@ -19,6 +21,7 @@ internal fun mockInjection(
     local: LocalDataProvider = MockLocalDataProvider(),
     security: (SecurityServices) -> SecurityProvider = { TODO("No security provider!") },
     pathNames: PathNames = mockPathNames(),
+    devices: DeviceProvider = MockDeviceProvider(),
 ): Injection {
     return Injection(
         loggers = loggers,
@@ -27,5 +30,6 @@ internal fun mockInjection(
         local = local,
         security = security,
         pathNames = pathNames,
+        devices = devices,
     )
 }

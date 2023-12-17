@@ -8,6 +8,11 @@ import java.security.Security
 import kotlin.math.pow
 
 internal object SecurityUtil {
+    val ciphers = setOf(
+        "PBEWITHHMACSHA256ANDAES_256",
+        "PBEWITHSHA256AND256BITAES-CBC-BC",
+    )
+
     fun requireProvider(name: String): Provider {
         return Security.getProviders().firstOrNull {
             it.name == name

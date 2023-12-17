@@ -1,12 +1,10 @@
 package org.kepocnhh.xfiles.module.checks
 
-import android.os.Build
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
@@ -40,17 +38,13 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
 
     private fun getSecurityServices(): SecurityServices {
         val provider = SecurityUtil.requireProvider("BC")
-        val ciphers = setOf(
-            "PBEWITHHMACSHA256ANDAES_256",
-            "PBEWITHSHA256AND256BITAES-CBC-BC",
-        )
-        val cipher = ciphers.firstNotNullOfOrNull {
+        val cipher = SecurityUtil.ciphers.firstNotNullOfOrNull {
             provider.getServiceOrNull(
                 type = "Cipher",
                 algorithm = it,
             )
         }?.toSecurityService() ?: throw NoSuchAlgorithmException(
-            "No such algorithms ${provider.name}:Cipher:$ciphers!",
+            "No such algorithms ${provider.name}:Cipher:${SecurityUtil.ciphers}!",
         )
         val platform = SecurityUtil.requireProvider("AndroidOpenSSL")
         return SecurityServices(
@@ -91,13 +85,7 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                 ChecksType.IDS -> {
                     if (injection.local.device == null) {
                         _state.value = State.OnChecks(type)
-                        val device = Device(
-                            manufacturer = Build.MANUFACTURER,
-                            brand = Build.BRAND,
-                            model = Build.MODEL,
-                            name = Build.DEVICE,
-                            supportedABIs = Build.SUPPORTED_ABIS.toSet(),
-                        )
+                        val device = injection.devices.getCurrentDevice()
                         injection.local.device = device
                         logger.debug("device: $device")
                     }

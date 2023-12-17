@@ -35,6 +35,7 @@ import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.module.app.strings.En
 import org.kepocnhh.xfiles.module.app.strings.Ru
 import org.kepocnhh.xfiles.provider.Contexts
+import org.kepocnhh.xfiles.provider.FinalDeviceProvider
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
 import org.kepocnhh.xfiles.provider.Logger
@@ -189,6 +190,7 @@ internal class App : Application() {
                 dataBaseSignature = "db.json.sig",
                 biometric = "biometric.enc",
             ),
+            devices = FinalDeviceProvider,
         )
     }
 
