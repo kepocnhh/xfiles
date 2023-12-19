@@ -27,10 +27,6 @@ private fun JSONObject.getSecrets(): JSONObject {
     return getJSONObject("secrets")
 }
 
-private fun JSONObject.getSecret(): String {
-    return getString("secret")
-}
-
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         data class OnCopy(val secret: String) : Broadcast
@@ -124,7 +120,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         logger.debug("request values...")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                injection.serializer.toSecrets(decrypt(key))
+                injection.serializer.toSecretTitles(decrypt(key))
             }
         }
     }
@@ -132,12 +128,8 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     fun requestToCopy(key: SecretKey, id: String) {
         logger.debug("request to copy: $id")
         loading {
-            logger.debug("request to copy: $id")
             val secret = withContext(injection.contexts.default) {
-                decrypted(key)
-                    .getSecrets()
-                    .getJSONObject(id)
-                    .getSecret()
+                injection.serializer.toSecretValues(decrypt(key))[id] ?: error("No secret by \"$id\"!")
             }
             _broadcast.emit(Broadcast.OnCopy(secret = secret))
         }
@@ -147,10 +139,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         logger.debug("request to show: $id")
         loading {
             val secret = withContext(injection.contexts.default) {
-                decrypted(key)
-                    .getSecrets()
-                    .getJSONObject(id)
-                    .getSecret()
+                injection.serializer.toSecretValues(decrypt(key))[id] ?: error("No secret by \"$id\"!")
             }
             _broadcast.emit(Broadcast.OnShow(secret = secret))
         }

@@ -1,9 +1,9 @@
 package org.kepocnhh.xfiles.entity
 
 internal fun mockKeyMeta(
-    salt: ByteArray = "foo".toByteArray(),
-    ivDB: ByteArray = "bar".toByteArray(),
-    ivPrivate: ByteArray = "baz".toByteArray(),
+    salt: ByteArray = "foo:salt".toByteArray(),
+    ivDB: ByteArray = "foo:ivDB".toByteArray(),
+    ivPrivate: ByteArray = "foo:ivPrivate".toByteArray(),
 ): KeyMeta {
     return KeyMeta(
         salt = salt,

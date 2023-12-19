@@ -35,11 +35,19 @@ internal object JsonSerializer : Serializer {
      * }
      * ```
      */
-    override fun toSecrets(bytes: ByteArray): Map<String, String> {
+    override fun toSecretTitles(bytes: ByteArray): Map<String, String> {
         val secrets = JSONObject(String(bytes))
             .getJSONObject("secrets")
         return secrets.keys().asSequence().associateWith { id ->
             secrets.getJSONObject(id).getString("title")
+        }
+    }
+
+    override fun toSecretValues(bytes: ByteArray): Map<String, String> {
+        val secrets = JSONObject(String(bytes))
+            .getJSONObject("secrets")
+        return secrets.keys().asSequence().associateWith { id ->
+            secrets.getJSONObject(id).getString("secret")
         }
     }
 }

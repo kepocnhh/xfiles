@@ -16,15 +16,32 @@ internal class MockSerializer(
                 return value
             }
         }
-        error("No value!")
+        error("No value(KeyMeta)!")
     }
 
-    override fun toSecrets(bytes: ByteArray): Map<String, String> {
+    override fun toSecretTitles(bytes: ByteArray): Map<String, String> {
         for ((value, expected) in values) {
             if (expected.contentEquals(bytes)) {
-                return value as Map<String, String>
+                val secrets = value as? Map<String, Pair<String, String>> ?: error("Type error!")
+                return secrets.mapValues { (_, pair) ->
+                    val (title, _) = pair
+                    title
+                }
             }
         }
-        error("No value!")
+        error("No value(Secret/Titles)!")
+    }
+
+    override fun toSecretValues(bytes: ByteArray): Map<String, String> {
+        for ((value, expected) in values) {
+            if (expected.contentEquals(bytes)) {
+                val secrets = value as? Map<String, Pair<String, String>> ?: error("Type error!")
+                return secrets.mapValues { (_, pair) ->
+                    val (_, secret) = pair
+                    secret
+                }
+            }
+        }
+        error("No value(Secret/Values)!")
     }
 }
