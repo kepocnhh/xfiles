@@ -30,21 +30,6 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 
-private fun KeyMeta.toJson(): JSONObject {
-    return JSONObject()
-        .put("salt", salt.base64())
-        .put("ivDB", ivDB.base64())
-        .put("ivPrivate", ivPrivate.base64())
-}
-
-private fun JSONObject.toKeyMeta(): KeyMeta {
-    return KeyMeta(
-        salt = getString("salt").base64(),
-        ivDB = getString("ivDB").base64(),
-        ivPrivate = getString("ivPrivate").base64(),
-    )
-}
-
 private fun check(key: PrivateKey) {
     check(key is DSAPrivateKey)
     check(key.params)
@@ -135,7 +120,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         )
         injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.symmetric,
-            bytes = meta.toJson().toString().toByteArray(),
+            bytes = injection.serializer.serialize(meta),
         )
         val pair = injection.security(services).getKeyPairGenerator().let { generator ->
             val params = injection.security(services).getAlgorithmParameterGenerator()
@@ -238,7 +223,8 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val services = injection.local.requireServices()
         val aesKeyLength = SecurityUtil.getValue(securitySettings.aesKeyLength)
         val pbeIterations = SecurityUtil.getValue(securitySettings.pbeIterations)
-        val meta = injection.encrypted.files.readJson(injection.pathNames.symmetric).toKeyMeta()
+        val meta = injection.encrypted.files.readBytes(injection.pathNames.symmetric)
+            .let(injection.serializer::toKeyMeta)
         logger.debug("salt: " + meta.salt.contentToString())
         val cipher = injection.security(services).getCipher()
         val key = injection.security(services)

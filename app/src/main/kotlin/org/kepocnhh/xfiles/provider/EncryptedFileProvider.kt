@@ -1,11 +1,11 @@
 package org.kepocnhh.xfiles.provider
 
-import java.io.FileInputStream
+import java.io.InputStream
 
 internal interface EncryptedFileProvider {
     fun exists(pathname: String): Boolean
     fun delete(pathname: String)
-    fun openInput(pathname: String): FileInputStream
+    fun openInput(pathname: String): InputStream
     fun writeBytes(pathname: String, bytes: ByteArray)
 }
 

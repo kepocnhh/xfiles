@@ -38,6 +38,7 @@ import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.FinalDeviceProvider
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
+import org.kepocnhh.xfiles.provider.JsonSerializer
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalEncryptedLocalDataProvider
@@ -191,6 +192,7 @@ internal class App : Application() {
                 biometric = "biometric.enc",
             ),
             devices = FinalDeviceProvider,
+            serializer = JsonSerializer,
         )
     }
 

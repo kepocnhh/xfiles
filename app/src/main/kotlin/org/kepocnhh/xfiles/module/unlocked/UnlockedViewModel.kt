@@ -56,10 +56,9 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         val iv = injection
             .encrypted
             .files
-            .readText(injection.pathNames.symmetric)
-            .let(::JSONObject)
-            .getString("ivDB")
-            .base64()
+            .readBytes(injection.pathNames.symmetric)
+            .let(injection.serializer::toKeyMeta)
+            .ivDB
         val services = injection.local.requireServices()
         return injection.security(services)
             .getCipher()
@@ -125,9 +124,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         logger.debug("request values...")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                decrypted(key)
-                    .getSecrets()
-                    .toMap()
+                injection.serializer.toSecrets(decrypt(key))
             }
         }
     }

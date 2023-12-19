@@ -6,11 +6,14 @@ import org.kepocnhh.xfiles.provider.DeviceProvider
 import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.MockDeviceProvider
 import org.kepocnhh.xfiles.provider.MockLoggerFactory
+import org.kepocnhh.xfiles.provider.MockSerializer
 import org.kepocnhh.xfiles.provider.PathNames
+import org.kepocnhh.xfiles.provider.Serializer
 import org.kepocnhh.xfiles.provider.data.LocalDataProvider
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockContexts
 import org.kepocnhh.xfiles.provider.mockPathNames
+import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.SecurityProvider
 
 @Suppress("LongParameterList")
@@ -19,9 +22,10 @@ internal fun mockInjection(
     contexts: Contexts = mockContexts(),
     encrypted: Encrypted = mockEncrypted(),
     local: LocalDataProvider = MockLocalDataProvider(),
-    security: (SecurityServices) -> SecurityProvider = { TODO("No security provider!") },
+    security: (SecurityServices) -> SecurityProvider = { MockSecurityProvider() },
     pathNames: PathNames = mockPathNames(),
     devices: DeviceProvider = MockDeviceProvider(),
+    serializer: Serializer = MockSerializer(),
 ): Injection {
     return Injection(
         loggers = loggers,
@@ -31,5 +35,6 @@ internal fun mockInjection(
         security = security,
         pathNames = pathNames,
         devices = devices,
+        serializer = serializer,
     )
 }
