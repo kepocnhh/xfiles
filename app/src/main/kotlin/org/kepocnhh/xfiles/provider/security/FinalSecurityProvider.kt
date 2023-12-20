@@ -106,14 +106,9 @@ private class KeyFactoryProviderImpl(
     }
 }
 
-private class UUIDGeneratorImpl(
-    private val random: SecureRandom,
-) : UUIDGenerator {
+private object UUIDGeneratorImpl : UUIDGenerator {
     override fun generate(): UUID {
-        val bytes = ByteArray(16)
-        random.nextBytes(bytes)
-        val buffer = ByteBuffer.wrap(bytes)
-        return UUID(buffer.long, buffer.long)
+        return UUID.randomUUID()
     }
 }
 
@@ -167,6 +162,6 @@ internal class FinalSecurityProvider(
     }
 
     override fun uuids(): UUIDGenerator {
-        return UUIDGeneratorImpl(random = getSecureRandom())
+        return UUIDGeneratorImpl
     }
 }
