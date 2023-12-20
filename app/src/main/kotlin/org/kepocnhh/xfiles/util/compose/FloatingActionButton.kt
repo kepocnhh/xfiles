@@ -18,6 +18,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.App
 
@@ -37,6 +41,10 @@ internal fun FloatingActionButton(
 ) {
     Box(
         modifier = Modifier
+            .semantics {
+                role = Role.Button
+                this.contentDescription = contentDescription
+            }
             .size(size)
             .shadow(
                 elevation = App.Theme.sizes.xs,

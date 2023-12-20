@@ -382,12 +382,9 @@ private fun ButtonsRow(
             onClick = onAdd,
         )
         FloatingActionButton(
-//            color = App.Theme.colors.foreground,
             enabled = enabled,
-//            indication = ColorIndication(color = App.Theme.colors.background),
             icon = R.drawable.key,
-//            iconColor = App.Theme.colors.background,
-            contentDescription = "unlocked:lock",
+            contentDescription = "UnlockedScreen:lock",
             onClick = onLock,
         )
     }
