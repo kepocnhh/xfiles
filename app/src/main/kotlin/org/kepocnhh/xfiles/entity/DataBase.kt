@@ -1,11 +1,10 @@
 package org.kepocnhh.xfiles.entity
 
+import java.util.UUID
 import kotlin.time.Duration
 
 internal data class DataBase(
-    // todo UUID
-    val id: String,
+    val id: UUID,
     val updated: Duration,
-    // todo UUID
-    val secrets: Map<String, Pair<String, String>>,
+    val secrets: Map<UUID, Pair<String, String>>,
 )

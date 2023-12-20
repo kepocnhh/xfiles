@@ -39,8 +39,8 @@ internal class UnlockedViewModelTest {
         runTest(timeout = 2.seconds) {
             val dataBase = mockDataBase(
                 secrets = mapOf(
-                    "foo:id" to ("foo:title" to "foo:secret"),
-                    "bar:id" to ("bar:title" to "bar:secret"),
+                    UUID.randomUUID() to ("foo:title" to "foo:secret"),
+                    UUID.randomUUID() to ("bar:title" to "bar:secret"),
                 ),
             )
             check(dataBase.secrets.isNotEmpty())
@@ -103,7 +103,7 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToCopyTest() {
-        val id = "requestToCopyTest:id"
+        val id = UUID.randomUUID()
         val secret = "requestToCopyTest:secret"
         val dataBase = mockDataBase(
             secrets = mapOf(
@@ -160,7 +160,7 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToShowTest() {
-        val id = "requestToShowTest:id"
+        val id = UUID.randomUUID()
         val secret = "requestToShowTest:secret"
         val dataBase = mockDataBase(
             secrets = mapOf(
@@ -217,8 +217,7 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun addValueTest() {
-        val uuid = UUID.randomUUID()
-        val id = uuid.toString()
+        val id = UUID.randomUUID()
         val title = "addValueTest:title"
         val secret = "addValueTest:secret"
         val initDataBase = mockDataBase()
@@ -253,7 +252,7 @@ internal class UnlockedViewModelTest {
                                 Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
                             ),
                         ),
-                        uuids = MockUUIDGenerator(uuid = uuid),
+                        uuids = MockUUIDGenerator(uuid = id),
                         keyFactory = MockKeyFactoryProvider(
                             privateKey = privateKey,
                         ),

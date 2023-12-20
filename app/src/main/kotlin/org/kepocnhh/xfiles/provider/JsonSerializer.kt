@@ -5,9 +5,22 @@ import org.kepocnhh.xfiles.entity.AsymmetricKey
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.util.base64
+import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
 internal object JsonSerializer : Serializer {
+    private fun JSONObject.requireLong(key: String): Long {
+        if (!has(key)) error("No value by \"$key\"!")
+        if (isNull(key)) error("Value by \"$key\" is null!")
+        return getLong(key)
+    }
+
+    private fun JSONObject.requireString(key: String): String {
+        if (!has(key)) error("No value by \"$key\"!")
+        if (isNull(key)) error("Value by \"$key\" is null!")
+        return getString(key)
+    }
+
     override fun serialize(value: KeyMeta): ByteArray {
         return JSONObject()
             .put("salt", value.salt.base64())
@@ -43,34 +56,31 @@ internal object JsonSerializer : Serializer {
     override fun toDataBase(bytes: ByteArray): DataBase {
         val json = JSONObject(String(bytes))
         val secrets = json.getJSONObject("secrets")
-        val updated = json.let {
-            if (!it.has("updated")) error("No updated time!")
-            it.getLong("updated").milliseconds
-        }
+        val updated = json.requireLong("updated").milliseconds
         return DataBase(
-            id = json.getString("id") ?: error("No id!"),
+            id = json.requireString("id").let(UUID::fromString),
             updated = updated,
-            secrets = secrets.keys().asSequence().associateWith { id ->
+            secrets = secrets.keys().asSequence().map { id ->
                 val data = secrets.getJSONObject(id)
                 val title = data.getString("title")
                 val secret = data.getString("secret")
-                title to secret
-            },
+                UUID.fromString(id) to (title to secret)
+            }.toMap(),
         )
     }
 
     override fun serialize(value: DataBase): ByteArray {
         val secrets = JSONObject().also { json ->
-            value.secrets.forEach { (id, pair) ->
+            value.secrets.forEach { (uuid, pair) ->
                 val (title, secret) = pair
                 val data = JSONObject()
                     .put("title", title)
                     .put("secret", secret)
-                json.put(id, data)
+                json.put(uuid.toString(), data)
             }
         }
         return JSONObject()
-            .put("id", value.id)
+            .put("id", value.id.toString())
             .put("updated", value.updated.inWholeMilliseconds)
             .put("secrets", secrets)
             .toString()

@@ -1,12 +1,13 @@
 package org.kepocnhh.xfiles.entity
 
+import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal fun mockDataBase(
-    id: String = "foo:id",
+    id: UUID = UUID.randomUUID(),
     updated: Duration = 42.seconds,
-    secrets: Map<String, Pair<String, String>> = emptyMap(),
+    secrets: Map<UUID, Pair<String, String>> = emptyMap(),
 ): DataBase {
     return DataBase(
         id = id,

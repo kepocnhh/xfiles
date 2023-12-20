@@ -76,6 +76,7 @@ import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.animations.tween.slide.SlideHVisibility
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.dialogs.Dialog
+import java.util.UUID
 import javax.crypto.SecretKey
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
@@ -485,7 +486,7 @@ private fun Encrypteds(
     contentPadding: PaddingValues,
     itemsPadding: Dp,
     itemsAlign: Alignment.Vertical,
-    items: Map<String, String>,
+    items: Map<UUID, String>,
     itemContent: @Composable (EncryptedValue) -> Unit,
 ) {
     val visibleMap = remember {
@@ -518,7 +519,7 @@ private fun Encrypteds(
 @Composable
 internal fun UnlockedScreen(
     loading: Boolean,
-    encrypteds: Map<String, String>?,
+    encrypteds: Map<UUID, String>?,
     onShow: (EncryptedValue) -> Unit,
     onCopy: (EncryptedValue) -> Unit,
     onAdd: () -> Unit,

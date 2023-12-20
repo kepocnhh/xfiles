@@ -6,26 +6,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.data.requireServices
 import org.kepocnhh.xfiles.provider.readBytes
-import org.kepocnhh.xfiles.provider.readText
-import org.kepocnhh.xfiles.util.base64
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
-
-private fun JSONObject.toMap(): Map<String, String> {
-    return keys().asSequence().associateWith { id ->
-        getJSONObject(id).getString("title")
-    }
-}
-
-private fun JSONObject.getSecrets(): JSONObject {
-    return getJSONObject("secrets")
-}
 
 internal class UnlockedViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
@@ -35,7 +22,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
 
     private val logger = injection.loggers.newLogger("[Unlocked|VM]")
 
-    private val _encrypteds = MutableStateFlow<Map<String, String>?>(null)
+    private val _encrypteds = MutableStateFlow<Map<UUID, String>?>(null)
     val encrypteds = _encrypteds.asStateFlow()
 
     private val _operations = MutableStateFlow(0)
@@ -118,23 +105,20 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
-    private fun decrypted(key: SecretKey): JSONObject {
-        return JSONObject(decrypt(key).toString(Charsets.UTF_8))
-    }
-
     fun requestValues(key: SecretKey) {
         logger.debug("request values...")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                injection.serializer.toDataBase(decrypt(key)).secrets.mapValues { (_, pair) ->
-                    val (title, _) = pair
-                    title
-                }
+                injection
+                    .serializer
+                    .toDataBase(decrypt(key))
+                    .secrets
+                    .mapValuesOnly { (title, _) -> title }
             }
         }
     }
 
-    private fun requireSecret(key: SecretKey, id: String): String {
+    private fun requireSecret(key: SecretKey, id: UUID): String {
         val (_, secret) = injection
             .serializer
             .toDataBase(decrypt(key))
@@ -142,7 +126,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         return secret
     }
 
-    fun requestToCopy(key: SecretKey, id: String) {
+    fun requestToCopy(key: SecretKey, id: UUID) {
         logger.debug("request to copy: $id")
         loading {
             val secret = withContext(injection.contexts.default) {
@@ -152,13 +136,19 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         }
     }
 
-    fun requestToShow(key: SecretKey, id: String) {
+    fun requestToShow(key: SecretKey, id: UUID) {
         logger.debug("request to show: $id")
         loading {
             val secret = withContext(injection.contexts.default) {
                 requireSecret(key = key, id = id)
             }
             _broadcast.emit(Broadcast.OnShow(secret = secret))
+        }
+    }
+
+    private fun <K : Any, V : Any, R : Any> Map<out K, V>.mapValuesOnly(transform: (V) -> R): Map<K, R> {
+        return mapValues { (_, v) ->
+            transform(v)
         }
     }
 
@@ -173,7 +163,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                 val services = injection.local.requireServices()
                 val uuids = injection.security(services).uuids()
                 val id = generateSequence {
-                    uuids.generate().toString()
+                    uuids.generate()
                 }.firstOrNull {
                     !secrets.containsKey(it)
                 } ?: error("Failed to generate ID!")
@@ -186,29 +176,27 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                         secrets = secrets,
                     ).let(injection.serializer::serialize),
                 )
-                secrets.mapValues { (_, pair) ->
-                    val (t, _) = pair
-                    t
-                }
+                secrets.mapValuesOnly { (t, _) -> t }
             }
         }
     }
 
-    @Suppress("IgnoredReturnValue")
-    fun deleteValue(key: SecretKey, id: String) {
+    fun deleteValue(key: SecretKey, id: UUID) {
         logger.debug("delete: $id")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                val decrypted = decrypted(key)
-                val secrets = decrypted.getSecrets()
-                if (!secrets.has(id)) TODO()
+                val dataBase = injection.serializer.toDataBase(decrypt(key))
+                val secrets = dataBase.secrets.toMutableMap()
+                if (!secrets.containsKey(id)) error("Data base has no entry by \"$id\"!")
                 secrets.remove(id)
-                decrypted.put("updated", injection.time.now().inWholeMilliseconds)
                 encrypt(
                     key = key,
-                    decrypted = decrypted.toString().toByteArray(),
+                    decrypted = dataBase.copy(
+                        updated = injection.time.now(),
+                        secrets = secrets,
+                    ).let(injection.serializer::serialize),
                 )
-                secrets.toMap()
+                secrets.mapValuesOnly { (t, _) -> t }
             }
         }
     }
