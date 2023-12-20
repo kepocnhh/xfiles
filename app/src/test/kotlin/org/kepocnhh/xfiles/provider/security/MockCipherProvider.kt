@@ -11,7 +11,10 @@ internal class MockCipherProvider(
         params: AlgorithmParameterSpec,
         decrypted: ByteArray
     ): ByteArray {
-        TODO("Not yet implemented: encrypt")
+        for ((encrypted, d, k) in values) {
+            if (key == k && decrypted.contentEquals(d)) return encrypted
+        }
+        error("No encrypted!")
     }
 
     override fun decrypt(

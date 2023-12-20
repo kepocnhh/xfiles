@@ -38,6 +38,7 @@ import org.kepocnhh.xfiles.provider.Contexts
 import org.kepocnhh.xfiles.provider.FinalDeviceProvider
 import org.kepocnhh.xfiles.provider.FinalEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.FinalLoggerFactory
+import org.kepocnhh.xfiles.provider.FinalTimeProvider
 import org.kepocnhh.xfiles.provider.JsonSerializer
 import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.PathNames
@@ -193,6 +194,7 @@ internal class App : Application() {
             ),
             devices = FinalDeviceProvider,
             serializer = JsonSerializer,
+            time = FinalTimeProvider,
         )
     }
 

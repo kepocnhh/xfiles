@@ -69,14 +69,18 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         key: SecretKey,
         decrypted: ByteArray,
     ) {
-        val jsonSym = JSONObject(injection.encrypted.files.readText(injection.pathNames.symmetric))
+        val symmetric = injection
+            .encrypted
+            .files
+            .readBytes(injection.pathNames.symmetric)
+            .let(injection.serializer::toKeyMeta)
         val services = injection.local.requireServices()
         val cipher = injection.security(services).getCipher()
         injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.dataBase,
             bytes = cipher.encrypt(
                 key = key,
-                params = IvParameterSpec(jsonSym.getString("ivDB").base64()),
+                params = IvParameterSpec(symmetric.ivDB),
                 decrypted = decrypted,
             ),
         )
@@ -88,14 +92,13 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                     key = injection.security(services).getKeyFactory().generatePrivate(
                         bytes = cipher.decrypt(
                             key = key,
-                            params = IvParameterSpec(jsonSym.getString("ivPrivate").base64()),
+                            params = IvParameterSpec(symmetric.ivPrivate),
                             encrypted = injection
                                 .encrypted
                                 .files
-                                .readText(injection.pathNames.asymmetric)
-                                .let(::JSONObject)
-                                .getString("private")
-                                .base64(),
+                                .readBytes(injection.pathNames.asymmetric)
+                                .let(injection.serializer::toAsymmetricKey)
+                                .privateEncrypted,
                         ),
                     ),
                     random = injection.security(services).getSecureRandom(),
@@ -107,8 +110,11 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
     private fun loading(block: suspend () -> Unit) {
         injection.launch {
             _operations.value += 1
-            block()
-            _operations.value -= 1
+            try {
+                block()
+            } finally {
+                _operations.value -= 1
+            }
         }
     }
 
@@ -120,16 +126,27 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         logger.debug("request values...")
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                injection.serializer.toSecretTitles(decrypt(key))
+                injection.serializer.toDataBase(decrypt(key)).secrets.mapValues { (_, pair) ->
+                    val (title, _) = pair
+                    title
+                }
             }
         }
+    }
+
+    private fun requireSecret(key: SecretKey, id: String): String {
+        val (_, secret) = injection
+            .serializer
+            .toDataBase(decrypt(key))
+            .secrets[id] ?: error("No secret by \"$id\"!")
+        return secret
     }
 
     fun requestToCopy(key: SecretKey, id: String) {
         logger.debug("request to copy: $id")
         loading {
             val secret = withContext(injection.contexts.default) {
-                injection.serializer.toSecretValues(decrypt(key))[id] ?: error("No secret by \"$id\"!")
+                requireSecret(key = key, id = id)
             }
             _broadcast.emit(Broadcast.OnCopy(secret = secret))
         }
@@ -139,37 +156,40 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
         logger.debug("request to show: $id")
         loading {
             val secret = withContext(injection.contexts.default) {
-                injection.serializer.toSecretValues(decrypt(key))[id] ?: error("No secret by \"$id\"!")
+                requireSecret(key = key, id = id)
             }
             _broadcast.emit(Broadcast.OnShow(secret = secret))
         }
     }
 
-    @Suppress("IgnoredReturnValue")
     fun addValue(key: SecretKey, title: String, secret: String) {
         logger.debug("add: $title")
         check(title.isNotBlank())
         check(secret.isNotBlank())
         loading {
             _encrypteds.value = withContext(injection.contexts.default) {
-                val decrypted = decrypted(key)
-                val secrets = decrypted.getSecrets()
+                val dataBase = injection.serializer.toDataBase(decrypt(key))
+                val secrets = dataBase.secrets.toMutableMap()
+                val services = injection.local.requireServices()
+                val uuids = injection.security(services).uuids()
                 val id = generateSequence {
-                    UUID.randomUUID().toString()
+                    uuids.generate().toString()
                 }.firstOrNull {
-                    !secrets.has(it)
+                    !secrets.containsKey(it)
                 } ?: error("Failed to generate ID!")
                 logger.debug("generate id: $id")
-                secrets.put(
-                    id,
-                    JSONObject().put("title", title).put("secret", secret),
-                )
-                decrypted.put("updated", System.currentTimeMillis())
+                secrets[id] = title to secret
                 encrypt(
                     key = key,
-                    decrypted = decrypted.toString().toByteArray(),
+                    decrypted = dataBase.copy(
+                        updated = injection.time.now(),
+                        secrets = secrets,
+                    ).let(injection.serializer::serialize),
                 )
-                secrets.toMap()
+                secrets.mapValues { (_, pair) ->
+                    val (t, _) = pair
+                    t
+                }
             }
         }
     }
@@ -183,7 +203,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                 val secrets = decrypted.getSecrets()
                 if (!secrets.has(id)) TODO()
                 secrets.remove(id)
-                decrypted.put("updated", System.currentTimeMillis())
+                decrypted.put("updated", injection.time.now().inWholeMilliseconds)
                 encrypt(
                     key = key,
                     decrypted = decrypted.toString().toByteArray(),

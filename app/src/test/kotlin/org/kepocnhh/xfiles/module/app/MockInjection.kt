@@ -7,8 +7,10 @@ import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.MockDeviceProvider
 import org.kepocnhh.xfiles.provider.MockLoggerFactory
 import org.kepocnhh.xfiles.provider.MockSerializer
+import org.kepocnhh.xfiles.provider.MockTimeProvider
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.Serializer
+import org.kepocnhh.xfiles.provider.TimeProvider
 import org.kepocnhh.xfiles.provider.data.LocalDataProvider
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockContexts
@@ -26,6 +28,7 @@ internal fun mockInjection(
     pathNames: PathNames = mockPathNames(),
     devices: DeviceProvider = MockDeviceProvider(),
     serializer: Serializer = MockSerializer(),
+    time: TimeProvider = MockTimeProvider(),
 ): Injection {
     return Injection(
         loggers = loggers,
@@ -36,5 +39,6 @@ internal fun mockInjection(
         pathNames = pathNames,
         devices = devices,
         serializer = serializer,
+        time = time,
     )
 }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.entity.SecurityServices
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.data.requireServices
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.SecurityUtil
 import org.kepocnhh.xfiles.util.security.getServiceOrNull
@@ -91,7 +92,8 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
                     }
                     if (injection.encrypted.local.appId == null) {
                         _state.value = State.OnChecks(type)
-                        val appId = UUID.randomUUID()
+                        val services = injection.local.requireServices()
+                        val appId = injection.security(services).uuids().generate()
                         injection.encrypted.local.appId = appId
                         logger.debug("appId: $appId")
                     }

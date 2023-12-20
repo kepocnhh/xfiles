@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles.provider.security
 
 import android.os.Build
 import org.kepocnhh.xfiles.entity.SecurityServices
+import java.nio.ByteBuffer
 import java.security.AlgorithmParameterGenerator
 import java.security.AlgorithmParameters
 import java.security.KeyFactory
@@ -16,6 +17,7 @@ import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.KeySpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
+import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -104,6 +106,17 @@ private class KeyFactoryProviderImpl(
     }
 }
 
+private class UUIDGeneratorImpl(
+    private val random: SecureRandom,
+) : UUIDGenerator {
+    override fun generate(): UUID {
+        val bytes = ByteArray(16)
+        random.nextBytes(bytes)
+        val buffer = ByteBuffer.wrap(bytes)
+        return UUID(buffer.long, buffer.long)
+    }
+}
+
 internal class FinalSecurityProvider(
     private val services: SecurityServices,
 ) : SecurityProvider {
@@ -151,5 +164,9 @@ internal class FinalSecurityProvider(
     override fun getKeyFactory(): KeyFactoryProvider {
         val service = services.asymmetric
         return KeyFactoryProviderImpl(KeyFactory.getInstance(service.algorithm, service.provider))
+    }
+
+    override fun uuids(): UUIDGenerator {
+        return UUIDGeneratorImpl(random = getSecureRandom())
     }
 }

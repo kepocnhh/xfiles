@@ -4,6 +4,10 @@ import java.security.SecureRandom
 
 internal class MockSecurityProvider(
     private val cipher: CipherProvider = MockCipherProvider(),
+    private val uuids: UUIDGenerator = MockUUIDGenerator(),
+    private val signature: SignatureProvider = MockSignatureProvider(),
+    private val keyFactory: KeyFactoryProvider = MockKeyFactoryProvider(),
+    private val random: SecureRandom = MockSecureRandom(),
 ) : SecurityProvider {
     override fun getMessageDigest(): MessageDigestProvider {
         TODO("Not yet implemented: getMessageDigest")
@@ -22,7 +26,7 @@ internal class MockSecurityProvider(
     }
 
     override fun getSignature(): SignatureProvider {
-        TODO("Not yet implemented: getSignature")
+        return signature
     }
 
     override fun getSecretKeyFactory(): SecretKeyFactoryProvider {
@@ -30,10 +34,14 @@ internal class MockSecurityProvider(
     }
 
     override fun getSecureRandom(): SecureRandom {
-        TODO("Not yet implemented: getSecureRandom")
+        return random
     }
 
     override fun getKeyFactory(): KeyFactoryProvider {
-        TODO("Not yet implemented: getKeyFactory")
+        return keyFactory
+    }
+
+    override fun uuids(): UUIDGenerator {
+        return uuids
     }
 }

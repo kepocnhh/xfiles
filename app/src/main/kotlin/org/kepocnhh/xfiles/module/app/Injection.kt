@@ -7,6 +7,7 @@ import org.kepocnhh.xfiles.provider.EncryptedFileProvider
 import org.kepocnhh.xfiles.provider.LoggerFactory
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.Serializer
+import org.kepocnhh.xfiles.provider.TimeProvider
 import org.kepocnhh.xfiles.provider.data.EncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.LocalDataProvider
 import org.kepocnhh.xfiles.provider.security.SecurityProvider
@@ -20,6 +21,7 @@ internal data class Injection(
     val pathNames: PathNames,
     val devices: DeviceProvider,
     val serializer: Serializer,
+    val time: TimeProvider,
 )
 
 internal data class Encrypted(

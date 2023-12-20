@@ -1,5 +1,7 @@
 package org.kepocnhh.xfiles.provider
 
+import org.kepocnhh.xfiles.entity.AsymmetricKey
+import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 
 internal class MockSerializer(
@@ -19,29 +21,31 @@ internal class MockSerializer(
         error("No value(KeyMeta)!")
     }
 
-    override fun toSecretTitles(bytes: ByteArray): Map<String, String> {
-        for ((value, expected) in values) {
-            if (expected.contentEquals(bytes)) {
-                val secrets = value as? Map<String, Pair<String, String>> ?: error("Type error!")
-                return secrets.mapValues { (_, pair) ->
-                    val (title, _) = pair
-                    title
-                }
-            }
-        }
-        error("No value(Secret/Titles)!")
+    override fun serialize(value: DataBase): ByteArray {
+        return values[value] ?: error("No bytes by $value!")
     }
 
-    override fun toSecretValues(bytes: ByteArray): Map<String, String> {
+    override fun toDataBase(bytes: ByteArray): DataBase {
         for ((value, expected) in values) {
             if (expected.contentEquals(bytes)) {
-                val secrets = value as? Map<String, Pair<String, String>> ?: error("Type error!")
-                return secrets.mapValues { (_, pair) ->
-                    val (_, secret) = pair
-                    secret
-                }
+                check(value is DataBase)
+                return value
             }
         }
-        error("No value(Secret/Values)!")
+        error("No value(DataBase)!")
+    }
+
+    override fun serialize(value: AsymmetricKey): ByteArray {
+        return values[value] ?: error("No bytes by $value!")
+    }
+
+    override fun toAsymmetricKey(bytes: ByteArray): AsymmetricKey {
+        for ((value, expected) in values) {
+            if (expected.contentEquals(bytes)) {
+                check(value is AsymmetricKey)
+                return value
+            }
+        }
+        error("No value(AsymmetricKey)!")
     }
 }

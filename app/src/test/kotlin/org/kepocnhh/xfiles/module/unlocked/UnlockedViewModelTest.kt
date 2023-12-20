@@ -1,37 +1,49 @@
 package org.kepocnhh.xfiles.module.unlocked
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.kepocnhh.xfiles.collectFirst
+import org.kepocnhh.xfiles.entity.MockPrivateKey
 import org.kepocnhh.xfiles.entity.MockSecretKey
+import org.kepocnhh.xfiles.entity.mockAsymmetricKey
+import org.kepocnhh.xfiles.entity.mockDataBase
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockSecurityServices
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.provider.MockEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.MockSerializer
+import org.kepocnhh.xfiles.provider.MockTimeProvider
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockPathNames
 import org.kepocnhh.xfiles.provider.security.MockCipherProvider
+import org.kepocnhh.xfiles.provider.security.MockKeyFactoryProvider
 import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
+import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
+import org.kepocnhh.xfiles.provider.security.MockUUIDGenerator
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
 
 internal class UnlockedViewModelTest {
     @Test
     fun requestValuesTest() {
-        runTest(timeout = 5.seconds) {
-            val dataBase = mapOf(
-                "foo:id" to ("foo:title" to "foo:secret"),
-                "bar:id" to ("bar:title" to "bar:secret"),
+        runTest(timeout = 2.seconds) {
+            val dataBase = mockDataBase(
+                secrets = mapOf(
+                    "foo:id" to ("foo:title" to "foo:secret"),
+                    "bar:id" to ("bar:title" to "bar:secret"),
+                ),
             )
-            check(dataBase.isNotEmpty())
+            check(dataBase.secrets.isNotEmpty())
             val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
             val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
             val symmetric = mockKeyMeta()
@@ -77,7 +89,7 @@ internal class UnlockedViewModelTest {
                         1 -> {
                             assertNotNull(value)
                             checkNotNull(value)
-                            val titles = dataBase.mapValues { (_, pair) ->
+                            val titles = dataBase.secrets.mapValues { (_, pair) ->
                                 val (title, _) = pair
                                 title
                             }
@@ -91,10 +103,12 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToCopyTest() {
-        val id = "foo:id"
+        val id = "requestToCopyTest:id"
         val secret = "requestToCopyTest:secret"
-        val dataBase = mapOf(
-            id to ("foo:title" to secret),
+        val dataBase = mockDataBase(
+            secrets = mapOf(
+                id to ("foo:title" to secret),
+            ),
         )
         val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
         val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
@@ -102,7 +116,7 @@ internal class UnlockedViewModelTest {
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
         val key = MockSecretKey()
         val pathNames = mockPathNames()
-        runTest(timeout = 5.seconds) {
+        runTest(timeout = 2.seconds) {
             val injection = mockInjection(
                 pathNames = pathNames,
                 local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -131,7 +145,7 @@ internal class UnlockedViewModelTest {
                 ),
             )
             val viewModel = UnlockedViewModel(injection)
-            val job = launch(Dispatchers.Default) {
+            val job = launch(UnconfinedTestDispatcher()) {
                 viewModel
                     .broadcast
                     .collectFirst {
@@ -146,10 +160,12 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToShowTest() {
-        val id = "foo:id"
+        val id = "requestToShowTest:id"
         val secret = "requestToShowTest:secret"
-        val dataBase = mapOf(
-            id to ("foo:title" to secret),
+        val dataBase = mockDataBase(
+            secrets = mapOf(
+                id to ("foo:title" to secret),
+            ),
         )
         val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
         val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
@@ -157,7 +173,7 @@ internal class UnlockedViewModelTest {
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
         val key = MockSecretKey()
         val pathNames = mockPathNames()
-        runTest(timeout = 5.seconds) {
+        runTest(timeout = 2.seconds) {
             val injection = mockInjection(
                 local = MockLocalDataProvider(services = mockSecurityServices()),
                 pathNames = pathNames,
@@ -186,7 +202,7 @@ internal class UnlockedViewModelTest {
                 ),
             )
             val viewModel = UnlockedViewModel(injection)
-            val job = launch(Dispatchers.Default) {
+            val job = launch(UnconfinedTestDispatcher()) {
                 viewModel
                     .broadcast
                     .collectFirst {
@@ -194,6 +210,119 @@ internal class UnlockedViewModelTest {
                         assertEquals(secret, it.secret)
                     }
             }
+            viewModel.requestToShow(key = key, id = id)
+            job.join()
+        }
+    }
+
+    @Test
+    fun addValueTest() {
+        val uuid = UUID.randomUUID()
+        val id = uuid.toString()
+        val title = "addValueTest:title"
+        val secret = "addValueTest:secret"
+        val initDataBase = mockDataBase()
+        val initDataBaseDecrypted = "initDataBase:decrypted".toByteArray()
+        val initDataBaseEncrypted = "initDataBase:encrypted".toByteArray()
+        val dataBaseRef = AtomicReference(initDataBaseEncrypted)
+        val updated = 42.seconds
+        val editedDataBase = initDataBase.copy(
+            updated = updated,
+            secrets = mapOf(id to (title to secret)),
+        )
+        val editedDataBaseDecrypted = "editedDataBase:decrypted".toByteArray()
+        val editedDataBaseEncrypted = "editedDataBase:encrypted".toByteArray()
+        val editedDataBaseSignature = "editedDataBase:signature".toByteArray()
+        val symmetric = mockKeyMeta()
+        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val asymmetric = mockAsymmetricKey()
+        val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
+        val privateKey = MockPrivateKey()
+        val key = MockSecretKey()
+        runTest(timeout = 2.seconds) {
+            val pathNames = mockPathNames()
+            val injection = mockInjection(
+                local = MockLocalDataProvider(services = mockSecurityServices()),
+                pathNames = pathNames,
+                security = {
+                    MockSecurityProvider(
+                        cipher = MockCipherProvider(
+                            values = listOf(
+                                Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
+                                Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
+                                Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
+                            ),
+                        ),
+                        uuids = MockUUIDGenerator(uuid = uuid),
+                        keyFactory = MockKeyFactoryProvider(
+                            privateKey = privateKey,
+                        ),
+                        signature = MockSignatureProvider(
+                            signatures = mapOf(
+                                editedDataBaseDecrypted to editedDataBaseSignature,
+                            ),
+                        ),
+                    )
+                },
+                encrypted = mockEncrypted(
+                    files = MockEncryptedFileProvider(
+                        inputs = mapOf(
+                            pathNames.symmetric to symmetricDecrypted,
+                            pathNames.asymmetric to asymmetricDecrypted,
+                        ),
+                        refs = mapOf(
+                            pathNames.dataBase to dataBaseRef,
+                        ),
+                    ),
+                ),
+                serializer = MockSerializer(
+                    values = mapOf(
+                        symmetric to symmetricDecrypted,
+                        asymmetric to asymmetricDecrypted,
+                        initDataBase to initDataBaseDecrypted,
+                        editedDataBase to editedDataBaseDecrypted,
+                    ),
+                ),
+                time = MockTimeProvider(
+                    now = updated,
+                ),
+            )
+            val viewModel = UnlockedViewModel(injection)
+            viewModel
+                .encrypteds
+                .take(3)
+                .collectIndexed { index, value ->
+                    when (index) {
+                        0 -> {
+                            assertNull(value)
+                            viewModel.requestValues(key)
+                        }
+                        1 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            assertTrue(value.isEmpty())
+                            viewModel.addValue(key = key, title = title, secret = secret)
+                        }
+                        2 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            assertTrue(value.size == 1)
+                            val (actualId, actualTitle) = value.entries.firstOrNull() ?: error("No entries!")
+                            assertEquals("Id error!", id, actualId)
+                            assertEquals(title, actualTitle)
+                        }
+                        else -> error("Unexpected index: $index!")
+                    }
+                }
+            val job = launch(UnconfinedTestDispatcher()) {
+                viewModel
+                    .broadcast
+                    .collectFirst {
+                        check(it is UnlockedViewModel.Broadcast.OnShow)
+                        assertEquals(secret, it.secret)
+                    }
+            }
+            dataBaseRef.set(editedDataBaseEncrypted)
             viewModel.requestToShow(key = key, id = id)
             job.join()
         }

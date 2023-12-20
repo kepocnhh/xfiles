@@ -11,4 +11,5 @@ internal interface SecurityProvider {
     fun getSecretKeyFactory(): SecretKeyFactoryProvider
     fun getSecureRandom(): SecureRandom
     fun getKeyFactory(): KeyFactoryProvider
+    fun uuids(): UUIDGenerator
 }

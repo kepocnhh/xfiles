@@ -133,7 +133,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         check(pair.private)
         val decrypted = JSONObject()
             .put("id", injection.encrypted.local.requireDatabaseId().toString())
-            .put("updated", System.currentTimeMillis())
+            .put("updated", injection.time.now().inWholeMilliseconds)
             .put("secrets", JSONObject())
             .toString()
             .toByteArray()
@@ -164,7 +164,8 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         injection.launch {
             _state.value = requireState().copy(loading = true)
             val key = withContext(injection.contexts.default) {
-                val databaseId = UUID.randomUUID()
+                val services = injection.local.requireServices()
+                val databaseId = injection.security(services).uuids().generate()
                 logger.debug("databaseId: $databaseId")
                 injection.encrypted.local.databaseId = databaseId
                 val password = getPassword(pin = pin)
