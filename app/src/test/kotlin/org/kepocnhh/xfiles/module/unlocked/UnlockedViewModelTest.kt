@@ -326,4 +326,128 @@ internal class UnlockedViewModelTest {
             job.join()
         }
     }
+
+    @Test
+    fun deleteValueTest() {
+        runTest(timeout = 2.seconds) {
+            val id = UUID.randomUUID()
+            val title = "deleteValueTest:title"
+            val secret = "deleteValueTest:secret"
+            val idForDelete = UUID.randomUUID()
+            check(id != idForDelete)
+            val initDataBase = mockDataBase(
+                secrets = mapOf(
+                    id to (title to secret),
+                    idForDelete to ("bar:title" to "bar:secret"),
+                ),
+            )
+            check(initDataBase.secrets.size == 2)
+            val initDataBaseDecrypted = "initDataBase:decrypted".toByteArray()
+            val initDataBaseEncrypted = "initDataBase:encrypted".toByteArray()
+            val dataBaseRef = AtomicReference(initDataBaseEncrypted)
+            val updated = 128.seconds
+            val editedDataBase = initDataBase.copy(
+                updated = updated,
+                secrets = mapOf(id to (title to secret)),
+            )
+            check(editedDataBase.secrets.size == 1)
+            val editedDataBaseDecrypted = "editedDataBase:decrypted".toByteArray()
+            val editedDataBaseEncrypted = "editedDataBase:encrypted".toByteArray()
+            val editedDataBaseSignature = "editedDataBase:signature".toByteArray()
+            check(initDataBase.updated.inWholeMilliseconds < editedDataBase.updated.inWholeMilliseconds)
+            val symmetric = mockKeyMeta()
+            val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+            val asymmetric = mockAsymmetricKey()
+            val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
+            val privateKey = MockPrivateKey()
+            val key = MockSecretKey()
+            val pathNames = mockPathNames()
+            val injection = mockInjection(
+                local = MockLocalDataProvider(services = mockSecurityServices()),
+                pathNames = pathNames,
+                security = {
+                    MockSecurityProvider(
+                        cipher = MockCipherProvider(
+                            values = listOf(
+                                Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
+                                Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
+                                Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
+                            ),
+                        ),
+//                        uuids = MockUUIDGenerator(uuid = id), // todo
+                        keyFactory = MockKeyFactoryProvider(privateKey = privateKey),
+                        signature = MockSignatureProvider(
+                            signatures = mapOf(
+                                editedDataBaseDecrypted to editedDataBaseSignature,
+                            ),
+                        ),
+                    )
+                },
+                encrypted = mockEncrypted(
+                    files = MockEncryptedFileProvider(
+                        inputs = mapOf(
+                            pathNames.symmetric to symmetricDecrypted,
+                            pathNames.asymmetric to asymmetricDecrypted,
+                        ),
+                        refs = mapOf(
+                            pathNames.dataBase to dataBaseRef,
+                        ),
+                    ),
+                ),
+                serializer = MockSerializer(
+                    values = mapOf(
+                        symmetric to symmetricDecrypted,
+                        asymmetric to asymmetricDecrypted,
+                        initDataBase to initDataBaseDecrypted,
+                        editedDataBase to editedDataBaseDecrypted,
+                    ),
+                ),
+                time = MockTimeProvider(now = updated),
+            )
+            val viewModel = UnlockedViewModel(injection)
+            viewModel
+                .encrypteds
+                .take(3)
+                .collectIndexed { index, value ->
+                    when (index) {
+                        0 -> {
+                            assertNull(value)
+                            viewModel.requestValues(key)
+                        }
+                        1 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            val titles = initDataBase.secrets.mapValues { (_, pair) ->
+                                val (t, _) = pair
+                                t
+                            }
+                            assertEquals(titles, value)
+                            viewModel.deleteValue(key = key, id = idForDelete)
+                        }
+                        2 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            assertTrue(value.size == 1)
+                            val titles = editedDataBase.secrets.mapValues { (_, pair) ->
+                                val (t, _) = pair
+                                t
+                            }
+                            assertEquals(titles, value)
+                        }
+                        else -> error("Unexpected index: $index!")
+                    }
+                }
+            val job = launch(UnconfinedTestDispatcher()) {
+                viewModel
+                    .broadcast
+                    .collectFirst {
+                        check(it is UnlockedViewModel.Broadcast.OnShow)
+                        assertEquals(secret, it.secret)
+                    }
+            }
+            dataBaseRef.set(editedDataBaseEncrypted)
+            viewModel.requestToShow(key = key, id = id)
+            job.join()
+        }
+    }
 }
