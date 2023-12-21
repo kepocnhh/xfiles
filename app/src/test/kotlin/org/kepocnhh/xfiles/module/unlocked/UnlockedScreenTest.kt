@@ -281,4 +281,62 @@ internal class UnlockedScreenTest {
             }
         }
     }
+
+    @Test(timeout = 2_000)
+    fun showTest() {
+        val id = UUID.randomUUID()
+        val title = "UnlockedScreenTest:showTest:title"
+        val secret = "UnlockedScreenTest:showTest:secret"
+        val dataBase = mockDataBase(
+            secrets = mapOf(id to (title to secret)),
+        )
+        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
+        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        check(dataBase.secrets.size == 1)
+        val symmetric = mockKeyMeta()
+        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val pathNames = mockPathNames()
+        val key = MockSecretKey()
+        val injection = mockInjection(
+            local = MockLocalDataProvider(services = mockSecurityServices()),
+            pathNames = pathNames,
+            security = {
+                MockSecurityProvider(
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                        ),
+                    ),
+                )
+            },
+            encrypted = mockEncrypted(
+                files = MockEncryptedFileProvider(
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                    ),
+                ),
+            ),
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+        )
+        rule.setContent(injection) {
+            UnlockedScreen(
+                key = key,
+                broadcast = {
+                    error("Illegal state!")
+                },
+            )
+        }
+        val isSecret = hasContentDescription("UnlockedScreen:secret")
+        rule.onNode(isSecret).assertDoesNotExist()
+        val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
+        val isShow = hasContentDescription("UnlockedScreen:item:$id:show")
+        rule.onNode(isButton and isShow).performClick()
+        rule.waitOne(isSecret and hasText(secret))
+    }
 }

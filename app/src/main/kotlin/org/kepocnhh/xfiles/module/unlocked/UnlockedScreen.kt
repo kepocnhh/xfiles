@@ -139,7 +139,11 @@ internal fun ShowDialog(
                 )
             }
             BasicText(
-                modifier = Modifier.align(Alignment.Center),
+                modifier = Modifier
+                    .semantics {
+                        contentDescription = "UnlockedScreen:secret"
+                    }
+                    .align(Alignment.Center),
                 text = buildAnnotatedString {
                     value.toCharArray().forEach { char ->
                         val color = if (Character.isDigit(char)) {
@@ -239,9 +243,7 @@ internal fun UnlockedScreen(
             markStartState.value = TimeSource.Monotonic.markNow()
         }
     }
-    ShowDialog(
-        state = showState,
-    )
+    ShowDialog(state = showState)
     val addItemState = remember { mutableStateOf(false) }
     LaunchedEffect(addItemState.value) {
         markStartState.value = TimeSource.Monotonic.markNow()
