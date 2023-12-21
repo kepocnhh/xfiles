@@ -44,7 +44,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -404,6 +406,10 @@ private fun EncryptedValueButton(
 ) {
     Box(
         modifier = Modifier
+            .semantics {
+                role = Role.Button
+                this.contentDescription = contentDescription
+            }
             .size(size)
             .clip(RoundedCornerShape(size / 2))
             .onClick(enabled = enabled, onClick),
@@ -413,7 +419,7 @@ private fun EncryptedValueButton(
                 .size(iconSize)
                 .align(Alignment.Center),
             painter = painterResource(id = icon),
-            contentDescription = contentDescription,
+            contentDescription = "$contentDescription:icon",
             colorFilter = ColorFilter.tint(App.Theme.colors.icon),
         )
     }
@@ -445,7 +451,11 @@ private fun EncryptedValueItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BasicText(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .semantics {
+                        contentDescription = "UnlockedScreen:item:${value.id}:title"
+                    }
+                    .weight(1f),
                 text = value.title,
                 style = App.Theme.textStyle,
                 overflow = TextOverflow.Ellipsis,
@@ -456,21 +466,21 @@ private fun EncryptedValueItem(
                 enabled = enabled,
                 size = buttonSize,
                 icon = R.drawable.eye,
-                contentDescription = "unlocked:item:${value.id}:show",
+                contentDescription = "UnlockedScreen:item:${value.id}:show",
                 onClick = onShow,
             )
             EncryptedValueButton(
                 enabled = enabled,
                 size = buttonSize,
                 icon = R.drawable.copy,
-                contentDescription = "unlocked:item:${value.id}:copy",
+                contentDescription = "UnlockedScreen:item:${value.id}:copy",
                 onClick = onCopy,
             )
             EncryptedValueButton(
                 enabled = enabled,
                 size = buttonSize,
                 icon = R.drawable.cross,
-                contentDescription = "unlocked:item:${value.id}:delete",
+                contentDescription = "UnlockedScreen:item:${value.id}:delete",
                 onClick = onDelete,
             )
         }

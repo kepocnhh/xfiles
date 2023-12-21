@@ -33,6 +33,7 @@ import org.kepocnhh.xfiles.setContent
 import org.kepocnhh.xfiles.setInjection
 import org.kepocnhh.xfiles.waitOne
 import org.robolectric.RobolectricTestRunner
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
@@ -216,5 +217,68 @@ internal class UnlockedScreenTest {
         }
         val isEmpty = hasContentDescription("UnlockedScreen:empty")
         rule.waitOne(isEmpty)
+    }
+
+    @Test(timeout = 2_000)
+    fun filledTest() {
+        val dataBase = mockDataBase(
+            secrets = (1..4).associate { number ->
+                UUID.randomUUID() to ("title:$number" to "secret:$number")
+            },
+        )
+        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
+        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        check(dataBase.secrets.size == 4)
+        val symmetric = mockKeyMeta()
+        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val pathNames = mockPathNames()
+        val key = MockSecretKey()
+        val injection = mockInjection(
+            local = MockLocalDataProvider(services = mockSecurityServices()),
+            pathNames = pathNames,
+            security = {
+                MockSecurityProvider(
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                        ),
+                    ),
+                )
+            },
+            encrypted = mockEncrypted(
+                files = MockEncryptedFileProvider(
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                    ),
+                ),
+            ),
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+        )
+        rule.setContent(injection) {
+            UnlockedScreen(
+                key = key,
+                broadcast = {
+                    error("Illegal state!")
+                },
+            )
+        }
+        val isEmpty = hasContentDescription("UnlockedScreen:empty")
+        rule.onNode(isEmpty).assertDoesNotExist()
+        val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
+        dataBase.secrets.forEach { (uuid, pair) ->
+            val (title, _) = pair
+            val isTitle = hasContentDescription("UnlockedScreen:item:$uuid:title")
+            rule.waitOne(isTitle and hasText(title))
+            setOf("show", "copy", "delete").forEach { type ->
+                rule.waitOne(isButton and hasContentDescription("UnlockedScreen:item:$uuid:$type"))
+                rule.waitOne(hasContentDescription("UnlockedScreen:item:$uuid:$type:icon"))
+            }
+        }
     }
 }
