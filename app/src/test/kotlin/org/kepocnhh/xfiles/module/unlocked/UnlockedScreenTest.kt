@@ -4,6 +4,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
@@ -28,7 +29,9 @@ import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockPathNames
 import org.kepocnhh.xfiles.provider.security.MockCipherProvider
 import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
+import org.kepocnhh.xfiles.setContent
 import org.kepocnhh.xfiles.setInjection
+import org.kepocnhh.xfiles.waitOne
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -165,5 +168,53 @@ internal class UnlockedScreenTest {
         rule.waitUntil {
             locked.get()
         }
+    }
+
+    @Test(timeout = 2_000)
+    fun emptyTest() {
+        val dataBase = mockDataBase()
+        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
+        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        val symmetric = mockKeyMeta()
+        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val pathNames = mockPathNames()
+        val key = MockSecretKey()
+        val injection = mockInjection(
+            local = MockLocalDataProvider(services = mockSecurityServices()),
+            pathNames = pathNames,
+            security = {
+                MockSecurityProvider(
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                        ),
+                    ),
+                )
+            },
+            encrypted = mockEncrypted(
+                files = MockEncryptedFileProvider(
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                    ),
+                ),
+            ),
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+        )
+        rule.setContent(injection) {
+            UnlockedScreen(
+                key = key,
+                broadcast = {
+                    error("Illegal state!")
+                },
+            )
+        }
+        val isEmpty = hasContentDescription("UnlockedScreen:empty")
+        rule.waitOne(isEmpty)
     }
 }
