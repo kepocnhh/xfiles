@@ -12,6 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.kepocnhh.xfiles.collectFirst
 import org.kepocnhh.xfiles.entity.MockPrivateKey
+import org.kepocnhh.xfiles.entity.MockPublicKey
 import org.kepocnhh.xfiles.entity.MockSecretKey
 import org.kepocnhh.xfiles.entity.mockAsymmetricKey
 import org.kepocnhh.xfiles.entity.mockDataBase
@@ -236,7 +237,8 @@ internal class UnlockedViewModelTest {
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
         val asymmetric = mockAsymmetricKey()
         val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
-        val privateKey = MockPrivateKey()
+        val privateKey = MockPrivateKey("UnlockedViewModelTest:addValueTest:privateKey".toByteArray())
+        val publicKey = MockPublicKey("UnlockedViewModelTest:addValueTest:publicKey".toByteArray())
         val key = MockSecretKey()
         runTest(timeout = 2.seconds) {
             val pathNames = mockPathNames()
@@ -257,8 +259,13 @@ internal class UnlockedViewModelTest {
                             privateKey = privateKey,
                         ),
                         signature = MockSignatureProvider(
-                            signatures = mapOf(
-                                editedDataBaseDecrypted to editedDataBaseSignature,
+                            dataSets = listOf(
+                                MockSignatureProvider.DataSet(
+                                    decrypted = editedDataBaseDecrypted,
+                                    sig = editedDataBaseSignature,
+                                    privateKey = privateKey,
+                                    publicKey = publicKey,
+                                ),
                             ),
                         ),
                     )
@@ -359,7 +366,8 @@ internal class UnlockedViewModelTest {
             val symmetricDecrypted = "symmetric:decrypted".toByteArray()
             val asymmetric = mockAsymmetricKey()
             val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
-            val privateKey = MockPrivateKey()
+            val privateKey = MockPrivateKey("UnlockedViewModelTest:deleteValueTest:privateKey".toByteArray())
+            val publicKey = MockPublicKey("UnlockedViewModelTest:deleteValueTest:publicKey".toByteArray())
             val key = MockSecretKey()
             val pathNames = mockPathNames()
             val injection = mockInjection(
@@ -374,11 +382,15 @@ internal class UnlockedViewModelTest {
                                 Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
                             ),
                         ),
-//                        uuids = MockUUIDGenerator(uuid = id), // todo
                         keyFactory = MockKeyFactoryProvider(privateKey = privateKey),
                         signature = MockSignatureProvider(
-                            signatures = mapOf(
-                                editedDataBaseDecrypted to editedDataBaseSignature,
+                            dataSets = listOf(
+                                MockSignatureProvider.DataSet(
+                                    decrypted = editedDataBaseDecrypted,
+                                    sig = editedDataBaseSignature,
+                                    privateKey = privateKey,
+                                    publicKey = publicKey,
+                                ),
                             ),
                         ),
                     )

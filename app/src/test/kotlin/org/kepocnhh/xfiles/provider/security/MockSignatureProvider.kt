@@ -5,18 +5,27 @@ import java.security.PublicKey
 import java.security.SecureRandom
 
 internal class MockSignatureProvider(
-    private val signatures: Map<ByteArray, ByteArray> = emptyMap(),
+    private val dataSets: List<DataSet> = emptyList(),
 ) : SignatureProvider {
+    class DataSet(
+        val decrypted: ByteArray,
+        val sig: ByteArray,
+        val privateKey: PrivateKey,
+        val publicKey: PublicKey,
+    )
+
     override fun sign(key: PrivateKey, random: SecureRandom, decrypted: ByteArray): ByteArray {
-        for ((d, s) in signatures) {
-            if (d.contentEquals(decrypted)) return s
+        for (it in dataSets) {
+            if (it.privateKey != key) continue
+            if (it.decrypted.contentEquals(decrypted)) return it.sig
         }
         error("No signature!")
     }
 
     override fun verify(key: PublicKey, decrypted: ByteArray, sig: ByteArray): Boolean {
-        for ((d, s) in signatures) {
-            if (d.contentEquals(decrypted)) return s.contentEquals(sig)
+        for (it in dataSets) {
+            if (it.publicKey != key) continue
+            if (it.decrypted.contentEquals(decrypted)) return it.sig.contentEquals(sig)
         }
         error("No signature!")
     }

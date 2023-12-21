@@ -18,6 +18,7 @@ import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.TestActivity
 import org.kepocnhh.xfiles.clearStores
 import org.kepocnhh.xfiles.entity.MockPrivateKey
+import org.kepocnhh.xfiles.entity.MockPublicKey
 import org.kepocnhh.xfiles.entity.MockSecretKey
 import org.kepocnhh.xfiles.entity.mockAsymmetricKey
 import org.kepocnhh.xfiles.entity.mockDataBase
@@ -32,6 +33,7 @@ import org.kepocnhh.xfiles.provider.MockTimeProvider
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockPathNames
 import org.kepocnhh.xfiles.provider.security.MockCipherProvider
+import org.kepocnhh.xfiles.provider.security.MockKeyFactoryProvider
 import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
 import org.kepocnhh.xfiles.setContent
@@ -376,6 +378,7 @@ internal class UnlockedScreenTest {
         val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
         val privateKey = MockPrivateKey("UnlockedScreenTest:deleteTest:privateKey".toByteArray())
+        val publicKey = MockPublicKey("UnlockedScreenTest:deleteTest:publicKey".toByteArray())
         val key = MockSecretKey("UnlockedScreenTest:deleteTest:secretKey".toByteArray())
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -389,8 +392,16 @@ internal class UnlockedScreenTest {
                             Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
                         ),
                     ),
+                    keyFactory = MockKeyFactoryProvider(privateKey = privateKey),
                     signature = MockSignatureProvider(
-                        signatures = mapOf(editedDataBaseDecrypted to editedDataBaseSignature),
+                        dataSets = listOf(
+                            MockSignatureProvider.DataSet(
+                                decrypted = editedDataBaseDecrypted,
+                                sig = editedDataBaseSignature,
+                                privateKey = privateKey,
+                                publicKey = publicKey,
+                            ),
+                        ),
                     ),
                 )
             },
