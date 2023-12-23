@@ -1,7 +1,18 @@
 package org.kepocnhh.xfiles.module.unlocked
 
+import android.content.ClipboardManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
@@ -9,7 +20,10 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,7 +52,9 @@ import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
 import org.kepocnhh.xfiles.setContent
 import org.kepocnhh.xfiles.setInjection
+import org.kepocnhh.xfiles.waitCount
 import org.kepocnhh.xfiles.waitOne
+import org.kepocnhh.xfiles.waitZero
 import org.robolectric.RobolectricTestRunner
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
@@ -448,5 +464,154 @@ internal class UnlockedScreenTest {
         rule.onNode(hasText(strings.yes)).performClick()
         rule.waitOne(isEmpty)
         rule.onNode(isTitle and hasText(title)).assertDoesNotExist()
+    }
+
+    @Test(timeout = 2_000)
+    fun copyTest() {
+        val issuer = "UnlockedScreenTest:copyTest"
+        val id = UUID.randomUUID()
+        val title = "$issuer:title"
+        val secret = "$issuer:secret"
+        val dataBase = mockDataBase(
+            secrets = mapOf(id to (title to secret)),
+        )
+        val dataBaseDecrypted = "$issuer:dataBase:decrypted".toByteArray()
+        val dataBaseEncrypted = "$issuer:dataBase:encrypted".toByteArray()
+        check(dataBase.secrets.size == 1)
+        val symmetric = mockKeyMeta(issuer = "$issuer:symmetric")
+        val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
+        val pathNames = mockPathNames()
+        val key = MockSecretKey("$issuer:key".toByteArray())
+        val injection = mockInjection(
+            local = MockLocalDataProvider(services = mockSecurityServices()),
+            pathNames = pathNames,
+            security = {
+                MockSecurityProvider(
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                        ),
+                    ),
+                )
+            },
+            encrypted = mockEncrypted(
+                files = MockEncryptedFileProvider(
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                    ),
+                ),
+            ),
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+        )
+        rule.setContent(injection) {
+            UnlockedScreen(
+                key = key,
+                broadcast = {
+                    error("Illegal state!")
+                },
+            )
+        }
+        val isTitle = hasContentDescription("UnlockedScreen:item:$id:title")
+        rule.waitOne(isTitle and hasText(title))
+        val clipboardManager = rule.activity.getSystemService(ClipboardManager::class.java) ?: error("No clipboard manager!")
+        assertNull(clipboardManager.primaryClip?.getItemAt(0)?.text)
+        val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
+        val isCopy = hasContentDescription("UnlockedScreen:item:$id:copy")
+        rule.onNode(isButton and isCopy).performClick()
+        val primaryClip = clipboardManager.primaryClip ?: error("No primary clip!")
+        assertEquals(1, primaryClip.itemCount)
+        val item = primaryClip.getItemAt(0) ?: error("No item!")
+        val text = item.text ?: error("No text!")
+        assertEquals(secret, text)
+    }
+
+    @Test(timeout = 2_000)
+    fun disposeTest() {
+        val issuer = "UnlockedScreenTest:disposeTest"
+        val id = UUID.randomUUID()
+        val title = "$issuer:title"
+        val secret = "$issuer:secret"
+        val dataBase = mockDataBase(
+            secrets = mapOf(id to (title to secret)),
+        )
+        val dataBaseDecrypted = "$issuer:dataBase:decrypted".toByteArray()
+        val dataBaseEncrypted = "$issuer:dataBase:encrypted".toByteArray()
+        check(dataBase.secrets.size == 1)
+        val symmetric = mockKeyMeta(issuer = "$issuer:symmetric")
+        val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
+        val pathNames = mockPathNames()
+        val key = MockSecretKey("$issuer:key".toByteArray())
+        val injection = mockInjection(
+            local = MockLocalDataProvider(services = mockSecurityServices()),
+            pathNames = pathNames,
+            security = {
+                MockSecurityProvider(
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                        ),
+                    ),
+                )
+            },
+            encrypted = mockEncrypted(
+                files = MockEncryptedFileProvider(
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                    ),
+                ),
+            ),
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+        )
+        rule.setContent(injection) {
+            Box {
+                val visible = remember { mutableStateOf(true) }
+                if (visible.value) {
+                    UnlockedScreen(
+                        key = key,
+                        broadcast = {
+                            error("Illegal state!")
+                        },
+                    )
+                }
+                BasicText(
+                    modifier = Modifier
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "$issuer:hide"
+                        }
+                        .clickable {
+                            visible.value = false
+                        },
+                    text = "hide",
+                )
+            }
+        }
+        val isTitle = hasContentDescription("UnlockedScreen:item:$id:title")
+        rule.waitOne(isTitle and hasText(title))
+        val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
+        val isCopy = hasContentDescription("UnlockedScreen:item:$id:copy")
+        rule.onNode(isButton and isCopy).performClick()
+        val clipboardManager = rule.activity.getSystemService(ClipboardManager::class.java) ?: error("No clipboard manager!")
+        val primaryClip = clipboardManager.primaryClip ?: error("No primary clip!")
+        assertEquals(1, primaryClip.itemCount)
+        val item = primaryClip.getItemAt(0) ?: error("No item!")
+        assertEquals(secret, item.text)
+        val isHide = hasContentDescription("$issuer:hide")
+        rule.onNode(isButton and isHide).performClick()
+        rule.waitZero(isTitle and hasText(title))
+        val text = clipboardManager.primaryClip?.getItemAt(0)?.text ?: error("No text!")
+        assertTrue(text.isEmpty())
     }
 }

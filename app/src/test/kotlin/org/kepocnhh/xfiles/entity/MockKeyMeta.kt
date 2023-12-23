@@ -11,3 +11,13 @@ internal fun mockKeyMeta(
         ivPrivate = ivPrivate,
     )
 }
+
+internal fun mockKeyMeta(
+    issuer: String,
+): KeyMeta {
+    return mockKeyMeta(
+        salt = "$issuer:salt".toByteArray(),
+        ivDB = "$issuer:ivDB".toByteArray(),
+        ivPrivate = "$issuer:ivPrivate".toByteArray(),
+    )
+}
