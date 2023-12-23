@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.Dispatchers
@@ -42,10 +44,15 @@ internal fun TextFocused(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     focused: Boolean,
+    contentDescription: String,
+    valueDescription: String,
 ) {
 //    val borderColor = if (focused) textStyle.color else Color.LightGray
     Box(
         modifier = Modifier
+            .semantics {
+                this.contentDescription = contentDescription
+            }
             .padding(margin)
             .height(height)
             .fillMaxWidth()
@@ -89,6 +96,9 @@ internal fun TextFocused(
         }
         BasicText(
             modifier = Modifier
+                .semantics {
+                    this.contentDescription = valueDescription
+                }
                 .align(Alignment.CenterStart)
                 .wrapContentHeight(),
             text = value,

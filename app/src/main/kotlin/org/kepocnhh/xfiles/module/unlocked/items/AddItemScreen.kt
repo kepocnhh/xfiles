@@ -35,6 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -102,6 +106,8 @@ private fun HintTextFocused(
             // noop
         },
         focused = focusedState.value == focused,
+        contentDescription = "TextFocused:${focused.name}",
+        valueDescription = "TextFocused:value:${focused.name}",
     )
 }
 
@@ -195,6 +201,10 @@ private fun Keyboard(
             }
             BasicText(
                 modifier = Modifier
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = "Keyboard:action"
+                    }
                     .fillMaxHeight()
                     .align(Alignment.CenterEnd)
                     .onClick(enabled = enabled, block = onAction)

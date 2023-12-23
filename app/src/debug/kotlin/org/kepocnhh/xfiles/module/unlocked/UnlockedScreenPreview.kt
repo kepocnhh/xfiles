@@ -8,12 +8,13 @@ import org.kepocnhh.xfiles.module.app.ColorsType
 import org.kepocnhh.xfiles.module.app.Language
 import org.kepocnhh.xfiles.module.app.ThemeState
 import org.kepocnhh.xfiles.provider.ThemeStateProvider
+import java.util.UUID
 
 @Composable
 private fun UnlockedScreenPreview(
     themeState: ThemeState,
     loading: Boolean,
-    encrypteds: Map<String, String>,
+    encrypteds: Map<UUID, String>,
 ) {
     App.Theme.Composition(themeState) {
         UnlockedScreen(
@@ -77,9 +78,9 @@ private fun UnlockedScreenEncryptedsPreview() {
         themeState = themeState,
         loading = false,
         encrypteds = mapOf(
-            "id:foo" to "foo",
-            "id:numbers" to "numbers",
-            "id:letters" to "letters",
+            UUID.randomUUID() to "foo",
+            UUID.randomUUID() to "numbers",
+            UUID.randomUUID() to "letters",
         ),
     )
 }
