@@ -80,7 +80,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     }
 
     data class State(
-        val loading: Boolean = false,
+        val loading: Boolean,
         val exists: Boolean,
         val hasBiometric: Boolean,
     )
@@ -96,6 +96,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         injection.launch {
             _state.value = withContext(injection.contexts.default) {
                 State(
+                    loading = false,
                     exists = injection.encrypted.files.exists(injection.pathNames.dataBase),
                     hasBiometric = injection.local.securitySettings.hasBiometric,
                 )
@@ -201,7 +202,11 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 }
             }
             _state.value = withContext(injection.contexts.default) {
-                State(exists = false, hasBiometric = injection.local.securitySettings.hasBiometric)
+                State(
+                    loading = false,
+                    exists = false,
+                    hasBiometric = injection.local.securitySettings.hasBiometric,
+                )
             }
         }
     }
@@ -273,7 +278,11 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 onFailure = { error ->
                     logger.warning("unlock error: $error")
                     _state.value = withContext(injection.contexts.default) {
-                        State(exists = true, hasBiometric = injection.local.securitySettings.hasBiometric)
+                        State(
+                            loading = false,
+                            exists = true,
+                            hasBiometric = injection.local.securitySettings.hasBiometric,
+                        )
                     }
                     _broadcast.emit(Broadcast.OnUnlockError)
                 },
