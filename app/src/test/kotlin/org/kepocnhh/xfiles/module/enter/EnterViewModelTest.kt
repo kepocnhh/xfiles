@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -138,6 +139,59 @@ internal class EnterViewModelTest {
                 },
                 action = viewModel::requestBiometric,
             )
+        }
+    }
+
+    @Test
+    fun deleteFileTest() {
+        runTest(timeout = 2.seconds) {
+            val issuer = "EnterViewModelTest:deleteFileTest"
+            val pathNames = mockPathNames(
+                dataBase = "$issuer:dataBase",
+            )
+            val expected = setOf(
+                pathNames.symmetric,
+                pathNames.asymmetric,
+                pathNames.dataBase,
+                pathNames.dataBaseSignature,
+                pathNames.biometric,
+            )
+            val injection = mockInjection(
+                pathNames = pathNames,
+                encrypted = mockEncrypted(
+                    files = MockEncryptedFileProvider(
+                        exists = expected.toMutableSet(),
+                    ),
+                ),
+            )
+            val viewModel = EnterViewModel(injection)
+            viewModel
+                .state
+                .take(3)
+                .collectIndexed { index, value ->
+                    when (index) {
+                        0 -> {
+                            assertNull(value)
+                            viewModel.requestState()
+                        }
+                        1 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            expected.forEach {
+                                assertTrue("File $it does not exist!", injection.encrypted.files.exists(it))
+                            }
+                            viewModel.deleteFile()
+                        }
+                        2 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            expected.forEach {
+                                assertFalse("File $it exists!", injection.encrypted.files.exists(it))
+                            }
+                        }
+                        else -> error("Unexpected index: $index!")
+                    }
+                }
         }
     }
 }
