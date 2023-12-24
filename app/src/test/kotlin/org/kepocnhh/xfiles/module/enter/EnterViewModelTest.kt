@@ -146,6 +146,7 @@ internal class EnterViewModelTest {
     fun deleteFileTest() {
         runTest(timeout = 2.seconds) {
             val issuer = "EnterViewModelTest:deleteFileTest"
+            val hasBiometric = true
             val pathNames = mockPathNames(
                 dataBase = "$issuer:dataBase",
             )
@@ -157,6 +158,9 @@ internal class EnterViewModelTest {
                 pathNames.biometric,
             )
             val injection = mockInjection(
+                local = MockLocalDataProvider(
+                    securitySettings = mockSecuritySettings(hasBiometric = hasBiometric),
+                ),
                 pathNames = pathNames,
                 encrypted = mockEncrypted(
                     files = MockEncryptedFileProvider(
@@ -177,6 +181,8 @@ internal class EnterViewModelTest {
                         1 -> {
                             assertNotNull(value)
                             checkNotNull(value)
+                            assertTrue(value.exists)
+                            assertEquals(hasBiometric, value.hasBiometric)
                             expected.forEach {
                                 assertTrue("File $it does not exist!", injection.encrypted.files.exists(it))
                             }
@@ -188,6 +194,8 @@ internal class EnterViewModelTest {
                             expected.forEach {
                                 assertFalse("File $it exists!", injection.encrypted.files.exists(it))
                             }
+                            assertFalse(value.exists)
+                            assertEquals(hasBiometric, value.hasBiometric)
                         }
                         else -> error("Unexpected index: $index!")
                     }
