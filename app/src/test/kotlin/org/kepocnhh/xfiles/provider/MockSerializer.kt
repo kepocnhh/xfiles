@@ -1,6 +1,7 @@
 package org.kepocnhh.xfiles.provider
 
 import org.kepocnhh.xfiles.entity.AsymmetricKey
+import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 
@@ -47,5 +48,19 @@ internal class MockSerializer(
             }
         }
         error("No value(AsymmetricKey)!")
+    }
+
+    override fun serialize(value: BiometricMeta): ByteArray {
+        return values[value] ?: error("No bytes by $value!")
+    }
+
+    override fun toBiometricMeta(bytes: ByteArray): BiometricMeta {
+        for ((value, expected) in values) {
+            if (expected.contentEquals(bytes)) {
+                check(value is BiometricMeta)
+                return value
+            }
+        }
+        error("No value(BiometricMeta)!")
     }
 }

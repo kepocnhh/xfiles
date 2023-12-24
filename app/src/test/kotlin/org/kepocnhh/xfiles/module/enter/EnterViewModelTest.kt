@@ -2,17 +2,24 @@ package org.kepocnhh.xfiles.module.enter
 
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.kepocnhh.xfiles.collectFirst
+import org.kepocnhh.xfiles.entity.mockBiometricMeta
 import org.kepocnhh.xfiles.entity.mockSecuritySettings
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.provider.MockEncryptedFileProvider
+import org.kepocnhh.xfiles.provider.MockSerializer
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockPathNames
+import org.kepocnhh.xfiles.waitUntil
 import kotlin.time.Duration.Companion.seconds
 
 internal class EnterViewModelTest {
@@ -79,6 +86,58 @@ internal class EnterViewModelTest {
             ).forEach { state ->
                 requestStateTest(expected = state)
             }
+        }
+    }
+
+    @Test
+    fun requestBiometricTest() {
+        runTest(timeout = 2.seconds) {
+            val issuer = "EnterViewModelTest:requestBiometricTest"
+            val expected = "$issuer:biometric:iv".toByteArray()
+            val biometricInput = "$issuer:biometric:input".toByteArray()
+            val pathNames = mockPathNames(
+                biometric = "$issuer:biometric",
+            )
+            val injection = mockInjection(
+                pathNames = pathNames,
+                encrypted = mockEncrypted(
+                    files = MockEncryptedFileProvider(
+                        inputs = mapOf(pathNames.biometric to biometricInput),
+                    ),
+                ),
+                serializer = MockSerializer(
+                    values = mapOf(mockBiometricMeta(iv = expected) to biometricInput),
+                ),
+            )
+            val viewModel = EnterViewModel(injection)
+            viewModel
+                .state
+                .take(2)
+                .collectIndexed { index, value ->
+                    when (index) {
+                        0 -> {
+                            assertNull(value)
+                            viewModel.requestState()
+                        }
+                        1 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                        }
+                        else -> error("Unexpected index: $index!")
+                    }
+                }
+            waitUntil(
+                scope = this,
+                block = {
+                    viewModel
+                        .broadcast
+                        .collectFirst {
+                            check(it is EnterViewModel.Broadcast.OnBiometric)
+                            assertTrue("Initial vectors are not equal!", expected.contentEquals(it.iv))
+                        }
+                },
+                action = viewModel::requestBiometric,
+            )
         }
     }
 }

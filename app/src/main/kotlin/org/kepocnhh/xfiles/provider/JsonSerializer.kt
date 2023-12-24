@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles.provider
 
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.AsymmetricKey
+import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.util.base64
@@ -101,5 +102,13 @@ internal object JsonSerializer : Serializer {
             publicDecrypted = json.getString("public").base64(),
             privateEncrypted = json.getString("private").base64(),
         )
+    }
+
+    override fun serialize(value: BiometricMeta): ByteArray {
+        TODO("Not yet implemented: JsonSerializer:serialize")
+    }
+
+    override fun toBiometricMeta(bytes: ByteArray): BiometricMeta {
+        TODO("Not yet implemented: JsonSerializer:toBiometricMeta")
     }
 }

@@ -68,6 +68,7 @@ private fun EncryptedLocalDataProvider.requireDatabaseId(): UUID {
     return databaseId ?: error("No database id!")
 }
 
+@Deprecated(message = "!")
 private fun EncryptedFileProvider.readJson(pathname: String): JSONObject {
     return JSONObject(readText(pathname))
 }
@@ -313,12 +314,14 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     fun requestBiometric() {
         injection.launch {
             _state.value = requireState().copy(loading = true)
-            val iv = withContext(injection.contexts.default) {
-                injection.encrypted.files.readJson(injection.pathNames.biometric)
-                    .getString("iv")
-                    .base64()
+            val meta = withContext(injection.contexts.default) {
+                injection
+                    .encrypted
+                    .files
+                    .readBytes(injection.pathNames.biometric)
+                    .let(injection.serializer::toBiometricMeta)
             }
-            _broadcast.emit(Broadcast.OnBiometric(iv))
+            _broadcast.emit(Broadcast.OnBiometric(iv = meta.iv))
         }
     }
 }
