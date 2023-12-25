@@ -5,11 +5,12 @@ import org.kepocnhh.xfiles.entity.AsymmetricKey
 import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
+import org.kepocnhh.xfiles.provider.security.Base64Provider
 import org.kepocnhh.xfiles.util.base64
 import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
-internal object JsonSerializer : Serializer {
+internal class JsonSerializer(base64: Base64Provider) : Serializer {
     private fun JSONObject.requireLong(key: String): Long {
         if (!has(key)) error("No value by \"$key\"!")
         if (isNull(key)) error("Value by \"$key\" is null!")

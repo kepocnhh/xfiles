@@ -8,9 +8,14 @@ internal class MockSecurityProvider(
     private val signature: SignatureProvider = MockSignatureProvider(),
     private val keyFactory: KeyFactoryProvider = MockKeyFactoryProvider(),
     private val random: SecureRandom = MockSecureRandom(),
+    private val md: MessageDigestProvider = MockMessageDigestProvider(),
+    private val base64: Base64Provider = MockBase64Provider(),
+    private val keyPairGenerator: KeyPairGeneratorProvider = MockKeyPairGeneratorProvider(),
+    private val algorithmParamsGenerator: AlgorithmParameterGeneratorProvider = MockAlgorithmParameterGeneratorProvider(),
+    private val secretKeyFactory: SecretKeyFactoryProvider = MockSecretKeyFactoryProvider(),
 ) : SecurityProvider {
     override fun getMessageDigest(): MessageDigestProvider {
-        TODO("Not yet implemented: getMessageDigest")
+        return md
     }
 
     override fun getCipher(): CipherProvider {
@@ -18,11 +23,11 @@ internal class MockSecurityProvider(
     }
 
     override fun getKeyPairGenerator(): KeyPairGeneratorProvider {
-        TODO("Not yet implemented: getKeyPairGenerator")
+        return keyPairGenerator
     }
 
     override fun getAlgorithmParameterGenerator(): AlgorithmParameterGeneratorProvider {
-        TODO("Not yet implemented: getAlgorithmParameterGenerator")
+        return algorithmParamsGenerator
     }
 
     override fun getSignature(): SignatureProvider {
@@ -30,7 +35,7 @@ internal class MockSecurityProvider(
     }
 
     override fun getSecretKeyFactory(): SecretKeyFactoryProvider {
-        TODO("Not yet implemented: getSecretKeyFactory")
+        return secretKeyFactory
     }
 
     override fun getSecureRandom(): SecureRandom {
@@ -43,5 +48,9 @@ internal class MockSecurityProvider(
 
     override fun uuids(): UUIDGenerator {
         return uuids
+    }
+
+    override fun base64(): Base64Provider {
+        return base64
     }
 }

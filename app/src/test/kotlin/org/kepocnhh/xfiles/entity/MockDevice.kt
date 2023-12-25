@@ -15,3 +15,13 @@ internal fun mockDevice(
         supportedABIs = supportedABIs,
     )
 }
+
+internal fun mockDevice(issuer: String): Device {
+    return mockDevice(
+        manufacturer = "$issuer:manufacturer",
+        brand = "$issuer:brand",
+        model = "$issuer:model",
+        name = "$issuer:name",
+        supportedABIs = setOf("$issuer:supportedABIs"),
+    )
+}

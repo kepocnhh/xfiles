@@ -15,3 +15,13 @@ internal fun mockPathNames(
         biometric = biometric,
     )
 }
+
+internal fun mockPathNames(issuer: String): PathNames {
+    return mockPathNames(
+        symmetric = "$issuer:symmetric",
+        asymmetric = "$issuer:asymmetric",
+        dataBase = "$issuer:dataBase",
+        dataBaseSignature = "$issuer:dataBaseSignature",
+        biometric = "$issuer:biometric",
+    )
+}

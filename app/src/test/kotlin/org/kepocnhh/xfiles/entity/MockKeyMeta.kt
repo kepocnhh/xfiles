@@ -21,3 +21,15 @@ internal fun mockKeyMeta(
         ivPrivate = "$issuer:ivPrivate".toByteArray(),
     )
 }
+
+internal fun mockKeyMeta(
+    saltSize: Int,
+    ivDBSize: Int,
+    ivPrivateSize: Int,
+): KeyMeta {
+    return mockKeyMeta(
+        salt = ByteArray(saltSize) { saltSize.toByte() },
+        ivDB = ByteArray(ivDBSize) { ivDBSize.toByte() },
+        ivPrivate = ByteArray(ivPrivateSize) { ivPrivateSize.toByte() },
+    )
+}

@@ -29,6 +29,8 @@ internal class MockEncryptedFileProvider(
     }
 
     override fun writeBytes(pathname: String, bytes: ByteArray) {
-        // noop
+        if (bytes.isNotEmpty()) {
+            exists.add(pathname)
+        }
     }
 }

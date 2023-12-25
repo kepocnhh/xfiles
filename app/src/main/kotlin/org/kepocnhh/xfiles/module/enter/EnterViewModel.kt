@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.kepocnhh.xfiles.entity.AsymmetricKey
+import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.entity.SecuritySettings
@@ -31,7 +33,7 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 
 private fun check(key: PrivateKey) {
-    check(key is DSAPrivateKey)
+    check(key is DSAPrivateKey) { "The private key is not DSA!" }
     check(key.params)
 }
 
@@ -41,27 +43,10 @@ private fun check(params: DSAParams) {
     val N = params.q.bitLength()
     when (L) {
         1024 -> check(N == 160)
-        2048 -> check(N == 224 || N == 256)
+        2048 -> check(N == 224 || N == 256) { "N($N) is not 224 or 256!" }
         3072 -> check(N == 256)
-        else -> error("L is not 1024, 2048 or 3072!")
+        else -> error("L($L) is not 1024, 2048 or 3072!")
     }
-}
-
-private fun Device.toUUID(): UUID {
-    val md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
-    val input = mapOf(
-        "manufacturer" to manufacturer,
-        "brand" to brand,
-        "model" to model,
-        "name" to name,
-        "supportedABIs" to supportedABIs.joinToString(prefix = "[", separator = ",", postfix = "]"),
-    ).entries.joinToString(separator = ",") { (key, value) ->
-        "$key=$value"
-    }
-    val digest = md.digest(input.toByteArray())
-    check(digest.size == 16)
-    val buffer = ByteBuffer.wrap(digest)
-    return UUID(buffer.long, buffer.long)
 }
 
 private fun EncryptedLocalDataProvider.requireDatabaseId(): UUID {
@@ -133,32 +118,31 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             generator.generate(params.getParameterSpec(DSAParameterSpec::class.java))
         }
         check(pair.private)
-        val decrypted = JSONObject()
-            .put("id", injection.encrypted.local.requireDatabaseId().toString())
-            .put("updated", injection.time.now().inWholeMilliseconds)
-            .put("secrets", JSONObject())
-            .toString()
-            .toByteArray()
+        val dataBase = DataBase(
+            id = injection.encrypted.local.requireDatabaseId(),
+            updated = injection.time.now(),
+            secrets = emptyMap(),
+        )
+        val decrypted = injection.serializer.serialize(dataBase)
         val cipher = injection.security(services).getCipher()
-        val key = injection.security(services)
+        val secretKey = injection.security(services)
             .getSecretKeyFactory()
             .generate(PBEKeySpec(password.toCharArray(), meta.salt, pbeIterations, aesKeyLength))
         injection.encrypted.files.writeBytes(
             pathname = injection.pathNames.dataBase,
-            bytes = cipher.encrypt(key, IvParameterSpec(meta.ivDB), decrypted),
+            bytes = cipher.encrypt(secretKey, IvParameterSpec(meta.ivDB), decrypted),
         )
-        val private = cipher.encrypt(key, IvParameterSpec(meta.ivPrivate), pair.private.encoded)
-        JSONObject()
-            .put("public", pair.public.encoded.base64())
-            .put("private", private.base64())
-            .also { json ->
-                injection.encrypted.files.writeBytes(injection.pathNames.asymmetric, json.toString().toByteArray())
-            }
+        val privateEncrypted = cipher.encrypt(secretKey, IvParameterSpec(meta.ivPrivate), pair.private.encoded)
+        val asymmetricKey = AsymmetricKey(
+            publicDecrypted = pair.public.encoded,
+            privateEncrypted = privateEncrypted,
+        )
+        injection.encrypted.files.writeBytes(injection.pathNames.asymmetric, injection.serializer.serialize(asymmetricKey))
         val sign = injection.security(services)
             .getSignature()
-            .sign(pair.private, random, decrypted = decrypted)
+            .sign(key = pair.private, random = random, decrypted = decrypted)
         injection.encrypted.files.writeBytes(injection.pathNames.dataBaseSignature, sign)
-        return key
+        return secretKey
     }
 
     fun createNewFile(pin: String, cipher: Cipher?) {
@@ -214,16 +198,17 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
 
     private fun getPassword(pin: String): String {
         val services = injection.local.requireServices()
-        val md = injection.security(services).getMessageDigest()
+        val security = injection.security(services)
+        val md = security.getMessageDigest()
         val device = injection.local.device ?: error("No device!")
         val appId = injection.encrypted.local.appId ?: error("No app id!")
         val bytes = listOf(
             pin,
-            device.toUUID().toString(),
+            injection.devices.toUUID(device).toString(),
             appId.toString(),
             injection.encrypted.local.requireDatabaseId().toString(),
-        ).joinToString(separator = "").toByteArray()
-        return md.digest(bytes).base64()
+        ).joinToString(separator = "-").toByteArray()
+        return security.base64().encode(md.digest(bytes))
     }
 
     private fun unlock(password: String, securitySettings: SecuritySettings): SecretKey {

@@ -44,6 +44,7 @@ import org.kepocnhh.xfiles.provider.Logger
 import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalEncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
+import org.kepocnhh.xfiles.provider.security.FinalBase64Provider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.toPaddings
@@ -52,6 +53,7 @@ import sp.ax.jc.animations.style.LocalTweenStyle
 import sp.ax.jc.animations.style.TweenStyle
 import sp.ax.jc.dialogs.DialogStyle
 import sp.ax.jc.dialogs.LocalDialogStyle
+import java.security.MessageDigest
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -192,8 +194,10 @@ internal class App : Application() {
                 dataBaseSignature = "db.json.sig",
                 biometric = "biometric.enc",
             ),
-            devices = FinalDeviceProvider,
-            serializer = JsonSerializer,
+            devices = FinalDeviceProvider(
+                md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
+            ),
+            serializer = JsonSerializer(base64 = FinalBase64Provider),
             time = FinalTimeProvider,
         )
     }
