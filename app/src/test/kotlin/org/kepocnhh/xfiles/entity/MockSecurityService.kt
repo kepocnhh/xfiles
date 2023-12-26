@@ -9,3 +9,10 @@ internal fun mockSecurityService(
         algorithm = algorithm,
     )
 }
+
+internal fun mockSecurityService(issuer: String): SecurityService {
+    return mockSecurityService(
+        provider = "$issuer:mock:security:service:provider",
+        algorithm = "$issuer:mock:security:service:algorithm",
+    )
+}

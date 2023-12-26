@@ -6,11 +6,23 @@ import java.util.concurrent.atomic.AtomicReference
 
 internal class MockEncryptedFileProvider(
     private val exists: MutableSet<String> = mutableSetOf(),
-    private val inputs: Map<String, ByteArray> = emptyMap(),
+    private val inputs: MutableMap<String, ByteArray> = mutableMapOf(),
     private val refs: Map<String, AtomicReference<ByteArray>> = emptyMap(),
 ) : EncryptedFileProvider {
     constructor(exists: Set<String>): this(
         exists = exists.toMutableSet(),
+    )
+
+    constructor(inputs: Map<String, ByteArray>): this(
+        inputs = inputs.toMutableMap(),
+    )
+
+    constructor(
+        inputs: Map<String, ByteArray>,
+        refs: Map<String, AtomicReference<ByteArray>>,
+    ): this(
+        inputs = inputs.toMutableMap(),
+        refs = refs,
     )
 
     override fun exists(pathname: String): Boolean {
@@ -31,6 +43,7 @@ internal class MockEncryptedFileProvider(
     override fun writeBytes(pathname: String, bytes: ByteArray) {
         if (bytes.isNotEmpty()) {
             exists.add(pathname)
+            inputs[pathname] = bytes
         }
     }
 }

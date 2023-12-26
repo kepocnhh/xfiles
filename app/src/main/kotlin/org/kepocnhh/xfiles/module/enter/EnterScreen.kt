@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.enter.settings.SettingsScreen
+import org.kepocnhh.xfiles.provider.CipherEncrypt
 import org.kepocnhh.xfiles.util.android.BiometricUtil
 import org.kepocnhh.xfiles.util.android.findActivity
 import org.kepocnhh.xfiles.util.android.getDefaultVibrator
@@ -91,7 +92,7 @@ private fun onPin(viewModel: EnterViewModel, pin: String, onBiometric: () -> Uni
     when {
         state.exists -> viewModel.unlockFile(pin = pin)
         state.hasBiometric -> onBiometric()
-        else -> viewModel.createNewFile(pin = pin, cipher = null)
+        else -> viewModel.createNewFile(pin = pin, encrypt = null)
     }
 }
 
@@ -100,7 +101,7 @@ private fun onBiometric(viewModel: EnterViewModel, cipher: Cipher, pin: String) 
     if (state.exists) {
         viewModel.unlockFile(cipher = cipher)
     } else {
-        viewModel.createNewFile(pin = pin, cipher = cipher)
+        viewModel.createNewFile(pin = pin, encrypt = CipherEncrypt(cipher))
     }
 }
 

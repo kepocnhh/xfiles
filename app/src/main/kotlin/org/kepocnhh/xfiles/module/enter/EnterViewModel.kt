@@ -7,11 +7,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.kepocnhh.xfiles.entity.AsymmetricKey
+import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.Device
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.entity.SecuritySettings
 import org.kepocnhh.xfiles.module.app.Injection
+import org.kepocnhh.xfiles.provider.Encrypt
 import org.kepocnhh.xfiles.provider.EncryptedFileProvider
 import org.kepocnhh.xfiles.provider.data.EncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.requireServices
@@ -145,25 +147,28 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         return secretKey
     }
 
-    fun createNewFile(pin: String, cipher: Cipher?) {
+    fun createNewFile(pin: String, encrypt: Encrypt?) {
         logger.debug("create...")
         injection.launch {
             _state.value = requireState().copy(loading = true)
             val key = withContext(injection.contexts.default) {
                 val services = injection.local.requireServices()
-                val databaseId = injection.security(services).uuids().generate()
+                val security = injection.security(services)
+                val databaseId = security.uuids().generate()
                 logger.debug("databaseId: $databaseId")
                 injection.encrypted.local.databaseId = databaseId
                 val password = getPassword(pin = pin)
-                if (cipher != null) {
+                if (encrypt != null) {
                     logger.debug("cipher exists")
-                    val encrypted = cipher.doFinal(password.toByteArray())
-                    val biometric = JSONObject()
-                        .put("password", encrypted.base64())
-                        .put("iv", cipher.iv.base64())
-                        .toString()
-                        .toByteArray()
-                    injection.encrypted.files.writeBytes(injection.pathNames.biometric, biometric)
+                    val data = encrypt.doFinal(password.toByteArray())
+                    val biometric = BiometricMeta(
+                        password = data.encrypted,
+                        iv = data.iv,
+                    )
+                    injection
+                        .encrypted
+                        .files
+                        .writeBytes(injection.pathNames.biometric, injection.serializer.serialize(biometric))
                 }
                 create(password = password, securitySettings = injection.local.securitySettings)
             }

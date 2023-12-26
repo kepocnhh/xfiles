@@ -8,6 +8,11 @@ internal class MockDSAPrivateKey(
     private val encoded: ByteArray = "MockDSAPrivateKey:encoded".toByteArray(),
     private val params: DSAParams = MockDSAParameterSpec(),
 ) : DSAPrivateKey {
+    constructor(issuer: String, params: DSAParams) : this(
+        encoded = "$issuer:mock:dsa:private:key:encoded".toByteArray(),
+        params = params,
+    )
+
     override fun getParams(): DSAParams {
         return params
     }

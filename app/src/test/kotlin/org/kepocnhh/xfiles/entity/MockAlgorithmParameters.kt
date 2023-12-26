@@ -49,7 +49,9 @@ internal class MockAlgorithmParameters(
     provider,
     algorithm,
 ) {
-    init {
-
-    }
+    constructor(issuer: String) : this(
+        encoded = "$issuer:mock:algorithm:parameters:encoded".toByteArray(),
+        provider = TestProvider("$issuer:mock:algorithm:parameters:provider"),
+        algorithm = "$issuer:mock:algorithm:parameters:algorithm",
+    )
 }

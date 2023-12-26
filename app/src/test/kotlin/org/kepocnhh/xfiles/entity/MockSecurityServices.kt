@@ -17,3 +17,14 @@ internal fun mockSecurityServices(
         random = random,
     )
 }
+
+internal fun mockSecurityServices(issuer: String): SecurityServices {
+    return mockSecurityServices(
+        cipher = mockSecurityService(issuer = issuer),
+        symmetric = mockSecurityService(issuer = issuer),
+        asymmetric = mockSecurityService(issuer = issuer),
+        signature = mockSecurityService(issuer = issuer),
+        hash = mockSecurityService(issuer = issuer),
+        random = mockSecurityService(issuer = issuer),
+    )
+}
