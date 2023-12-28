@@ -63,7 +63,7 @@ private fun EncryptedFileProvider.readJson(pathname: String): JSONObject {
 internal class EnterViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {
         class OnUnlock(val key: SecretKey) : Broadcast
-        object OnUnlockError : Broadcast
+        data class OnUnlockError(val error: Throwable) : Broadcast
         class OnBiometric(val iv: ByteArray) : Broadcast
     }
 
@@ -238,19 +238,19 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                 key = injection.security(services)
                     .getKeyFactory()
                     .generatePublic(
-                        bytes = injection.encrypted.files.readJson(injection.pathNames.asymmetric)
-                            .getString("public")
-                            .base64(),
+                        bytes = injection.encrypted.files.readBytes(injection.pathNames.asymmetric)
+                            .let(injection.serializer::toAsymmetricKey)
+                            .publicDecrypted,
                     ),
                 decrypted = decrypted,
                 sig = injection.encrypted.files.readBytes(injection.pathNames.dataBaseSignature),
             )
         check(verified)
-        val actualId = JSONObject(decrypted.toString(Charsets.UTF_8))
-            .getString("id")
-            .let(UUID::fromString)
-        check(injection.encrypted.local.requireDatabaseId() == actualId)
-        logger.debug("unlocked: $actualId")
+        val dataBase = injection.serializer.toDataBase(decrypted)
+        check(injection.encrypted.local.requireDatabaseId() == dataBase.id) {
+            "Data base id is not expected!"
+        }
+        logger.debug("unlocked: ${dataBase.id}")
         return key
     }
 
@@ -275,7 +275,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                             hasBiometric = injection.local.securitySettings.hasBiometric,
                         )
                     }
-                    _broadcast.emit(Broadcast.OnUnlockError)
+                    _broadcast.emit(Broadcast.OnUnlockError(error))
                 },
                 onSuccess = {
                     _broadcast.emit(Broadcast.OnUnlock(it))

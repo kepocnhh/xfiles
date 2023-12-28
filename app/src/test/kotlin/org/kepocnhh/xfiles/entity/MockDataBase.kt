@@ -5,7 +5,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal fun mockDataBase(
-    id: UUID = UUID.randomUUID(),
+    id: UUID = mockUUID(),
     updated: Duration = 42.seconds,
     secrets: Map<UUID, Pair<String, String>> = emptyMap(),
 ): DataBase {

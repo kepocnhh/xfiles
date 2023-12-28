@@ -9,6 +9,14 @@ internal class MockEncryptedFileProvider(
     private val inputs: MutableMap<String, ByteArray> = mutableMapOf(),
     private val refs: Map<String, AtomicReference<ByteArray>> = emptyMap(),
 ) : EncryptedFileProvider {
+    constructor(
+        exists: Set<String>,
+        inputs: Map<String, ByteArray>,
+    ): this(
+        exists = exists.toMutableSet(),
+        inputs = inputs.toMutableMap(),
+    )
+
     constructor(exists: Set<String>): this(
         exists = exists.toMutableSet(),
     )

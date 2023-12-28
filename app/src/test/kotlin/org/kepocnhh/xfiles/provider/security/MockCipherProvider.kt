@@ -14,7 +14,7 @@ internal class MockCipherProvider(
         for ((encrypted, d, k) in values) {
             if (key == k && decrypted.contentEquals(d)) return encrypted
         }
-        error("No encrypted!")
+        error("Cipher: No encrypted!")
     }
 
     override fun decrypt(
@@ -25,6 +25,6 @@ internal class MockCipherProvider(
         for ((e, decrypted, k) in values) {
             if (key == k && encrypted.contentEquals(e)) return decrypted
         }
-        error("No decrypted!")
+        error("Cipher: No decrypted!")
     }
 }

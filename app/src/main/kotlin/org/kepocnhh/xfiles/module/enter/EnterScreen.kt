@@ -182,7 +182,7 @@ internal fun EnterScreen(broadcast: (EnterScreen.Broadcast) -> Unit) {
                 is EnterViewModel.Broadcast.OnUnlock -> {
                     broadcast(EnterScreen.Broadcast.Unlock(broadcast.key))
                 }
-                EnterViewModel.Broadcast.OnUnlockError -> {
+                is EnterViewModel.Broadcast.OnUnlockError -> {
                     errorState.value = EnterScreen.Error.UNLOCK
                     context.getDefaultVibrator().vibrate(duration = durations.animation)
                 }
