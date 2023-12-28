@@ -6,6 +6,12 @@ import javax.crypto.SecretKey
 internal class MockCipherProvider(
     private val values: List<Triple<ByteArray, ByteArray, SecretKey>> = emptyList(),
 ) : CipherProvider {
+    class NoDecryptedException(
+        val key: SecretKey,
+        val params: AlgorithmParameterSpec,
+        val encrypted: ByteArray
+    ): Exception()
+
     override fun encrypt(
         key: SecretKey,
         params: AlgorithmParameterSpec,
@@ -25,6 +31,6 @@ internal class MockCipherProvider(
         for ((e, decrypted, k) in values) {
             if (key == k && encrypted.contentEquals(e)) return decrypted
         }
-        error("Cipher: No decrypted!")
+        throw NoDecryptedException(key = key, params = params, encrypted = encrypted)
     }
 }

@@ -629,7 +629,7 @@ internal class EnterViewModelTest {
     @Test
     fun unlockFileTest() {
         runTest(timeout = 2.seconds) {
-            val issuer = "EnterViewModelTest:unlockFile"
+            val issuer = "EnterViewModelTest:unlockFileTest"
             val hasBiometric = false
             val pathNames = mockPathNames(issuer = issuer)
             val files = setOf(
@@ -794,10 +794,197 @@ internal class EnterViewModelTest {
     }
 
     @Test
-    fun unlockFileCipherErrorTest() {
+    fun unlockFileErrorTest() {
         runTest(timeout = 2.seconds) {
-            val issuer = "EnterViewModelTest:unlockFileCipherErrorTest"
-            // todo
+            val issuer = "EnterViewModelTest:unlockFileErrorTest"
+            val hasBiometric = false
+            val pathNames = mockPathNames(issuer = issuer)
+            val files = setOf(
+                pathNames.symmetric,
+                pathNames.asymmetric,
+                pathNames.dataBase,
+                pathNames.dataBaseSignature,
+//                pathNames.biometric, // hasBiometric == false
+            )
+            val device = mockDevice(issuer = issuer)
+            val deviceUUID = mockUUID()
+            val appId = mockUUID()
+            val databaseId = mockUUID()
+            val pin = "$issuer:pin"
+            val pinBytes = listOf(
+                pin,
+                deviceUUID.toString(),
+                appId.toString(),
+                databaseId.toString(),
+            ).joinToString(separator = "-").toByteArray()
+            val pinBytesDigest = "$issuer:pin:digest".toByteArray()
+            val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
+            val wrongPin = "$issuer:pin:wrong"
+            val wrongPinBytes = listOf(
+                wrongPin,
+                deviceUUID.toString(),
+                appId.toString(),
+                databaseId.toString(),
+            ).joinToString(separator = "-").toByteArray()
+            val wrongPinBytesDigest = "$issuer:pin:digest:wrong".toByteArray()
+            val wrongPinBytesDigestEncoded = "$issuer:pin:digest:encoded:wrong"
+            val secretKey = MockSecretKey(issuer = issuer)
+            val wrongSecretKey = MockSecretKey(issuer = "$issuer:wrong")
+            check(!secretKey.encoded.contentEquals(wrongSecretKey.encoded))
+            val symmetric = mockKeyMeta(issuer = issuer)
+            val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
+            val asymmetricDecrypted = "$issuer:asymmetric:decrypted".toByteArray()
+            val aesKeyLength = 256
+            val pbeIterations = 2.0.pow(16).toInt()
+            val pbeKeySpec = MockPBEKeySpec(
+                password = pinBytesDigestEncoded,
+                salt = symmetric.salt,
+                iterationCount = pbeIterations,
+                keyLength = aesKeyLength,
+            )
+            val pbeKeySpecWrong = MockPBEKeySpec(
+                password = wrongPinBytesDigestEncoded,
+                salt = symmetric.salt,
+                iterationCount = pbeIterations,
+                keyLength = aesKeyLength,
+            )
+            val secrets = mapOf(
+                mockUUID() to ("foo:1" to "bar:1"),
+                mockUUID() to ("foo:2" to "bar:2"),
+            )
+            val dataBase = mockDataBase(
+                id = databaseId,
+                updated = 128.seconds,
+                secrets = secrets,
+            )
+            val dataBaseEncrypted = "$issuer:data:base:encrypted".toByteArray()
+            val dataBaseDecrypted = "$issuer:data:base:decrypted".toByteArray()
+            val dataBaseSignature = "$issuer:data:base:signature".toByteArray()
+            val publicKey = MockPublicKey(issuer = issuer)
+            val privateKey = MockPrivateKey(issuer = issuer)
+            val privateKeyEncrypted = "$issuer:private:key:encrypted".toByteArray()
+            val asymmetric = mockAsymmetricKey(
+                publicDecrypted = publicKey.encoded,
+                privateEncrypted = privateKeyEncrypted,
+            )
+            val injection = mockInjection(
+                pathNames = pathNames,
+                local = MockLocalDataProvider(
+                    services = mockSecurityServices(issuer = issuer),
+                    securitySettings = mockSecuritySettings(
+                        aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
+                        pbeIterations = SecuritySettings.PBEIterations.NUMBER_2_16,
+                        dsaKeyLength = SecuritySettings.DSAKeyLength.BITS_1024_2,
+                        hasBiometric = hasBiometric,
+                    ),
+                    device = device,
+                ),
+                encrypted = mockEncrypted(
+                    files = MockEncryptedFileProvider(
+                        exists = files,
+                        inputs = mapOf(
+                            pathNames.symmetric to symmetricDecrypted,
+                            pathNames.dataBase to dataBaseEncrypted,
+                            pathNames.asymmetric to asymmetricDecrypted,
+                            pathNames.dataBaseSignature to dataBaseSignature,
+                        ),
+                    ),
+                    local = MockEncryptedLocalDataProvider(
+                        appId = appId,
+                        databaseId = databaseId,
+                    ),
+                ),
+                devices = MockDeviceProvider(
+                    uuids = mapOf(device to deviceUUID),
+                ),
+                security = {
+                    MockSecurityProvider(
+                        md = MockMessageDigestProvider(
+                            digests = listOf(
+                                pinBytes to pinBytesDigest,
+                                wrongPinBytes to wrongPinBytesDigest,
+                            ),
+                        ),
+                        base64 = MockBase64Provider(
+                            values = mapOf(
+                                pinBytesDigestEncoded to pinBytesDigest,
+                                wrongPinBytesDigestEncoded to wrongPinBytesDigest,
+                            ),
+                        ),
+                        keyFactory = MockKeyFactoryProvider(
+                            publicKey = publicKey,
+                        ),
+                        secretKeyFactory = MockSecretKeyFactoryProvider(
+                            values = mapOf(
+                                pbeKeySpec to secretKey,
+                                pbeKeySpecWrong to wrongSecretKey,
+                            ),
+                        ),
+                        cipher = MockCipherProvider(
+                            values = listOf(
+                                Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
+                            ),
+                        ),
+                        signature = MockSignatureProvider(
+                            dataSets = listOf(
+                                MockSignatureProvider.DataSet(
+                                    decrypted = dataBaseDecrypted,
+                                    sig = dataBaseSignature,
+                                    privateKey = privateKey,
+                                    publicKey = publicKey,
+                                ),
+                            ),
+                        ),
+                    )
+                },
+                serializer = MockSerializer(
+                    values = mapOf(
+                        symmetric to symmetricDecrypted,
+                        asymmetric to asymmetricDecrypted,
+                        dataBase to dataBaseDecrypted,
+                    ),
+                ),
+            )
+            val viewModel = EnterViewModel(injection)
+            viewModel
+                .state
+                .take(2)
+                .collectIndexed { index, value ->
+                    when (index) {
+                        0 -> {
+                            assertNull(value)
+                            viewModel.requestState()
+                        }
+                        1 -> {
+                            assertNotNull(value)
+                            checkNotNull(value)
+                            assertTrue("File \"${pathNames.dataBase}\" does not exist!", value.exists)
+                            assertEquals("It has biometric == $hasBiometric!", hasBiometric, value.hasBiometric)
+                            files.forEach {
+                                assertTrue("File \"$it\" does not exist!", injection.encrypted.files.exists(it))
+                            }
+                        }
+                        else -> error("Unexpected index: $index!")
+                    }
+                }
+            waitUntil(
+                scope = this,
+                block = {
+                    viewModel
+                        .broadcast
+                        .collectFirst {
+                            check(it is EnterViewModel.Broadcast.OnUnlockError) { "Broadcast is $it!" }
+                            val error = it.error
+                            check(error is MockCipherProvider.NoDecryptedException) { "Error is $error!" }
+                            assertEquals(wrongSecretKey, error.key)
+                            assertTrue(dataBaseEncrypted.contentEquals(error.encrypted))
+                        }
+                },
+                action = {
+                    check(pin != wrongPin)
+                    viewModel.unlockFile(pin = wrongPin)
+                },
+            )
         }
     }
 
