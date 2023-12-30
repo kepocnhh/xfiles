@@ -218,6 +218,7 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun addValueTest() {
+        val issuer = "UnlockedViewModelTest:addValueTest"
         val id = UUID.randomUUID()
         val title = "addValueTest:title"
         val secret = "addValueTest:secret"
@@ -235,7 +236,7 @@ internal class UnlockedViewModelTest {
         val editedDataBaseSignature = "editedDataBase:signature".toByteArray()
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-        val asymmetric = mockAsymmetricKey()
+        val asymmetric = mockAsymmetricKey(issuer = issuer)
         val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
         val privateKey = MockPrivateKey("UnlockedViewModelTest:addValueTest:privateKey".toByteArray())
         val publicKey = MockPublicKey("UnlockedViewModelTest:addValueTest:publicKey".toByteArray())
@@ -251,7 +252,7 @@ internal class UnlockedViewModelTest {
                             values = listOf(
                                 Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
                                 Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
-                                Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
+                                Triple(asymmetric.privateKeyEncrypted, privateKey.encoded, key),
                             ),
                         ),
                         uuids = MockUUIDGenerator(uuid = id),
@@ -337,6 +338,7 @@ internal class UnlockedViewModelTest {
     @Test
     fun deleteValueTest() {
         runTest(timeout = 2.seconds) {
+            val issuer = "UnlockedViewModelTest:deleteValueTest"
             val id = UUID.randomUUID()
             val title = "deleteValueTest:title"
             val secret = "deleteValueTest:secret"
@@ -364,7 +366,7 @@ internal class UnlockedViewModelTest {
             check(initDataBase.updated.inWholeMilliseconds < editedDataBase.updated.inWholeMilliseconds)
             val symmetric = mockKeyMeta()
             val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-            val asymmetric = mockAsymmetricKey()
+            val asymmetric = mockAsymmetricKey(issuer = issuer)
             val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
             val privateKey = MockPrivateKey("UnlockedViewModelTest:deleteValueTest:privateKey".toByteArray())
             val publicKey = MockPublicKey("UnlockedViewModelTest:deleteValueTest:publicKey".toByteArray())
@@ -379,7 +381,7 @@ internal class UnlockedViewModelTest {
                             values = listOf(
                                 Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
                                 Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
-                                Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
+                                Triple(asymmetric.privateKeyEncrypted, privateKey.encoded, key),
                             ),
                         ),
                         keyFactory = MockKeyFactoryProvider(privateKey = privateKey),

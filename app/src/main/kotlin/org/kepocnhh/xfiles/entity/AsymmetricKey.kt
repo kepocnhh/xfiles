@@ -1,18 +1,18 @@
 package org.kepocnhh.xfiles.entity
 
 internal class AsymmetricKey(
-    val publicDecrypted: ByteArray,
-    val privateEncrypted: ByteArray,
+    val publicKeyDecrypted: ByteArray,
+    val privateKeyEncrypted: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         return when (other) {
-            is AsymmetricKey -> publicDecrypted.contentEquals(other.publicDecrypted) &&
-                    privateEncrypted.contentEquals(other.privateEncrypted)
+            is AsymmetricKey -> publicKeyDecrypted.contentEquals(other.publicKeyDecrypted) &&
+                    privateKeyEncrypted.contentEquals(other.privateKeyEncrypted)
             else -> false
         }
     }
 
     override fun hashCode(): Int {
-        return publicDecrypted.contentHashCode() + privateEncrypted.contentHashCode()
+        return publicKeyDecrypted.contentHashCode() + privateKeyEncrypted.contentHashCode()
     }
 }

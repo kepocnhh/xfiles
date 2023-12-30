@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.app.Colors
 import org.kepocnhh.xfiles.module.enter.settings.SettingsScreen
+import org.kepocnhh.xfiles.provider.CipherDecrypt
 import org.kepocnhh.xfiles.provider.CipherEncrypt
 import org.kepocnhh.xfiles.util.android.BiometricUtil
 import org.kepocnhh.xfiles.util.android.findActivity
@@ -99,7 +100,7 @@ private fun onPin(viewModel: EnterViewModel, pin: String, onBiometric: () -> Uni
 private fun onBiometric(viewModel: EnterViewModel, cipher: Cipher, pin: String) {
     val state = viewModel.state.value ?: error("No state!")
     if (state.exists) {
-        viewModel.unlockFile(cipher = cipher)
+        viewModel.unlockFile(decrypt = CipherDecrypt(cipher))
     } else {
         viewModel.createNewFile(pin = pin, encrypt = CipherEncrypt(cipher))
     }

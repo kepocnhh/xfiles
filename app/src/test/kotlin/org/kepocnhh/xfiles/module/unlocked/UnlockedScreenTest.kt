@@ -368,6 +368,7 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun deleteTest() {
+        val issuer = "UnlockedScreenTest:deleteTest"
         val id = UUID.randomUUID()
         val title = "UnlockedScreenTest:showTest:title"
         val secret = "UnlockedScreenTest:showTest:secret"
@@ -390,7 +391,7 @@ internal class UnlockedScreenTest {
         check(initDataBase.updated.inWholeMilliseconds < editedDataBase.updated.inWholeMilliseconds)
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-        val asymmetric = mockAsymmetricKey()
+        val asymmetric = mockAsymmetricKey(issuer = issuer)
         val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
         val privateKey = MockPrivateKey("UnlockedScreenTest:deleteTest:privateKey".toByteArray())
@@ -405,7 +406,7 @@ internal class UnlockedScreenTest {
                         values = listOf(
                             Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
                             Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
-                            Triple(asymmetric.privateEncrypted, privateKey.encoded, key),
+                            Triple(asymmetric.privateKeyEncrypted, privateKey.encoded, key),
                         ),
                     ),
                     keyFactory = MockKeyFactoryProvider(privateKey = privateKey),

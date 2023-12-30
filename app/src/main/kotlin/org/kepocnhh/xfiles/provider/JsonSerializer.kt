@@ -91,8 +91,8 @@ internal class JsonSerializer(base64: Base64Provider) : Serializer {
 
     override fun serialize(value: AsymmetricKey): ByteArray {
         return JSONObject()
-            .put("public", value.publicDecrypted.base64())
-            .put("private", value.privateEncrypted.base64())
+            .put("public", value.publicKeyDecrypted.base64())
+            .put("private", value.privateKeyEncrypted.base64())
             .toString()
             .toByteArray()
     }
@@ -100,8 +100,8 @@ internal class JsonSerializer(base64: Base64Provider) : Serializer {
     override fun toAsymmetricKey(bytes: ByteArray): AsymmetricKey {
         val json = JSONObject(String(bytes))
         return AsymmetricKey(
-            publicDecrypted = json.getString("public").base64(),
-            privateEncrypted = json.getString("private").base64(),
+            publicKeyDecrypted = json.getString("public").base64(),
+            privateKeyEncrypted = json.getString("private").base64(),
         )
     }
 

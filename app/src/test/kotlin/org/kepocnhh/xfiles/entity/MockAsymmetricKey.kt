@@ -1,11 +1,18 @@
 package org.kepocnhh.xfiles.entity
 
 internal fun mockAsymmetricKey(
-    publicDecrypted: ByteArray = "foo:publicDecrypted".toByteArray(),
-    privateEncrypted: ByteArray = "bar:privateEncrypted".toByteArray(),
+    publicKeyDecrypted: ByteArray = "AsymmetricKey:public:key:decrypted".toByteArray(),
+    privateKeyEncrypted: ByteArray = "AsymmetricKey:private:key:encrypted".toByteArray(),
 ): AsymmetricKey {
     return AsymmetricKey(
-        publicDecrypted = publicDecrypted,
-        privateEncrypted = privateEncrypted,
+        publicKeyDecrypted = publicKeyDecrypted,
+        privateKeyEncrypted = privateKeyEncrypted,
+    )
+}
+
+internal fun mockAsymmetricKey(issuer: String): AsymmetricKey {
+    return mockAsymmetricKey(
+        publicKeyDecrypted = "$issuer:public:key:decrypted".toByteArray(),
+        privateKeyEncrypted = "$issuer:private:key:encrypted".toByteArray(),
     )
 }

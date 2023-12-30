@@ -20,4 +20,8 @@ internal class MockPublicKey(
     override fun getEncoded(): ByteArray {
         return encoded
     }
+
+    override fun toString(): String {
+        return "Mock:Public:Key(${encoded.slice(0..5).joinToString()}...)"
+    }
 }

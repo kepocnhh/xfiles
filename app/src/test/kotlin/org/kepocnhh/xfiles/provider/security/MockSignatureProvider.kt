@@ -19,7 +19,7 @@ internal class MockSignatureProvider(
             if (it.privateKey != key) continue
             if (it.decrypted.contentEquals(decrypted)) return it.sig
         }
-        error("No signature!")
+        error("Sign: No signature!\nkey: $key")
     }
 
     override fun verify(key: PublicKey, decrypted: ByteArray, sig: ByteArray): Boolean {
@@ -27,6 +27,6 @@ internal class MockSignatureProvider(
             if (it.publicKey != key) continue
             if (it.decrypted.contentEquals(decrypted)) return it.sig.contentEquals(sig)
         }
-        error("No signature!")
+        error("Verify: No signature!\nkey: $key\nkeys: ${dataSets.map { it.publicKey }}")
     }
 }

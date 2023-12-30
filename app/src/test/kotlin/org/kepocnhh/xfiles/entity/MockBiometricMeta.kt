@@ -1,18 +1,18 @@
 package org.kepocnhh.xfiles.entity
 
 internal fun mockBiometricMeta(
-    password: ByteArray = "BiometricMeta:password".toByteArray(),
+    passwordEncrypted: ByteArray = "BiometricMeta:password:encrypted".toByteArray(),
     iv: ByteArray = "BiometricMeta:iv".toByteArray(),
 ): BiometricMeta {
     return BiometricMeta(
-        password = password,
+        passwordEncrypted = passwordEncrypted,
         iv = iv,
     )
 }
 
 internal fun mockBiometricMeta(issuer: String): BiometricMeta {
     return mockBiometricMeta(
-        password = "$issuer:biometric:meta:password".toByteArray(),
+        passwordEncrypted = "$issuer:biometric:meta:password:encrypted".toByteArray(),
         iv = "$issuer:biometric:meta:iv".toByteArray(),
     )
 }

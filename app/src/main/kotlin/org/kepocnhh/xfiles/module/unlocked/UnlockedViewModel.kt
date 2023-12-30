@@ -85,7 +85,7 @@ internal class UnlockedViewModel(private val injection: Injection) : AbstractVie
                                 .files
                                 .readBytes(injection.pathNames.asymmetric)
                                 .let(injection.serializer::toAsymmetricKey)
-                                .privateEncrypted,
+                                .privateKeyEncrypted,
                         ),
                     ),
                     random = injection.security(services).getSecureRandom(),
