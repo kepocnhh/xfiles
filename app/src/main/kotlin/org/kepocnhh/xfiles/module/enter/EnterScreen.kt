@@ -334,7 +334,7 @@ private fun EnterScreenInfo(
     exists: Boolean?,
     errorState: MutableState<EnterScreen.Error?>,
     onDelete: () -> Unit,
-    pinState: MutableState<String>,
+    pinLength: Int,
 ) {
     Box(modifier = modifier) {
         val modifier2 = Modifier
@@ -401,7 +401,7 @@ private fun EnterScreenInfo(
                 .align(Alignment.BottomCenter)
                 .offset(x = (offsetState.value - maxOffset / 2).value.absoluteValue.dp),
             text = buildPin(
-                length = pinState.value.length,
+                length = pinLength,
                 color = App.Theme.colors.secondary,
             ),
             style = TextStyle(
@@ -436,7 +436,7 @@ internal fun EnterScreen(
                 .weight(1f),
             exists = if (state == null) null else if (state.loading) null else state.exists,
             errorState = errorState,
-            pinState = pinState,
+            pinLength = pinState.value.length,
             onDelete = onDelete,
         )
         PinPad(

@@ -20,12 +20,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.R
 import sp.ax.jc.animations.tween.fade.FadeVisibility
 import sp.ax.jc.clicks.onClick
+
+@Composable
+private fun RowScope.PinButton(
+    char: Char,
+    enabled: Boolean,
+    textStyle: TextStyle,
+    onClick: (Char) -> Unit,
+) {
+    BasicText(
+        modifier = Modifier
+            .semantics {
+                role = Role.Button
+                contentDescription = "pin:pad:button:$char"
+            }
+            .fillMaxHeight()
+            .weight(1f)
+            .clickable(enabled = enabled) {
+                onClick(char)
+            }
+            .wrapContentHeight(),
+        text = "$char",
+        style = textStyle,
+    )
+}
 
 @Suppress("LongParameterList")
 @Composable
@@ -39,38 +67,23 @@ private fun PinRow(
     onClick: (Char) -> Unit,
 ) {
     Row(modifier = modifier) {
-        BasicText(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clickable(enabled = enabled) {
-                    onClick(first)
-                }
-                .wrapContentHeight(),
-            text = "$first",
-            style = textStyle,
+        PinButton(
+            char = first,
+            enabled = enabled,
+            textStyle = textStyle,
+            onClick = onClick,
         )
-        BasicText(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clickable(enabled = enabled) {
-                    onClick(first)
-                }
-                .wrapContentHeight(),
-            text = "$second",
-            style = textStyle,
+        PinButton(
+            char = second,
+            enabled = enabled,
+            textStyle = textStyle,
+            onClick = onClick,
         )
-        BasicText(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clickable(enabled = enabled) {
-                    onClick(first)
-                }
-                .wrapContentHeight(),
-            text = "$third",
-            style = textStyle,
+        PinButton(
+            char = third,
+            enabled = enabled,
+            textStyle = textStyle,
+            onClick = onClick,
         )
     }
 }
@@ -178,16 +191,11 @@ private fun PinPadBottom(
             )
         }
         val char = '0'
-        BasicText(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clickable(enabled = enabled) {
-                    listeners.onClick(char)
-                }
-                .wrapContentHeight(),
-            text = "$char",
-            style = textStyle,
+        PinButton(
+            char = char,
+            enabled = enabled,
+            textStyle = textStyle,
+            onClick = listeners.onClick,
         )
         PinPadImages(
             enabled = enabled,

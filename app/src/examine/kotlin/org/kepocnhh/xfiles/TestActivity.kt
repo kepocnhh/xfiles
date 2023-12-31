@@ -1,5 +1,5 @@
 package org.kepocnhh.xfiles
 
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 
-internal class TestActivity : ComponentActivity()
+internal class TestActivity : FragmentActivity()
