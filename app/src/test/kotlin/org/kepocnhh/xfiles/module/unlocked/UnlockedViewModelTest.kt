@@ -18,6 +18,7 @@ import org.kepocnhh.xfiles.entity.mockAsymmetricKey
 import org.kepocnhh.xfiles.entity.mockDataBase
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockSecurityServices
+import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.provider.MockEncryptedFileProvider
@@ -40,8 +41,8 @@ internal class UnlockedViewModelTest {
         runTest(timeout = 2.seconds) {
             val dataBase = mockDataBase(
                 secrets = mapOf(
-                    UUID.randomUUID() to ("foo:title" to "foo:secret"),
-                    UUID.randomUUID() to ("bar:title" to "bar:secret"),
+                    mockUUID() to ("foo:title" to "foo:secret"),
+                    mockUUID() to ("bar:title" to "bar:secret"),
                 ),
             )
             check(dataBase.secrets.isNotEmpty())
@@ -104,7 +105,7 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToCopyTest() {
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val secret = "requestToCopyTest:secret"
         val dataBase = mockDataBase(
             secrets = mapOf(
@@ -161,7 +162,7 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToShowTest() {
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val secret = "requestToShowTest:secret"
         val dataBase = mockDataBase(
             secrets = mapOf(
@@ -219,7 +220,7 @@ internal class UnlockedViewModelTest {
     @Test
     fun addValueTest() {
         val issuer = "UnlockedViewModelTest:addValueTest"
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val title = "addValueTest:title"
         val secret = "addValueTest:secret"
         val initDataBase = mockDataBase()
@@ -339,10 +340,10 @@ internal class UnlockedViewModelTest {
     fun deleteValueTest() {
         runTest(timeout = 2.seconds) {
             val issuer = "UnlockedViewModelTest:deleteValueTest"
-            val id = UUID.randomUUID()
+            val id = mockUUID()
             val title = "deleteValueTest:title"
             val secret = "deleteValueTest:secret"
-            val idForDelete = UUID.randomUUID()
+            val idForDelete = mockUUID()
             check(id != idForDelete)
             val initDataBase = mockDataBase(
                 secrets = mapOf(

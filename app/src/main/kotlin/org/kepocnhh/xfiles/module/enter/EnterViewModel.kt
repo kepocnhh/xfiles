@@ -17,6 +17,9 @@ import org.kepocnhh.xfiles.provider.Decrypt
 import org.kepocnhh.xfiles.provider.Encrypt
 import org.kepocnhh.xfiles.provider.EncryptedFileProvider
 import org.kepocnhh.xfiles.provider.data.EncryptedLocalDataProvider
+import org.kepocnhh.xfiles.provider.data.requireAppId
+import org.kepocnhh.xfiles.provider.data.requireDatabaseId
+import org.kepocnhh.xfiles.provider.data.requireDevice
 import org.kepocnhh.xfiles.provider.data.requireServices
 import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.readText
@@ -50,10 +53,6 @@ private fun check(params: DSAParams) {
         3072 -> check(N == 256)
         else -> error("L($L) is not 1024, 2048 or 3072!")
     }
-}
-
-private fun EncryptedLocalDataProvider.requireDatabaseId(): UUID {
-    return databaseId ?: error("No database id!")
 }
 
 internal class EnterViewModel(private val injection: Injection) : AbstractViewModel() {
@@ -201,14 +200,13 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
         val services = injection.local.requireServices()
         val security = injection.security(services)
         val md = security.getMessageDigest()
-        val device = injection.local.device ?: error("No device!")
-        val appId = injection.encrypted.local.appId ?: error("No app id!")
-        val bytes = listOf(
-            pin,
-            injection.devices.toUUID(device).toString(),
-            appId.toString(),
-            injection.encrypted.local.requireDatabaseId().toString(),
-        ).joinToString(separator = "-").toByteArray()
+        val device = injection.local.requireDevice()
+        val bytes = getBytes(
+            pin = pin,
+            deviceId = injection.devices.toUUID(device),
+            appId = injection.encrypted.local.requireAppId(),
+            databaseId = injection.encrypted.local.requireDatabaseId(),
+        )
         return security.base64().encode(md.digest(bytes))
     }
 
@@ -311,6 +309,25 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
                     .let(injection.serializer::toBiometricMeta)
             }
             _broadcast.emit(Broadcast.OnBiometric(iv = meta.iv))
+        }
+    }
+
+    companion object {
+        internal fun getBytes(
+            pin: String,
+            deviceId: UUID,
+            appId: UUID,
+            databaseId: UUID,
+        ): ByteArray {
+            check(pin.isNotEmpty()) { "PIN is empty!" }
+            val version = 1
+            return listOf(
+                "version:$version",
+                pin,
+                deviceId.toString(),
+                appId.toString(),
+                databaseId.toString(),
+            ).joinToString(separator = "-").toByteArray()
         }
     }
 }

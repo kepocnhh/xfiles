@@ -12,6 +12,7 @@ import org.kepocnhh.xfiles.TestProvider
 import org.kepocnhh.xfiles.collectFirst
 import org.kepocnhh.xfiles.entity.mockDevice
 import org.kepocnhh.xfiles.entity.mockSecurityServices
+import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.provider.MockDeviceProvider
@@ -116,7 +117,7 @@ internal class ChecksViewModelTest {
             }
             val services = mockSecurityServices()
             val device = mockDevice()
-            val appId = UUID.randomUUID()
+            val appId = mockUUID()
             val injection = mockInjection(
                 contexts = mockContexts(main = coroutineContext),
                 local = MockLocalDataProvider(

@@ -75,15 +75,15 @@ internal class EnterScreenTest {
         val hasBiometric = false
         val device = mockDevice(issuer = issuer)
         val appId = mockUUID()
-        val deviceUUID = mockUUID()
+        val deviceId = mockUUID()
         val databaseId = mockUUID()
         val pin = "3490"
-        val pinBytes = listOf(
-            pin,
-            deviceUUID.toString(),
-            appId.toString(),
-            databaseId.toString(),
-        ).joinToString(separator = "-").toByteArray()
+        val pinBytes = EnterViewModel.getBytes(
+            pin = pin,
+            deviceId = deviceId,
+            appId = appId,
+            databaseId = databaseId,
+        )
         val pinBytesDigest = "$issuer:pin:digest".toByteArray()
         val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
         val symmetric = mockKeyMeta(
@@ -154,7 +154,7 @@ internal class EnterScreenTest {
                 ),
             ),
             devices = MockDeviceProvider(
-                uuids = mapOf(device to deviceUUID),
+                uuids = mapOf(device to deviceId),
             ),
             security = {
                 check(securityServices == it)

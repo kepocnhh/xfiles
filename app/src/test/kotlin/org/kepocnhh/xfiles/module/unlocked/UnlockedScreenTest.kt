@@ -38,6 +38,7 @@ import org.kepocnhh.xfiles.entity.mockAsymmetricKey
 import org.kepocnhh.xfiles.entity.mockDataBase
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockSecurityServices
+import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.module.app.mockThemeState
@@ -247,7 +248,7 @@ internal class UnlockedScreenTest {
     fun filledTest() {
         val dataBase = mockDataBase(
             secrets = (1..4).associate { number ->
-                UUID.randomUUID() to ("title:$number" to "secret:$number")
+                mockUUID() to ("title:$number" to "secret:$number")
             },
         )
         val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
@@ -308,7 +309,7 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun showTest() {
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val title = "UnlockedScreenTest:showTest:title"
         val secret = "UnlockedScreenTest:showTest:secret"
         val dataBase = mockDataBase(
@@ -369,7 +370,7 @@ internal class UnlockedScreenTest {
     @Test(timeout = 2_000)
     fun deleteTest() {
         val issuer = "UnlockedScreenTest:deleteTest"
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val title = "UnlockedScreenTest:showTest:title"
         val secret = "UnlockedScreenTest:showTest:secret"
         val initDataBase = mockDataBase(
@@ -470,7 +471,7 @@ internal class UnlockedScreenTest {
     @Test(timeout = 2_000)
     fun copyTest() {
         val issuer = "UnlockedScreenTest:copyTest"
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val title = "$issuer:title"
         val secret = "$issuer:secret"
         val dataBase = mockDataBase(
@@ -535,7 +536,7 @@ internal class UnlockedScreenTest {
     @Test(timeout = 2_000)
     fun disposeTest() {
         val issuer = "UnlockedScreenTest:disposeTest"
-        val id = UUID.randomUUID()
+        val id = mockUUID()
         val title = "$issuer:title"
         val secret = "$issuer:secret"
         val dataBase = mockDataBase(

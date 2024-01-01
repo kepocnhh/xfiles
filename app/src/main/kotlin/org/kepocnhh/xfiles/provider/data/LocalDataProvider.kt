@@ -16,3 +16,7 @@ internal interface LocalDataProvider {
 internal fun LocalDataProvider.requireServices(): SecurityServices {
     return services ?: TODO("No services!")
 }
+
+internal fun LocalDataProvider.requireDevice(): Device {
+    return device ?: error("No device!")
+}

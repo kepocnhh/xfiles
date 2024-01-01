@@ -251,15 +251,15 @@ internal class EnterViewModelTest {
 //                pathNames.biometric, // no cipher
             )
             val device = mockDevice(issuer = issuer)
-            val deviceUUID = mockUUID(number = 1)
-            val appId = mockUUID(number = 2)
-            val databaseId = mockUUID(number = 3)
-            val pinBytes = listOf(
-                pin,
-                deviceUUID.toString(),
-                appId.toString(),
-                databaseId.toString(),
-            ).joinToString(separator = "-").toByteArray()
+            val deviceId = mockUUID()
+            val appId = mockUUID()
+            val databaseId = mockUUID()
+            val pinBytes = EnterViewModel.getBytes(
+                pin = pin,
+                deviceId = deviceId,
+                appId = appId,
+                databaseId = databaseId,
+            )
             val pinBytesDigest = "$issuer:pin:digest".toByteArray()
             val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
             val symmetric = mockKeyMeta(
@@ -371,7 +371,7 @@ internal class EnterViewModelTest {
                     )
                 },
                 devices = MockDeviceProvider(
-                    uuids = mapOf(device to deviceUUID),
+                    uuids = mapOf(device to deviceId),
                 ),
                 serializer = MockSerializer(
                     values = mapOf(
@@ -438,18 +438,18 @@ internal class EnterViewModelTest {
             )
             val hasBiometric = true
             val device = mockDevice(issuer = issuer)
-            val deviceUUID = mockUUID(number = 43)
-            val appId = mockUUID(number = 41)
-            val databaseId = mockUUID(number = 42)
-            val initDatabaseId = mockUUID(number = 2)
+            val deviceId = mockUUID()
+            val appId = mockUUID()
+            val databaseId = mockUUID()
+            val initDatabaseId = mockUUID()
             check(initDatabaseId != databaseId)
             val pin = "$issuer:pin"
-            val pinBytes = listOf(
-                pin,
-                deviceUUID.toString(),
-                appId.toString(),
-                databaseId.toString(),
-            ).joinToString(separator = "-").toByteArray()
+            val pinBytes = EnterViewModel.getBytes(
+                pin = pin,
+                deviceId = deviceId,
+                appId = appId,
+                databaseId = databaseId,
+            )
             val pinBytesDigest = "$issuer:pin:digest".toByteArray()
             val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
             val secretKey = MockSecretKey(encoded = "$issuer:secret:key".toByteArray())
@@ -564,7 +564,7 @@ internal class EnterViewModelTest {
                     )
                 },
                 devices = MockDeviceProvider(
-                    uuids = mapOf(device to deviceUUID)
+                    uuids = mapOf(device to deviceId)
                 ),
                 serializer = MockSerializer(
                     values = mapOf(
@@ -641,16 +641,16 @@ internal class EnterViewModelTest {
 //                pathNames.biometric, // hasBiometric == false
             )
             val device = mockDevice(issuer = issuer)
-            val deviceUUID = mockUUID()
+            val deviceId = mockUUID()
             val appId = mockUUID()
             val databaseId = mockUUID()
             val pin = "$issuer:pin"
-            val pinBytes = listOf(
-                pin,
-                deviceUUID.toString(),
-                appId.toString(),
-                databaseId.toString(),
-            ).joinToString(separator = "-").toByteArray()
+            val pinBytes = EnterViewModel.getBytes(
+                pin = pin,
+                deviceId = deviceId,
+                appId = appId,
+                databaseId = databaseId,
+            )
             val pinBytesDigest = "$issuer:pin:digest".toByteArray()
             val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
             val secretKey = MockSecretKey(issuer = issuer)
@@ -712,7 +712,7 @@ internal class EnterViewModelTest {
                     ),
                 ),
                 devices = MockDeviceProvider(
-                    uuids = mapOf(device to deviceUUID),
+                    uuids = mapOf(device to deviceId),
                 ),
                 security = {
                     MockSecurityProvider(
@@ -808,25 +808,25 @@ internal class EnterViewModelTest {
 //                pathNames.biometric, // hasBiometric == false
             )
             val device = mockDevice(issuer = issuer)
-            val deviceUUID = mockUUID()
+            val deviceId = mockUUID()
             val appId = mockUUID()
             val databaseId = mockUUID()
             val pin = "$issuer:pin"
-            val pinBytes = listOf(
-                pin,
-                deviceUUID.toString(),
-                appId.toString(),
-                databaseId.toString(),
-            ).joinToString(separator = "-").toByteArray()
+            val pinBytes = EnterViewModel.getBytes(
+                pin = pin,
+                deviceId = deviceId,
+                appId = appId,
+                databaseId = databaseId,
+            )
             val pinBytesDigest = "$issuer:pin:digest".toByteArray()
             val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
             val wrongPin = "$issuer:pin:wrong"
-            val wrongPinBytes = listOf(
-                wrongPin,
-                deviceUUID.toString(),
-                appId.toString(),
-                databaseId.toString(),
-            ).joinToString(separator = "-").toByteArray()
+            val wrongPinBytes = EnterViewModel.getBytes(
+                pin = wrongPin,
+                deviceId = deviceId,
+                appId = appId,
+                databaseId = databaseId,
+            )
             val wrongPinBytesDigest = "$issuer:pin:digest:wrong".toByteArray()
             val wrongPinBytesDigestEncoded = "$issuer:pin:digest:encoded:wrong"
             val secretKey = MockSecretKey(issuer = issuer)
@@ -896,7 +896,7 @@ internal class EnterViewModelTest {
                     ),
                 ),
                 devices = MockDeviceProvider(
-                    uuids = mapOf(device to deviceUUID),
+                    uuids = mapOf(device to deviceId),
                 ),
                 security = {
                     MockSecurityProvider(
