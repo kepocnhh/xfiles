@@ -39,6 +39,7 @@ internal class UnlockedViewModelTest {
     @Test
     fun requestValuesTest() {
         runTest(timeout = 2.seconds) {
+            val issuer = "UnlockedViewModelTest:requestValuesTest"
             val dataBase = mockDataBase(
                 secrets = mapOf(
                     mockUUID() to ("foo:title" to "foo:secret"),
@@ -49,7 +50,7 @@ internal class UnlockedViewModelTest {
             val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
             val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
             val symmetric = mockKeyMeta()
-            val key = MockSecretKey()
+            val secretKey = MockSecretKey(issuer = issuer)
             val pathNames = mockPathNames()
             val injection = mockInjection(
                 pathNames = pathNames,
@@ -58,7 +59,11 @@ internal class UnlockedViewModelTest {
                     MockSecurityProvider(
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                     )
@@ -86,7 +91,7 @@ internal class UnlockedViewModelTest {
                     when (index) {
                         0 -> {
                             assertNull(value)
-                            viewModel.requestValues(key)
+                            viewModel.requestValues(key = secretKey)
                         }
                         1 -> {
                             assertNotNull(value)
@@ -105,20 +110,21 @@ internal class UnlockedViewModelTest {
 
     @Test
     fun requestToCopyTest() {
-        val id = mockUUID()
-        val secret = "requestToCopyTest:secret"
-        val dataBase = mockDataBase(
-            secrets = mapOf(
-                id to ("foo:title" to secret),
-            ),
-        )
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
-        val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-        val key = MockSecretKey()
-        val pathNames = mockPathNames()
         runTest(timeout = 2.seconds) {
+            val issuer = "UnlockedViewModelTest:requestToCopyTest"
+            val id = mockUUID()
+            val secret = "requestToCopyTest:secret"
+            val dataBase = mockDataBase(
+                secrets = mapOf(
+                    id to ("foo:title" to secret),
+                ),
+            )
+            val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
+            val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+            val symmetric = mockKeyMeta()
+            val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+            val secretKey = MockSecretKey(issuer = issuer)
+            val pathNames = mockPathNames()
             val injection = mockInjection(
                 pathNames = pathNames,
                 local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -126,7 +132,11 @@ internal class UnlockedViewModelTest {
                     MockSecurityProvider(
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                     )
@@ -155,27 +165,28 @@ internal class UnlockedViewModelTest {
                         assertEquals(secret, it.secret)
                     }
             }
-            viewModel.requestToCopy(key = key, id = id)
+            viewModel.requestToCopy(key = secretKey, id = id)
             job.join()
         }
     }
 
     @Test
     fun requestToShowTest() {
-        val id = mockUUID()
-        val secret = "requestToShowTest:secret"
-        val dataBase = mockDataBase(
-            secrets = mapOf(
-                id to ("foo:title" to secret),
-            ),
-        )
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
-        val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-        val key = MockSecretKey()
-        val pathNames = mockPathNames()
         runTest(timeout = 2.seconds) {
+            val issuer = "UnlockedViewModelTest:requestToShowTest"
+            val id = mockUUID()
+            val secret = "requestToShowTest:secret"
+            val dataBase = mockDataBase(
+                secrets = mapOf(
+                    id to ("foo:title" to secret),
+                ),
+            )
+            val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
+            val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+            val symmetric = mockKeyMeta()
+            val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+            val secretKey = MockSecretKey(issuer = issuer)
+            val pathNames = mockPathNames()
             val injection = mockInjection(
                 local = MockLocalDataProvider(services = mockSecurityServices()),
                 pathNames = pathNames,
@@ -183,7 +194,11 @@ internal class UnlockedViewModelTest {
                     MockSecurityProvider(
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                     )
@@ -212,7 +227,7 @@ internal class UnlockedViewModelTest {
                         assertEquals(secret, it.secret)
                     }
             }
-            viewModel.requestToShow(key = key, id = id)
+            viewModel.requestToShow(key = secretKey, id = id)
             job.join()
         }
     }
@@ -241,7 +256,7 @@ internal class UnlockedViewModelTest {
         val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
         val privateKey = MockPrivateKey("UnlockedViewModelTest:addValueTest:privateKey".toByteArray())
         val publicKey = MockPublicKey("UnlockedViewModelTest:addValueTest:publicKey".toByteArray())
-        val key = MockSecretKey()
+        val secretKey = MockSecretKey(issuer = issuer)
         runTest(timeout = 2.seconds) {
             val pathNames = mockPathNames()
             val injection = mockInjection(
@@ -251,9 +266,21 @@ internal class UnlockedViewModelTest {
                     MockSecurityProvider(
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
-                                Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
-                                Triple(asymmetric.privateKeyEncrypted, privateKey.encoded, key),
+                                MockCipherProvider.DataSet(
+                                    encrypted = initDataBaseEncrypted,
+                                    decrypted = initDataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
+                                MockCipherProvider.DataSet(
+                                    encrypted = editedDataBaseEncrypted,
+                                    decrypted = editedDataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
+                                MockCipherProvider.DataSet(
+                                    encrypted = asymmetric.privateKeyEncrypted,
+                                    decrypted = privateKey.encoded,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         uuids = MockUUIDGenerator(uuid = id),
@@ -303,13 +330,13 @@ internal class UnlockedViewModelTest {
                     when (index) {
                         0 -> {
                             assertNull(value)
-                            viewModel.requestValues(key)
+                            viewModel.requestValues(key = secretKey)
                         }
                         1 -> {
                             assertNotNull(value)
                             checkNotNull(value)
                             assertTrue(value.isEmpty())
-                            viewModel.addValue(key = key, title = title, secret = secret)
+                            viewModel.addValue(key = secretKey, title = title, secret = secret)
                         }
                         2 -> {
                             assertNotNull(value)
@@ -331,7 +358,7 @@ internal class UnlockedViewModelTest {
                     }
             }
             dataBaseRef.set(editedDataBaseEncrypted)
-            viewModel.requestToShow(key = key, id = id)
+            viewModel.requestToShow(key = secretKey, id = id)
             job.join()
         }
     }
@@ -371,7 +398,7 @@ internal class UnlockedViewModelTest {
             val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
             val privateKey = MockPrivateKey("UnlockedViewModelTest:deleteValueTest:privateKey".toByteArray())
             val publicKey = MockPublicKey("UnlockedViewModelTest:deleteValueTest:publicKey".toByteArray())
-            val key = MockSecretKey()
+            val secretKey = MockSecretKey(issuer = issuer)
             val pathNames = mockPathNames()
             val injection = mockInjection(
                 local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -380,9 +407,21 @@ internal class UnlockedViewModelTest {
                     MockSecurityProvider(
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
-                                Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
-                                Triple(asymmetric.privateKeyEncrypted, privateKey.encoded, key),
+                                MockCipherProvider.DataSet(
+                                    encrypted = initDataBaseEncrypted,
+                                    decrypted = initDataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
+                                MockCipherProvider.DataSet(
+                                    encrypted = editedDataBaseEncrypted,
+                                    decrypted = editedDataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
+                                MockCipherProvider.DataSet(
+                                    encrypted = asymmetric.privateKeyEncrypted,
+                                    decrypted = privateKey.encoded,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         keyFactory = MockKeyFactoryProvider(privateKey = privateKey),
@@ -427,7 +466,7 @@ internal class UnlockedViewModelTest {
                     when (index) {
                         0 -> {
                             assertNull(value)
-                            viewModel.requestValues(key)
+                            viewModel.requestValues(key = secretKey)
                         }
                         1 -> {
                             assertNotNull(value)
@@ -437,7 +476,7 @@ internal class UnlockedViewModelTest {
                                 t
                             }
                             assertEquals(titles, value)
-                            viewModel.deleteValue(key = key, id = idForDelete)
+                            viewModel.deleteValue(key = secretKey, id = idForDelete)
                         }
                         2 -> {
                             assertNotNull(value)
@@ -461,7 +500,7 @@ internal class UnlockedViewModelTest {
                     }
             }
             dataBaseRef.set(editedDataBaseEncrypted)
-            viewModel.requestToShow(key = key, id = id)
+            viewModel.requestToShow(key = secretKey, id = id)
             job.join()
         }
     }

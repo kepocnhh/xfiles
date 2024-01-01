@@ -38,7 +38,7 @@ internal fun ComposeTestRule.waitZero(
     }
 }
 
-internal fun <T : Any> ComposeTestRule.waitUntilNull(
+internal fun <T : Any> ComposeTestRule.waitUntilPresent(
     ref: AtomicReference<T?>,
     duration: Duration = 1.seconds,
 ): T {

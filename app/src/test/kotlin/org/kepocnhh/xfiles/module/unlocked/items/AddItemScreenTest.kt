@@ -30,7 +30,7 @@ import org.kepocnhh.xfiles.TestActivity
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.module.app.mockThemeState
 import org.kepocnhh.xfiles.setContent
-import org.kepocnhh.xfiles.waitUntilNull
+import org.kepocnhh.xfiles.waitUntilPresent
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -139,7 +139,7 @@ internal class AddItemScreenTest {
         rule.onNode(isButton and isAction, useUnmergedTree = true)
             .assert(hasText(strings.addItem.done))
             .performClick()
-        val pair = rule.waitUntilNull(added)
+        val pair = rule.waitUntilPresent(added)
         assertEquals(title, pair.first)
         assertEquals(secret, pair.second)
     }

@@ -4,8 +4,14 @@ import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.SecretKey
 
 internal class MockCipherProvider(
-    private val values: List<Triple<ByteArray, ByteArray, SecretKey>> = emptyList(),
+    private val values: List<DataSet> = emptyList(),
 ) : CipherProvider {
+    class DataSet(
+        val encrypted: ByteArray,
+        val decrypted: ByteArray,
+        val secretKey: SecretKey,
+    )
+
     class NoDecryptedException(
         val key: SecretKey,
         val params: AlgorithmParameterSpec,
@@ -17,8 +23,8 @@ internal class MockCipherProvider(
         params: AlgorithmParameterSpec,
         decrypted: ByteArray
     ): ByteArray {
-        for ((encrypted, d, k) in values) {
-            if (key == k && decrypted.contentEquals(d)) return encrypted
+        for (it in values) {
+            if (key == it.secretKey && decrypted.contentEquals(it.decrypted)) return it.encrypted
         }
         error("Cipher: No encrypted!")
     }
@@ -28,8 +34,8 @@ internal class MockCipherProvider(
         params: AlgorithmParameterSpec,
         encrypted: ByteArray
     ): ByteArray {
-        for ((e, decrypted, k) in values) {
-            if (key == k && encrypted.contentEquals(e)) return decrypted
+        for (it in values) {
+            if (key == it.secretKey && encrypted.contentEquals(it.encrypted)) return it.decrypted
         }
         throw NoDecryptedException(key = key, params = params, encrypted = encrypted)
     }

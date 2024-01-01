@@ -13,6 +13,6 @@ internal class MockSecretKeyFactoryProvider(
             is PBEKeySpec -> MockPBEKeySpec(params)
             else -> params
         }
-        return values[p] ?: error("No key by $params!")
+        return values[p] ?: error("No secret key by $params!")
     }
 }

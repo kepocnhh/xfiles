@@ -74,6 +74,7 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun backTest() {
+        val issuer = "UnlockedScreenTest:backTest"
         val locked = AtomicBoolean(false)
         val dataBase = mockDataBase()
         val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
@@ -81,7 +82,7 @@ internal class UnlockedScreenTest {
         val pathNames = mockPathNames()
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-        val key = MockSecretKey("UnlockedScreenTest:backTest:SecretKey".toByteArray())
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -89,7 +90,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -115,7 +120,7 @@ internal class UnlockedScreenTest {
         rule.setContent {
             App.Theme.Composition(themeState = mockThemeState()) {
                 UnlockedScreen(
-                    key = key,
+                    key = secretKey,
                     broadcast = {
                         when (it) {
                             UnlockedScreen.Broadcast.Lock -> {
@@ -135,6 +140,7 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun onLockTest() {
+        val issuer = "UnlockedScreenTest:onLockTest"
         val locked = AtomicBoolean(false)
         val dataBase = mockDataBase()
         val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
@@ -142,7 +148,7 @@ internal class UnlockedScreenTest {
         val pathNames = mockPathNames()
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
-        val key = MockSecretKey()
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -150,7 +156,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -176,7 +186,7 @@ internal class UnlockedScreenTest {
         rule.setContent {
             App.Theme.Composition(themeState = mockThemeState()) {
                 UnlockedScreen(
-                    key = key,
+                    key = secretKey,
                     broadcast = {
                         when (it) {
                             UnlockedScreen.Broadcast.Lock -> {
@@ -198,13 +208,14 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun emptyTest() {
+        val issuer = "UnlockedScreenTest:emptyTest"
         val dataBase = mockDataBase()
         val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
         val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
-        val key = MockSecretKey()
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -212,7 +223,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -234,7 +249,7 @@ internal class UnlockedScreenTest {
         )
         rule.setContent(injection) {
             UnlockedScreen(
-                key = key,
+                key = secretKey,
                 broadcast = {
                     error("Illegal state!")
                 },
@@ -246,6 +261,7 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun filledTest() {
+        val issuer = "UnlockedScreenTest:filledTest"
         val dataBase = mockDataBase(
             secrets = (1..4).associate { number ->
                 mockUUID() to ("title:$number" to "secret:$number")
@@ -257,7 +273,7 @@ internal class UnlockedScreenTest {
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
-        val key = MockSecretKey()
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -265,7 +281,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -287,7 +307,7 @@ internal class UnlockedScreenTest {
         )
         rule.setContent(injection) {
             UnlockedScreen(
-                key = key,
+                key = secretKey,
                 broadcast = {
                     error("Illegal state!")
                 },
@@ -309,6 +329,7 @@ internal class UnlockedScreenTest {
 
     @Test(timeout = 2_000)
     fun showTest() {
+        val issuer = "UnlockedScreenTest:showTest"
         val id = mockUUID()
         val title = "UnlockedScreenTest:showTest:title"
         val secret = "UnlockedScreenTest:showTest:secret"
@@ -321,7 +342,7 @@ internal class UnlockedScreenTest {
         val symmetric = mockKeyMeta()
         val symmetricDecrypted = "symmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
-        val key = MockSecretKey()
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -329,7 +350,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -351,7 +376,7 @@ internal class UnlockedScreenTest {
         )
         rule.setContent(injection) {
             UnlockedScreen(
-                key = key,
+                key = secretKey,
                 broadcast = {
                     error("Illegal state!")
                 },
@@ -397,7 +422,7 @@ internal class UnlockedScreenTest {
         val pathNames = mockPathNames()
         val privateKey = MockPrivateKey("UnlockedScreenTest:deleteTest:privateKey".toByteArray())
         val publicKey = MockPublicKey("UnlockedScreenTest:deleteTest:publicKey".toByteArray())
-        val key = MockSecretKey("UnlockedScreenTest:deleteTest:secretKey".toByteArray())
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -405,9 +430,21 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(initDataBaseEncrypted, initDataBaseDecrypted, key),
-                            Triple(editedDataBaseEncrypted, editedDataBaseDecrypted, key),
-                            Triple(asymmetric.privateKeyEncrypted, privateKey.encoded, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = initDataBaseEncrypted,
+                                decrypted = initDataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
+                            MockCipherProvider.DataSet(
+                                encrypted = editedDataBaseEncrypted,
+                                decrypted = editedDataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
+                            MockCipherProvider.DataSet(
+                                encrypted = asymmetric.privateKeyEncrypted,
+                                decrypted = privateKey.encoded,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                     keyFactory = MockKeyFactoryProvider(privateKey = privateKey),
@@ -446,7 +483,7 @@ internal class UnlockedScreenTest {
         )
         val strings = rule.setContent(injection) {
             UnlockedScreen(
-                key = key,
+                key = secretKey,
                 broadcast = {
                     error("Illegal state!")
                 },
@@ -483,7 +520,7 @@ internal class UnlockedScreenTest {
         val symmetric = mockKeyMeta(issuer = "$issuer:symmetric")
         val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
-        val key = MockSecretKey("$issuer:key".toByteArray())
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -491,7 +528,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -513,7 +554,7 @@ internal class UnlockedScreenTest {
         )
         rule.setContent(injection) {
             UnlockedScreen(
-                key = key,
+                key = secretKey,
                 broadcast = {
                     error("Illegal state!")
                 },
@@ -548,7 +589,7 @@ internal class UnlockedScreenTest {
         val symmetric = mockKeyMeta(issuer = "$issuer:symmetric")
         val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
         val pathNames = mockPathNames()
-        val key = MockSecretKey("$issuer:key".toByteArray())
+        val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
             pathNames = pathNames,
@@ -556,7 +597,11 @@ internal class UnlockedScreenTest {
                 MockSecurityProvider(
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, key),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                 )
@@ -581,7 +626,7 @@ internal class UnlockedScreenTest {
                 val visible = remember { mutableStateOf(true) }
                 if (visible.value) {
                     UnlockedScreen(
-                        key = key,
+                        key = secretKey,
                         broadcast = {
                             error("Illegal state!")
                         },

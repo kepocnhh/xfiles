@@ -21,6 +21,7 @@ import org.kepocnhh.xfiles.entity.MockAlgorithmParameters
 import org.kepocnhh.xfiles.entity.MockDSAParameterSpec
 import org.kepocnhh.xfiles.entity.MockDSAPrivateKey
 import org.kepocnhh.xfiles.entity.MockPBEKeySpec
+import org.kepocnhh.xfiles.entity.MockPrivateKey
 import org.kepocnhh.xfiles.entity.MockPublicKey
 import org.kepocnhh.xfiles.entity.MockSecretKey
 import org.kepocnhh.xfiles.entity.SecuritySettings
@@ -32,10 +33,12 @@ import org.kepocnhh.xfiles.entity.mockKeyPair
 import org.kepocnhh.xfiles.entity.mockSecurityServices
 import org.kepocnhh.xfiles.entity.mockSecuritySettings
 import org.kepocnhh.xfiles.entity.mockUUID
+import org.kepocnhh.xfiles.mockBytes
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.module.app.mockThemeState
 import org.kepocnhh.xfiles.provider.MockDeviceProvider
+import org.kepocnhh.xfiles.provider.MockEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.MockSerializer
 import org.kepocnhh.xfiles.provider.MockTimeProvider
 import org.kepocnhh.xfiles.provider.data.MockEncryptedLocalDataProvider
@@ -44,6 +47,7 @@ import org.kepocnhh.xfiles.provider.mockPathNames
 import org.kepocnhh.xfiles.provider.security.MockAlgorithmParameterGeneratorProvider
 import org.kepocnhh.xfiles.provider.security.MockBase64Provider
 import org.kepocnhh.xfiles.provider.security.MockCipherProvider
+import org.kepocnhh.xfiles.provider.security.MockKeyFactoryProvider
 import org.kepocnhh.xfiles.provider.security.MockKeyPairGeneratorProvider
 import org.kepocnhh.xfiles.provider.security.MockMessageDigestProvider
 import org.kepocnhh.xfiles.provider.security.MockSecretKeyFactoryProvider
@@ -51,10 +55,10 @@ import org.kepocnhh.xfiles.provider.security.MockSecureRandom
 import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
 import org.kepocnhh.xfiles.provider.security.MockUUIDGenerator
-import org.kepocnhh.xfiles.waitUntilNull
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicReference
 import org.kepocnhh.xfiles.setInjection
+import org.kepocnhh.xfiles.waitUntilPresent
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
@@ -164,7 +168,7 @@ internal class EnterScreenTest {
                     ),
                     uuids = MockUUIDGenerator(uuid = databaseId),
                     base64 = MockBase64Provider(
-                        mapOf(pinBytesDigestEncoded to pinBytesDigest),
+                        values = mapOf(pinBytesDigestEncoded to pinBytesDigest),
                     ),
                     random = MockSecureRandom(
                         values = mapOf(
@@ -190,8 +194,16 @@ internal class EnterScreenTest {
                     ),
                     cipher = MockCipherProvider(
                         values = listOf(
-                            Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
-                            Triple(privateKeyEncrypted, privateKey.encoded, secretKey),
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
+                            MockCipherProvider.DataSet(
+                                encrypted = privateKeyEncrypted,
+                                decrypted = privateKey.encoded,
+                                secretKey = secretKey,
+                            ),
                         ),
                     ),
                     signature = MockSignatureProvider(
@@ -233,7 +245,7 @@ internal class EnterScreenTest {
             val isPinButton = hasContentDescription("pin:pad:button:$char")
             rule.onNode(isButton and isPinButton).performClick()
         }
-        val broadcast = rule.waitUntilNull(broadcastRef)
+        val broadcast = rule.waitUntilPresent(broadcastRef)
         check(broadcast is EnterScreen.Broadcast.Unlock)
         assertTrue("Keys are not equal!", secretKey.encoded.contentEquals(broadcast.key.encoded))
         assertEquals(injection.encrypted.local.databaseId, databaseId)
@@ -255,10 +267,152 @@ internal class EnterScreenTest {
             pathNames.dataBaseSignature,
 //              pathNames.biometric, // no cipher
         )
-        val injection = mockInjection()
-        TODO(issuer)
+        val device = mockDevice(issuer = issuer)
+        val appId = mockUUID()
+        val deviceId = mockUUID()
+        val databaseId = mockUUID()
+        val pin = "0943"
+        val pinBytes = EnterViewModel.getBytes(
+            pin = pin,
+            deviceId = deviceId,
+            appId = appId,
+            databaseId = databaseId,
+        )
+        val pinBytesDigestEncoded = "$issuer:pin:digest:encoded"
+        val pinBytesDigest = pinBytesDigestEncoded.toByteArray()
+        val symmetric = mockKeyMeta(
+            saltSize = 32,
+            ivDBSize = 16,
+            ivPrivateSize = 16,
+        )
+        val symmetricDecrypted = mockBytes(issuer)
+        val publicKey = MockPublicKey(issuer = issuer)
+        val privateKey = MockPrivateKey(issuer = issuer)
+        val privateKeyEncrypted = mockBytes(issuer)
+        val asymmetric = mockAsymmetricKey(
+            publicKeyDecrypted = publicKey.encoded,
+            privateKeyEncrypted = privateKeyEncrypted,
+        )
+        val asymmetricDecrypted = mockBytes(issuer)
+        val aesKeyLength = 256
+        val pbeIterations = 2.0.pow(16).toInt()
+        val pbeKeySpec = MockPBEKeySpec(
+            password = pinBytesDigestEncoded,
+            salt = symmetric.salt,
+            iterationCount = pbeIterations,
+            keyLength = aesKeyLength,
+        )
+        val secrets = mapOf(
+            mockUUID() to ("foo:1" to "bar:1"),
+            mockUUID() to ("foo:2" to "bar:2"),
+        )
+        val dataBase = mockDataBase(
+            id = databaseId,
+            updated = 128.seconds,
+            secrets = secrets,
+        )
+        val dataBaseEncrypted = mockBytes(issuer)
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseSignature = mockBytes(issuer)
+        val secretKey = MockSecretKey(issuer = issuer)
+        val securityServices = mockSecurityServices(issuer = issuer)
+        val injection = mockInjection(
+            pathNames = pathNames,
+            local = MockLocalDataProvider(
+                services = securityServices,
+                securitySettings = mockSecuritySettings(
+                    aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
+                    pbeIterations = SecuritySettings.PBEIterations.NUMBER_2_16,
+                    dsaKeyLength = SecuritySettings.DSAKeyLength.BITS_1024_2,
+                    hasBiometric = hasBiometric,
+                ),
+                device = device,
+            ),
+            encrypted = mockEncrypted(
+                local = MockEncryptedLocalDataProvider(
+                    appId = appId,
+                    databaseId = databaseId,
+                ),
+                files = MockEncryptedFileProvider(
+                    exists = files,
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                        pathNames.asymmetric to asymmetricDecrypted,
+                        pathNames.dataBaseSignature to dataBaseSignature,
+                    ),
+                ),
+            ),
+            devices = MockDeviceProvider(
+                uuids = mapOf(device to deviceId),
+            ),
+            security = {
+                check(securityServices == it)
+                MockSecurityProvider(
+                    md = MockMessageDigestProvider(
+                        listOf(pinBytes to pinBytesDigest),
+                    ),
+                    base64 = MockBase64Provider(
+                        values = mapOf(pinBytesDigestEncoded to pinBytesDigest),
+                    ),
+                    secretKeyFactory = MockSecretKeyFactoryProvider(
+                        values = mapOf(
+                            pbeKeySpec to secretKey,
+                        ),
+                    ),
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
+                        ),
+                    ),
+                    keyFactory = MockKeyFactoryProvider(
+                        publicKey = publicKey,
+                    ),
+                    signature = MockSignatureProvider(
+                        dataSets = listOf(
+                            MockSignatureProvider.DataSet(
+                                decrypted = dataBaseDecrypted,
+                                sig = dataBaseSignature,
+                                privateKey = privateKey,
+                                publicKey = publicKey,
+                            ),
+                        ),
+                    ),
+                )
+            },
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    asymmetric to asymmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+        )
+        App.setInjection(injection)
+        rule.setContent {
+            App.Theme.Composition(themeState = mockThemeState()) {
+                EnterScreen(broadcast = broadcastRef::set)
+            }
+        }
+        check(injection.encrypted.local.databaseId == databaseId)
+        check(injection.security(securityServices).uuids().generate() != databaseId)
+        check(!hasBiometric)
         files.forEach {
             assertTrue("File $it does not exist!", injection.encrypted.files.exists(it))
         }
+        val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
+        check(pin.length == 4)
+        pin.forEach { char ->
+            check(char.isDigit())
+            val isPinButton = hasContentDescription("pin:pad:button:$char")
+            rule.onNode(isButton and isPinButton).performClick()
+        }
+        val broadcast = rule.waitUntilPresent(broadcastRef)
+        check(broadcast is EnterScreen.Broadcast.Unlock)
+        assertTrue("Keys are not equal!", secretKey.encoded.contentEquals(broadcast.key.encoded))
     }
 }

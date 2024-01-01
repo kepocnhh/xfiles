@@ -354,8 +354,16 @@ internal class EnterViewModelTest {
                         ),
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
-                                Triple(privateKeyEncrypted, privateKey.encoded, secretKey),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
+                                MockCipherProvider.DataSet(
+                                    encrypted = privateKeyEncrypted,
+                                    decrypted = privateKey.encoded,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         signature = MockSignatureProvider(
@@ -547,8 +555,16 @@ internal class EnterViewModelTest {
                         ),
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
-                                Triple(privateKeyEncrypted, privateKey.encoded, secretKey),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
+                                MockCipherProvider.DataSet(
+                                    encrypted = privateKeyEncrypted,
+                                    decrypted = privateKey.encoded,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         signature = MockSignatureProvider(
@@ -732,7 +748,11 @@ internal class EnterViewModelTest {
                         ),
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         signature = MockSignatureProvider(
@@ -923,7 +943,11 @@ internal class EnterViewModelTest {
                         ),
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         signature = MockSignatureProvider(
@@ -1093,7 +1117,11 @@ internal class EnterViewModelTest {
                         ),
                         cipher = MockCipherProvider(
                             values = listOf(
-                                Triple(dataBaseEncrypted, dataBaseDecrypted, secretKey),
+                                MockCipherProvider.DataSet(
+                                    encrypted = dataBaseEncrypted,
+                                    decrypted = dataBaseDecrypted,
+                                    secretKey = secretKey,
+                                ),
                             ),
                         ),
                         signature = MockSignatureProvider(
