@@ -163,7 +163,7 @@ internal class EnterScreenTest {
             security = {
                 check(securityServices == it)
                 MockSecurityProvider(
-                    md = MockMessageDigestProvider(
+                    sha512 = MockMessageDigestProvider(
                         listOf(pinBytes to pinBytesDigest),
                     ),
                     uuids = MockUUIDGenerator(uuid = databaseId),
@@ -349,7 +349,7 @@ internal class EnterScreenTest {
             security = {
                 check(securityServices == it)
                 MockSecurityProvider(
-                    md = MockMessageDigestProvider(
+                    sha512 = MockMessageDigestProvider(
                         listOf(pinBytes to pinBytesDigest),
                     ),
                     base64 = MockBase64Provider(

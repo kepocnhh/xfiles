@@ -5,7 +5,8 @@ internal fun mockSecurityServices(
     symmetric: SecurityService = mockSecurityService(algorithm = "symmetric"),
     asymmetric: SecurityService = mockSecurityService(algorithm = "asymmetric"),
     signature: SecurityService = mockSecurityService(algorithm = "signature"),
-    hash: SecurityService = mockSecurityService(algorithm = "hash"),
+    sha512: SecurityService = mockSecurityService(algorithm = "sha512"),
+    md5: SecurityService = mockSecurityService(algorithm = "md5"),
     random: SecurityService = mockSecurityService(algorithm = "random"),
 ): SecurityServices {
     return SecurityServices(
@@ -13,18 +14,20 @@ internal fun mockSecurityServices(
         symmetric = symmetric,
         asymmetric = asymmetric,
         signature = signature,
-        hash = hash,
+        sha512 = sha512,
+        md5 = md5,
         random = random,
     )
 }
 
 internal fun mockSecurityServices(issuer: String): SecurityServices {
     return mockSecurityServices(
-        cipher = mockSecurityService(issuer = issuer),
-        symmetric = mockSecurityService(issuer = issuer),
-        asymmetric = mockSecurityService(issuer = issuer),
-        signature = mockSecurityService(issuer = issuer),
-        hash = mockSecurityService(issuer = issuer),
-        random = mockSecurityService(issuer = issuer),
+        cipher = mockSecurityService(issuer = "$issuer:cipher"),
+        symmetric = mockSecurityService(issuer = "$issuer:symmetric"),
+        asymmetric = mockSecurityService(issuer = "$issuer:asymmetric"),
+        signature = mockSecurityService(issuer = "$issuer:signature"),
+        sha512 = mockSecurityService(issuer = "$issuer:sha512"),
+        md5 = mockSecurityService(issuer = "$issuer:md5"),
+        random = mockSecurityService(issuer = "$issuer:random"),
     )
 }

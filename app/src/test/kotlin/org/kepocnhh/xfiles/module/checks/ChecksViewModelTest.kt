@@ -32,7 +32,7 @@ internal class ChecksViewModelTest {
 
     @Test
     fun runChecksTest() {
-        runTest(timeout = 10.seconds) {
+        runTest(timeout = 2.seconds) {
             val cipher = SecurityUtil.ciphers.firstOrNull() ?: error("No cipher!")
             TestProvider(
                 name = "BC",
@@ -49,6 +49,7 @@ internal class ChecksViewModelTest {
                 name = "AndroidOpenSSL",
                 services = listOf(
                     "MessageDigest" to "SHA-512",
+                    "MessageDigest" to "MD5",
                     "SecureRandom" to "SHA1PRNG",
                 ),
             ).also {
@@ -92,7 +93,7 @@ internal class ChecksViewModelTest {
 
     @Test
     fun runChecksSkippedTest() {
-        runTest(timeout = 10.seconds) {
+        runTest(timeout = 2.seconds) {
             val cipher = SecurityUtil.ciphers.firstOrNull() ?: error("No cipher!")
             TestProvider(
                 name = "BC",
@@ -153,7 +154,7 @@ internal class ChecksViewModelTest {
 
     @Test
     fun runChecksErrorTest() {
-        runTest(timeout = 10.seconds) {
+        runTest(timeout = 2.seconds) {
             val injection = mockInjection(
                 contexts = mockContexts(main = coroutineContext),
                 local = MockLocalDataProvider(

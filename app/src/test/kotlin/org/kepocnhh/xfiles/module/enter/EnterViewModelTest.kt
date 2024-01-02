@@ -40,7 +40,6 @@ import org.kepocnhh.xfiles.provider.MockTimeProvider
 import org.kepocnhh.xfiles.provider.data.MockEncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockPathNames
-import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.provider.security.MockAlgorithmParameterGeneratorProvider
 import org.kepocnhh.xfiles.provider.security.MockBase64Provider
 import org.kepocnhh.xfiles.provider.security.MockCipherProvider
@@ -323,7 +322,7 @@ internal class EnterViewModelTest {
                 security = {
                     check(it == securityServices)
                     MockSecurityProvider(
-                        md = MockMessageDigestProvider(
+                        sha512 = MockMessageDigestProvider(
                             listOf(pinBytes to pinBytesDigest),
                         ),
                         uuids = MockUUIDGenerator(uuid = databaseId),
@@ -524,7 +523,7 @@ internal class EnterViewModelTest {
                 ),
                 security = {
                     MockSecurityProvider(
-                        md = MockMessageDigestProvider(
+                        sha512 = MockMessageDigestProvider(
                             listOf(pinBytes to pinBytesDigest),
                         ),
                         base64 = MockBase64Provider(
@@ -732,7 +731,7 @@ internal class EnterViewModelTest {
                 ),
                 security = {
                     MockSecurityProvider(
-                        md = MockMessageDigestProvider(
+                        sha512 = MockMessageDigestProvider(
                             listOf(pinBytes to pinBytesDigest),
                         ),
                         base64 = MockBase64Provider(
@@ -920,7 +919,7 @@ internal class EnterViewModelTest {
                 ),
                 security = {
                     MockSecurityProvider(
-                        md = MockMessageDigestProvider(
+                        sha512 = MockMessageDigestProvider(
                             digests = listOf(
                                 pinBytes to pinBytesDigest,
                                 wrongPinBytes to wrongPinBytesDigest,

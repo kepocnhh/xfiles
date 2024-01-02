@@ -87,6 +87,7 @@ internal class RouterScreenTest {
             name = "AndroidOpenSSL",
             services = listOf(
                 "MessageDigest" to "SHA-512",
+                "MessageDigest" to "MD5",
                 "SecureRandom" to "SHA1PRNG",
             ),
         )
@@ -120,6 +121,7 @@ internal class RouterScreenTest {
             name = "AndroidOpenSSL",
             services = listOf(
                 "MessageDigest" to "SHA-512",
+                "MessageDigest" to "MD5",
                 "SecureRandom" to "SHA1PRNG",
             ),
         )

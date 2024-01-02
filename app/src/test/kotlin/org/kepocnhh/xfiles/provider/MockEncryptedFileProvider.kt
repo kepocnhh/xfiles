@@ -1,7 +1,5 @@
 package org.kepocnhh.xfiles.provider
 
-import java.io.ByteArrayInputStream
-import java.io.InputStream
 import java.util.concurrent.atomic.AtomicReference
 
 internal class MockEncryptedFileProvider(
@@ -41,11 +39,10 @@ internal class MockEncryptedFileProvider(
         exists.remove(pathname)
     }
 
-    override fun openInput(pathname: String): InputStream {
-        val bytes = inputs[pathname]
+    override fun readBytes(pathname: String): ByteArray {
+        return inputs[pathname]
             ?: refs[pathname]?.get()
             ?: error("No input by $pathname!")
-        return ByteArrayInputStream(bytes)
     }
 
     override fun writeBytes(pathname: String, bytes: ByteArray) {

@@ -40,12 +40,13 @@ internal class ChecksScreenTest {
         Security.removeProvider("AndroidOpenSSL")
     }
 
-    @Test(timeout = 5_000)
+    @Test(timeout = 2_000)
     fun onCompleteTest() {
         val provider = TestProvider(
             name = "AndroidOpenSSL",
             services = listOf(
                 "MessageDigest" to "SHA-512",
+                "MessageDigest" to "MD5",
                 "SecureRandom" to "SHA1PRNG",
             ),
         )
@@ -70,7 +71,7 @@ internal class ChecksScreenTest {
         }
     }
 
-    @Test(timeout = 5_000)
+    @Test(timeout = 2_000)
     fun errorTest() {
         val injection = mockInjection()
         App.setInjection(injection)
@@ -93,7 +94,7 @@ internal class ChecksScreenTest {
         rule.waitOne(isError and hasErrorText)
     }
 
-    @Test(timeout = 5_000)
+    @Test(timeout = 2_000)
     fun errorIdsTest() {
         rule.setContent {
             App.Theme.Composition(themeState = mockThemeState()) {
@@ -112,7 +113,7 @@ internal class ChecksScreenTest {
         rule.waitOne(isError and hasErrorText)
     }
 
-    @Test(timeout = 5_000)
+    @Test(timeout = 2_000)
     fun exitTest() {
         val injection = mockInjection()
         App.setInjection(injection)

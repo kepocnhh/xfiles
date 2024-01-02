@@ -8,14 +8,18 @@ internal class MockSecurityProvider(
     private val signature: SignatureProvider = MockSignatureProvider(),
     private val keyFactory: KeyFactoryProvider = MockKeyFactoryProvider(),
     private val random: SecureRandom = MockSecureRandom(),
-    private val md: MessageDigestProvider = MockMessageDigestProvider(),
+    private val sha512: MessageDigestProvider = MockMessageDigestProvider(),
+    private val md5: MessageDigestProvider = MockMessageDigestProvider(),
     private val base64: Base64Provider = MockBase64Provider(),
     private val keyPairGenerator: KeyPairGeneratorProvider = MockKeyPairGeneratorProvider(),
     private val algorithmParamsGenerator: AlgorithmParameterGeneratorProvider = MockAlgorithmParameterGeneratorProvider(),
     private val secretKeyFactory: SecretKeyFactoryProvider = MockSecretKeyFactoryProvider(),
 ) : SecurityProvider {
-    override fun getMessageDigest(): MessageDigestProvider {
-        return md
+    override fun getMessageDigest(algorithm: HashAlgorithm): MessageDigestProvider {
+        return when (algorithm) {
+            HashAlgorithm.MD5 -> md5
+            HashAlgorithm.SHA512 -> sha512
+        }
     }
 
     override fun getCipher(): CipherProvider {
