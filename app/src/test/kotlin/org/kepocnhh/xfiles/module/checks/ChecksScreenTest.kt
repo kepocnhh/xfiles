@@ -119,16 +119,14 @@ internal class ChecksScreenTest {
         val exit = AtomicBoolean(false)
         rule.setContent {
             App.Theme.Composition(themeState = mockThemeState()) {
-                App.Theme.Composition(themeState = mockThemeState()) {
-                    ChecksScreen(
-                        onComplete = {
-                            error("Illegal state!")
-                        },
-                        onExit = {
-                            exit.set(true)
-                        },
-                    )
-                }
+                ChecksScreen(
+                    onComplete = {
+                        error("Illegal state!")
+                    },
+                    onExit = {
+                        exit.set(true)
+                    },
+                )
             }
         }
         val isError = hasContentDescription("ChecksScreen:error")

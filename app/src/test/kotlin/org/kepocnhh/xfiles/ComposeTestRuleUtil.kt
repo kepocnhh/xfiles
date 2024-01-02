@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles
 
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.ComposeTestRule
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -46,4 +47,13 @@ internal fun <T : Any> ComposeTestRule.waitUntilPresent(
         ref.get() != null
     }
     return ref.get() ?: error("No value!")
+}
+
+internal fun ComposeTestRule.waitUntilTrue(
+    ref: AtomicBoolean,
+    duration: Duration = 1.seconds,
+) {
+    waitUntil(timeoutMillis = duration.inWholeMilliseconds) {
+        ref.get()
+    }
 }

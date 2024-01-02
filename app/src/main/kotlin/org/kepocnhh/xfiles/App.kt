@@ -219,7 +219,8 @@ internal class App : Application() {
         @Composable
         fun newLogger(tag: String): Logger {
             return remember(tag) {
-                checkNotNull(_injection).loggers.newLogger(tag)
+                val injection = checkNotNull(_injection) { "No injection!" }
+                injection.loggers.newLogger(tag)
             }
         }
 
