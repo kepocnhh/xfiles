@@ -7,7 +7,6 @@ import androidx.security.crypto.EncryptedFile
 import androidx.security.crypto.MasterKeys
 import org.kepocnhh.xfiles.BuildConfig
 import java.io.File
-import java.io.InputStream
 
 internal class FinalEncryptedFileProvider(
     private val context: Context,
@@ -29,8 +28,13 @@ internal class FinalEncryptedFileProvider(
         context.filesDir.resolve(pathname).delete()
     }
 
-    override fun openInput(pathname: String): InputStream {
-        return context.filesDir.resolve(pathname).encrypted().openFileInput()
+    override fun readBytes(pathname: String): ByteArray {
+        return context
+            .filesDir
+            .resolve(pathname)
+            .encrypted()
+            .openFileInput()
+            .use { it.readBytes() }
     }
 
     override fun writeBytes(pathname: String, bytes: ByteArray) {

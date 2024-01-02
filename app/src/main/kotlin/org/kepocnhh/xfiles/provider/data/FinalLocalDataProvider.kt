@@ -19,6 +19,17 @@ internal class FinalLocalDataProvider(
 ) : LocalDataProvider {
     private val preferences = context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
 
+    init {
+        val version = preferences.getInt("version", -1)
+        if (version > VERSION) error("The actual version ($version) of the data is higher than expected ($VERSION)!")
+        if (version < VERSION) {
+            preferences.edit()
+                .clear()
+                .putInt("version", VERSION)
+                .commit()
+        }
+    }
+
     override var themeState: ThemeState
         get() {
             return ThemeState(
@@ -48,7 +59,8 @@ internal class FinalLocalDataProvider(
                 symmetric = getSecurityService("symmetric"),
                 asymmetric = getSecurityService("asymmetric"),
                 signature = getSecurityService("signature"),
-                hash = getSecurityService("hash"),
+                sha512 = getSecurityService("sha512"),
+                md5 = getSecurityService("md5"),
                 random = getSecurityService("random"),
             )
         }
@@ -60,7 +72,8 @@ internal class FinalLocalDataProvider(
                     .removeSecurityService("symmetric")
                     .removeSecurityService("asymmetric")
                     .removeSecurityService("signature")
-                    .removeSecurityService("hash")
+                    .removeSecurityService("sha512")
+                    .removeSecurityService("md5")
                     .removeSecurityService("random")
                     .commit()
             } else {
@@ -70,7 +83,8 @@ internal class FinalLocalDataProvider(
                     .put("symmetric", value.symmetric)
                     .put("asymmetric", value.asymmetric)
                     .put("signature", value.signature)
-                    .put("hash", value.hash)
+                    .put("sha512", value.sha512)
+                    .put("md5", value.md5)
                     .put("random", value.random)
                     .commit()
             }
@@ -150,7 +164,7 @@ internal class FinalLocalDataProvider(
 
     private fun getSecurityService(key: String): SecurityService {
         return SecurityService(
-            provider = preferences.getString("$key:provider", null) ?: error("No provider!"),
+            provider = preferences.getString("$key:provider", null) ?: error("No provider: \"$key\"!"),
             algorithm = preferences.getString("$key:algorithm", null) ?: error("No algorithm!"),
         )
     }
@@ -161,5 +175,9 @@ internal class FinalLocalDataProvider(
 
     private fun SharedPreferences.Editor.removeSecurityService(key: String): SharedPreferences.Editor {
         return remove("$key:provider").remove("$key:algorithm")
+    }
+
+    companion object {
+        const val VERSION = 1
     }
 }

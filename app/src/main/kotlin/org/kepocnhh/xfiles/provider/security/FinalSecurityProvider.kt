@@ -114,8 +114,11 @@ private object UUIDGeneratorImpl : UUIDGenerator {
 internal class FinalSecurityProvider(
     private val services: SecurityServices,
 ) : SecurityProvider {
-    override fun getMessageDigest(): MessageDigestProvider {
-        val service = services.hash
+    override fun getMessageDigest(algorithm: HashAlgorithm): MessageDigestProvider {
+        val service = when (algorithm) {
+            HashAlgorithm.MD5 -> services.md5
+            HashAlgorithm.SHA512 -> services.sha512
+        }
         return MessageDigestProviderImpl(MessageDigest.getInstance(service.algorithm, service.provider))
     }
 

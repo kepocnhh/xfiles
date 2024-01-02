@@ -1,4 +1,4 @@
-# 2023/12/12
+# 2024/01/02
 
 potential-bugs:
   active: true
@@ -58,6 +58,7 @@ potential-bugs:
       kotlinx.coroutines.flow.SharedFlow.collect,
       kotlinx.coroutines.launch,
       kotlinx.coroutines.withContext,
+      org.json.JSONObject.put,
     ]
   ImplicitDefaultLocale:
     active: true

@@ -17,7 +17,7 @@ import org.kepocnhh.xfiles.provider.data.requireAppId
 import org.kepocnhh.xfiles.provider.data.requireDatabaseId
 import org.kepocnhh.xfiles.provider.data.requireDevice
 import org.kepocnhh.xfiles.provider.data.requireServices
-import org.kepocnhh.xfiles.provider.readBytes
+import org.kepocnhh.xfiles.provider.security.HashAlgorithm
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import org.kepocnhh.xfiles.util.security.SecurityUtil
 import java.security.PrivateKey
@@ -125,7 +125,10 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             publicKeyDecrypted = pair.public.encoded,
             privateKeyEncrypted = privateEncrypted,
         )
-        injection.encrypted.files.writeBytes(injection.pathNames.asymmetric, injection.serializer.serialize(asymmetricKey))
+        injection.encrypted.files.writeBytes(
+            pathname = injection.pathNames.asymmetric,
+            bytes = injection.serializer.serialize(asymmetricKey),
+        )
         val sign = injection.security(services)
             .getSignature()
             .sign(key = pair.private, random = random, decrypted = decrypted)
@@ -190,7 +193,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
     private fun getPassword(pin: String): String {
         val services = injection.local.requireServices()
         val security = injection.security(services)
-        val md = security.getMessageDigest()
+        val sha512 = security.getMessageDigest(HashAlgorithm.SHA512)
         val device = injection.local.requireDevice()
         val bytes = getBytes(
             pin = pin,
@@ -198,7 +201,7 @@ internal class EnterViewModel(private val injection: Injection) : AbstractViewMo
             appId = injection.encrypted.local.requireAppId(),
             databaseId = injection.encrypted.local.requireDatabaseId(),
         )
-        return security.base64().encode(md.digest(bytes))
+        return security.base64().encode(sha512.digest(bytes))
     }
 
     private fun unlock(password: String, securitySettings: SecuritySettings): SecretKey {

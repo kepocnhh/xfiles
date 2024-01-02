@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.kepocnhh.xfiles.module.app.Injection
 import org.kepocnhh.xfiles.provider.data.requireServices
-import org.kepocnhh.xfiles.provider.readBytes
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
 import java.util.UUID
 import javax.crypto.SecretKey

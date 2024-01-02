@@ -58,8 +58,11 @@ internal class ChecksViewModel(private val injection: Injection) : AbstractViewM
             signature = provider
                 .requireService(type = "Signature", algorithm = "SHA256WithDSA")
                 .toSecurityService(),
-            hash = platform
+            sha512 = platform
                 .requireService(type = "MessageDigest", algorithm = "SHA-512")
+                .toSecurityService(),
+            md5 = platform
+                .requireService(type = "MessageDigest", algorithm = "MD5")
                 .toSecurityService(),
             random = platform
                 .requireService(type = "SecureRandom", algorithm = "SHA1PRNG")

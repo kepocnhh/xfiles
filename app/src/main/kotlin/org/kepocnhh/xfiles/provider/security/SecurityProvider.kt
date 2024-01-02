@@ -2,10 +2,9 @@ package org.kepocnhh.xfiles.provider.security
 
 import java.security.SecureRandom
 
+@Suppress("ComplexInterface")
 internal interface SecurityProvider {
-    // todo getMD5
-    @Deprecated(message = "replace with getSHA512")
-    fun getMessageDigest(): MessageDigestProvider
+    fun getMessageDigest(algorithm: HashAlgorithm): MessageDigestProvider
     fun getCipher(): CipherProvider
     fun getKeyPairGenerator(): KeyPairGeneratorProvider
     fun getAlgorithmParameterGenerator(): AlgorithmParameterGeneratorProvider

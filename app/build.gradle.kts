@@ -127,6 +127,7 @@ fun checkCoverage(variant: ComponentIdentity) {
         .dir("outputs/unit_test_code_coverage/${variant.name}UnitTest")
         .file("$taskUnitTest.exec")
     tasks.getByName<Test>(taskUnitTest) {
+        systemProperty("isTest", true)
         doLast {
             executionData.existing().file().filled()
         }

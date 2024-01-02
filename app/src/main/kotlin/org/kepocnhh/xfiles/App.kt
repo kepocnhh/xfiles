@@ -58,16 +58,11 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 internal class App : Application() {
-    enum class Orientation {
-        PORTRAIT,
-        LANDSCAPE,
-    }
-
     object Theme {
-        private val LocalColors = staticCompositionLocalOf<Colors> { error("no colors") }
-        private val LocalDurations = staticCompositionLocalOf<Durations> { error("no durations") }
-        private val LocalSizes = staticCompositionLocalOf<Sizes> { error("no sizes") }
-        private val LocalStrings = staticCompositionLocalOf<Strings> { error("no strings") }
+        private val LocalColors = staticCompositionLocalOf<Colors> { error("No colors!") }
+        private val LocalDurations = staticCompositionLocalOf<Durations> { error("No durations!") }
+        private val LocalSizes = staticCompositionLocalOf<Sizes> { error("No sizes!") }
+        private val LocalStrings = staticCompositionLocalOf<Strings> { error("No strings!") }
 
         val colors: Colors
             @Composable
@@ -160,7 +155,8 @@ internal class App : Application() {
             main = Dispatchers.Main,
             default = Dispatchers.Default,
         )
-        if (BuildConfig.BUILD_TYPE == "examine") return // todo
+        val isTest = System.getProperty("isTest") == "true"
+        if (isTest) return
         _injection = Injection(
             loggers = FinalLoggerFactory,
             contexts = Contexts(
