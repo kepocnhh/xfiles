@@ -9,4 +9,8 @@ internal class MockBase64Provider(
         }
         error("No encoded!")
     }
+
+    override fun decode(text: String): ByteArray {
+        error("No decoded!")
+    }
 }

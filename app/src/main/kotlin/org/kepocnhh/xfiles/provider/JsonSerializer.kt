@@ -6,11 +6,12 @@ import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.provider.security.Base64Provider
-import org.kepocnhh.xfiles.util.base64
 import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
-internal class JsonSerializer(base64: Base64Provider) : Serializer {
+internal class JsonSerializer(
+    private val base64: Base64Provider,
+) : Serializer {
     private fun JSONObject.requireLong(key: String): Long {
         if (!has(key)) error("No value by \"$key\"!")
         if (isNull(key)) error("Value by \"$key\" is null!")
@@ -25,9 +26,9 @@ internal class JsonSerializer(base64: Base64Provider) : Serializer {
 
     override fun serialize(value: KeyMeta): ByteArray {
         return JSONObject()
-            .put("salt", value.salt.base64())
-            .put("ivDB", value.ivDB.base64())
-            .put("ivPrivate", value.ivPrivate.base64())
+            .put("salt", base64.encode(value.salt))
+            .put("ivDB", base64.encode(value.ivDB))
+            .put("ivPrivate", base64.encode(value.ivPrivate))
             .toString()
             .toByteArray()
     }
@@ -35,9 +36,9 @@ internal class JsonSerializer(base64: Base64Provider) : Serializer {
     override fun toKeyMeta(bytes: ByteArray): KeyMeta {
         val json = JSONObject(String(bytes))
         return KeyMeta(
-            salt = json.getString("salt").base64(),
-            ivDB = json.getString("ivDB").base64(),
-            ivPrivate = json.getString("ivPrivate").base64(),
+            salt = base64.decode(json.getString("salt")),
+            ivDB = base64.decode(json.getString("ivDB")),
+            ivPrivate = base64.decode(json.getString("ivPrivate")),
         )
     }
 
@@ -91,8 +92,8 @@ internal class JsonSerializer(base64: Base64Provider) : Serializer {
 
     override fun serialize(value: AsymmetricKey): ByteArray {
         return JSONObject()
-            .put("public", value.publicKeyDecrypted.base64())
-            .put("private", value.privateKeyEncrypted.base64())
+            .put("publicKeyDecrypted", base64.encode(value.publicKeyDecrypted))
+            .put("privateKeyEncrypted", base64.encode(value.privateKeyEncrypted))
             .toString()
             .toByteArray()
     }
@@ -100,16 +101,24 @@ internal class JsonSerializer(base64: Base64Provider) : Serializer {
     override fun toAsymmetricKey(bytes: ByteArray): AsymmetricKey {
         val json = JSONObject(String(bytes))
         return AsymmetricKey(
-            publicKeyDecrypted = json.getString("public").base64(),
-            privateKeyEncrypted = json.getString("private").base64(),
+            publicKeyDecrypted = base64.decode(json.getString("publicKeyDecrypted")),
+            privateKeyEncrypted = base64.decode(json.getString("privateKeyEncrypted")),
         )
     }
 
     override fun serialize(value: BiometricMeta): ByteArray {
-        TODO("Not yet implemented: JsonSerializer:serialize")
+        return JSONObject()
+            .put("passwordEncrypted", base64.encode(value.passwordEncrypted))
+            .put("iv", base64.encode(value.iv))
+            .toString()
+            .toByteArray()
     }
 
     override fun toBiometricMeta(bytes: ByteArray): BiometricMeta {
-        TODO("Not yet implemented: JsonSerializer:toBiometricMeta")
+        val json = JSONObject(String(bytes))
+        return BiometricMeta(
+            passwordEncrypted = base64.decode(json.getString("passwordEncrypted")),
+            iv = base64.decode(json.getString("iv")),
+        )
     }
 }
