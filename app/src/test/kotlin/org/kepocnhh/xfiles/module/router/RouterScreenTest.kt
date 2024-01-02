@@ -8,6 +8,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
 import org.junit.After
@@ -23,6 +24,7 @@ import org.kepocnhh.xfiles.entity.MockSecretKey
 import org.kepocnhh.xfiles.entity.mockDataBase
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockSecurityServices
+import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.mockBytes
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
@@ -150,7 +152,7 @@ internal class RouterScreenTest {
     }
 
     @Test(timeout = 2_000)
-    fun unlockedScreenTest() {
+    fun unlockedScreenEmptyTest() {
         val issuer = "RouterScreenTest:unlockedScreenTest"
         val provider = TestProvider(
             name = "AndroidOpenSSL",
@@ -217,6 +219,89 @@ internal class RouterScreenTest {
         check(dataBase.secrets.isEmpty())
         val isEmpty = hasContentDescription("UnlockedScreen:empty")
         rule.onNode(isEmpty).assertIsDisplayed()
+        rule.onNode(isTraversalGroup and isEnterScreen).assertDoesNotExist()
+    }
+
+    @Test(timeout = 2_000)
+    fun unlockedScreenTest() {
+        val issuer = "RouterScreenTest:unlockedScreenTest"
+        val provider = TestProvider(
+            name = "AndroidOpenSSL",
+            services = listOf(
+                "MessageDigest" to "SHA-512",
+                "SecureRandom" to "SHA1PRNG",
+            ),
+        )
+        Security.insertProviderAt(provider, 0)
+        val pathNames = mockPathNames(issuer = issuer)
+        val dataBase = mockDataBase(
+            secrets = (1..4).associate { number ->
+                mockUUID() to ("title:$number" to "secret:$number")
+            },
+        )
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
+        val symmetric = mockKeyMeta(issuer = issuer)
+        val symmetricDecrypted = mockBytes(issuer)
+        val securityServices = mockSecurityServices(issuer = issuer)
+        val secretKey = MockSecretKey(issuer = issuer)
+        val injection = mockInjection(
+            pathNames = pathNames,
+            local = MockLocalDataProvider(services = securityServices),
+            encrypted = mockEncrypted(
+                files = MockEncryptedFileProvider(
+                    inputs = mapOf(
+                        pathNames.symmetric to symmetricDecrypted,
+                        pathNames.dataBase to dataBaseEncrypted,
+                    ),
+                ),
+            ),
+            serializer = MockSerializer(
+                values = mapOf(
+                    symmetric to symmetricDecrypted,
+                    dataBase to dataBaseDecrypted,
+                ),
+            ),
+            security = {
+                check(it == securityServices)
+                MockSecurityProvider(
+                    cipher = MockCipherProvider(
+                        values = listOf(
+                            MockCipherProvider.DataSet(
+                                encrypted = dataBaseEncrypted,
+                                decrypted = dataBaseDecrypted,
+                                secretKey = secretKey,
+                            ),
+                        ),
+                    ),
+                )
+            },
+        )
+        App.setInjection(injection)
+        rule.setContent {
+            App.Theme.Composition(themeState = mockThemeState()) {
+                val keyState = remember {
+                    mutableStateOf<SecretKey?>(secretKey)
+                }
+                RouterScreen.OnChecked(keyState = keyState)
+            }
+        }
+        val isTraversalGroup = SemanticsMatcher.expectValue(SemanticsProperties.IsTraversalGroup, true)
+        val isEnterScreen = hasContentDescription("EnterScreen")
+        val isUnlockedScreen = hasContentDescription("UnlockedScreen")
+        rule.waitOne(isTraversalGroup and isUnlockedScreen)
+        rule.onNode(isTraversalGroup and isUnlockedScreen).assertIsDisplayed()
+        check(dataBase.secrets.isNotEmpty())
+        val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
+        dataBase.secrets.forEach { (uuid, pair) ->
+            val (title, _) = pair
+            val isTitle = hasContentDescription("UnlockedScreen:item:$uuid:title")
+            rule.waitOne(isTitle and hasText(title))
+            setOf("show", "copy", "delete").forEach { type ->
+                rule.waitOne(isButton and hasContentDescription("UnlockedScreen:item:$uuid:$type"))
+                rule.waitOne(hasContentDescription("UnlockedScreen:item:$uuid:$type:icon"))
+            }
+        }
         rule.onNode(isTraversalGroup and isEnterScreen).assertDoesNotExist()
     }
 }
