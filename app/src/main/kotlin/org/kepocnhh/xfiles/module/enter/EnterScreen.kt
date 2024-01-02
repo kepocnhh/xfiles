@@ -24,6 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -426,6 +429,10 @@ internal fun EnterScreen(
 ) {
     Column(
         modifier = Modifier
+            .semantics {
+                contentDescription = "EnterScreen"
+                isTraversalGroup = true
+            }
             .fillMaxSize()
             .background(App.Theme.colors.background)
             .padding(App.Theme.insets),

@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -539,6 +540,10 @@ internal fun UnlockedScreen(
 ) {
     BoxWithConstraints(
         modifier = Modifier
+            .semantics {
+                contentDescription = "UnlockedScreen"
+                isTraversalGroup = true
+            }
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
