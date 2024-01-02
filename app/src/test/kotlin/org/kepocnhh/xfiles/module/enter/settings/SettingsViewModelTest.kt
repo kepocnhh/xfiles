@@ -7,13 +7,13 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.kepocnhh.xfiles.entity.mockSecurityService
-import org.kepocnhh.xfiles.entity.mockSecurityServices
-import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.collect
 import org.kepocnhh.xfiles.entity.SecuritySettings
+import org.kepocnhh.xfiles.entity.mockSecurityService
+import org.kepocnhh.xfiles.entity.mockSecurityServices
 import org.kepocnhh.xfiles.entity.mockSecuritySettings
 import org.kepocnhh.xfiles.module.app.mockEncrypted
+import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.onEachIndexed
 import org.kepocnhh.xfiles.provider.MockEncryptedFileProvider
 import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider

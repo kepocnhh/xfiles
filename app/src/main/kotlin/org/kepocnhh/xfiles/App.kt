@@ -195,7 +195,7 @@ internal class App : Application() {
                 biometric = "biometric.enc",
             ),
             devices = FinalDeviceProvider(
-                md = MessageDigest.getInstance("MD5", "AndroidOpenSSL")
+                md = MessageDigest.getInstance("MD5", "AndroidOpenSSL"), // todo injection?
             ),
             serializer = JsonSerializer(base64 = FinalBase64Provider),
             time = FinalTimeProvider,

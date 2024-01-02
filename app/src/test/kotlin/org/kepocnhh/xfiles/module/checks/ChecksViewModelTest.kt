@@ -21,7 +21,6 @@ import org.kepocnhh.xfiles.provider.data.MockLocalDataProvider
 import org.kepocnhh.xfiles.provider.mockContexts
 import org.kepocnhh.xfiles.util.security.SecurityUtil
 import java.security.Security
-import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
 internal class ChecksViewModelTest {

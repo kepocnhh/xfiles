@@ -31,7 +31,6 @@ import org.kepocnhh.xfiles.provider.security.MockKeyFactoryProvider
 import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
 import org.kepocnhh.xfiles.provider.security.MockUUIDGenerator
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
 

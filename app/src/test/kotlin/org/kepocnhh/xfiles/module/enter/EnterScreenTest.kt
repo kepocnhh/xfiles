@@ -55,10 +55,10 @@ import org.kepocnhh.xfiles.provider.security.MockSecureRandom
 import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
 import org.kepocnhh.xfiles.provider.security.MockUUIDGenerator
-import org.robolectric.RobolectricTestRunner
-import java.util.concurrent.atomic.AtomicReference
 import org.kepocnhh.xfiles.setInjection
 import org.kepocnhh.xfiles.waitUntilPresent
+import org.robolectric.RobolectricTestRunner
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
@@ -184,7 +184,7 @@ internal class EnterScreenTest {
                             algParamsSpec to mockKeyPair(
                                 publicKey = publicKey,
                                 privateKey = privateKey,
-                            )
+                            ),
                         ),
                     ),
                     secretKeyFactory = MockSecretKeyFactoryProvider(

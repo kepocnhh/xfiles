@@ -37,9 +37,9 @@ internal class MockPBEKeySpec(
         return when (other) {
             is PBEKeySpec -> {
                 password.contentEquals(other.password) &&
-                        salt.contentEquals(other.salt) &&
-                        iterationCount == other.iterationCount &&
-                        keyLength == other.keyLength
+                    salt.contentEquals(other.salt) &&
+                    iterationCount == other.iterationCount &&
+                    keyLength == other.keyLength
             }
             else -> false
         }
@@ -47,8 +47,8 @@ internal class MockPBEKeySpec(
 
     override fun hashCode(): Int {
         return Arrays.hashCode(password) +
-                Arrays.hashCode(salt) +
-                iterationCount +
-                keyLength
+            Arrays.hashCode(salt) +
+            iterationCount +
+            keyLength
     }
 }

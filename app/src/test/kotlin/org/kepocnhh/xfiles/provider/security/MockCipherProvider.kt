@@ -15,13 +15,13 @@ internal class MockCipherProvider(
     class NoDecryptedException(
         val key: SecretKey,
         val params: AlgorithmParameterSpec,
-        val encrypted: ByteArray
-    ): Exception()
+        val encrypted: ByteArray,
+    ) : Exception()
 
     override fun encrypt(
         key: SecretKey,
         params: AlgorithmParameterSpec,
-        decrypted: ByteArray
+        decrypted: ByteArray,
     ): ByteArray {
         for (it in values) {
             if (key == it.secretKey && decrypted.contentEquals(it.decrypted)) return it.encrypted
@@ -32,7 +32,7 @@ internal class MockCipherProvider(
     override fun decrypt(
         key: SecretKey,
         params: AlgorithmParameterSpec,
-        encrypted: ByteArray
+        encrypted: ByteArray,
     ): ByteArray {
         for (it in values) {
             if (key == it.secretKey && encrypted.contentEquals(it.encrypted)) return it.decrypted

@@ -1,6 +1,5 @@
 package org.kepocnhh.xfiles.provider
 
-
 internal class MockEncrypt(
     private val values: List<Pair<ByteArray, Encrypt.Data>> = emptyList(),
 ) : Encrypt {

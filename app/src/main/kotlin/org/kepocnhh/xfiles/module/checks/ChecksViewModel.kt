@@ -14,7 +14,6 @@ import org.kepocnhh.xfiles.util.security.getServiceOrNull
 import org.kepocnhh.xfiles.util.security.requireService
 import org.kepocnhh.xfiles.util.security.toSecurityService
 import java.security.NoSuchAlgorithmException
-import java.util.UUID
 
 internal class ChecksViewModel(private val injection: Injection) : AbstractViewModel() {
     sealed interface Broadcast {

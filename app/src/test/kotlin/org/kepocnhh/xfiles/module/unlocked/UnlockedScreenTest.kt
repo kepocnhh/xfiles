@@ -1,7 +1,6 @@
 package org.kepocnhh.xfiles.module.unlocked
 
 import android.content.ClipboardManager
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.BasicText
@@ -53,11 +52,9 @@ import org.kepocnhh.xfiles.provider.security.MockSecurityProvider
 import org.kepocnhh.xfiles.provider.security.MockSignatureProvider
 import org.kepocnhh.xfiles.setContent
 import org.kepocnhh.xfiles.setInjection
-import org.kepocnhh.xfiles.waitCount
 import org.kepocnhh.xfiles.waitOne
 import org.kepocnhh.xfiles.waitZero
 import org.robolectric.RobolectricTestRunner
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds

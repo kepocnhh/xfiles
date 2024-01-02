@@ -11,7 +11,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.kepocnhh.xfiles.BigIntegerUtil
 import org.kepocnhh.xfiles.collectFirst
-import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.MockAlgorithmParameters
 import org.kepocnhh.xfiles.entity.MockDSAParameterSpec
 import org.kepocnhh.xfiles.entity.MockDSAPrivateKey
@@ -32,7 +31,6 @@ import org.kepocnhh.xfiles.entity.mockSecuritySettings
 import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
-import org.kepocnhh.xfiles.provider.Encrypt
 import org.kepocnhh.xfiles.provider.MockDecrypt
 import org.kepocnhh.xfiles.provider.MockDeviceProvider
 import org.kepocnhh.xfiles.provider.MockEncrypt
@@ -303,9 +301,10 @@ internal class EnterViewModelTest {
             )
             val asymmetricDecrypted = "$issuer:asymmetric:decrypted".toByteArray()
             val hasBiometric = false
+            val securityServices = mockSecurityServices(issuer = issuer)
             val injection = mockInjection(
                 local = MockLocalDataProvider(
-                    services = mockSecurityServices(),
+                    services = securityServices,
                     securitySettings = mockSecuritySettings(
                         aesKeyLength = SecuritySettings.AESKeyLength.BITS_256,
                         pbeIterations = SecuritySettings.PBEIterations.NUMBER_2_16,
@@ -322,6 +321,7 @@ internal class EnterViewModelTest {
                     ),
                 ),
                 security = {
+                    check(it == securityServices)
                     MockSecurityProvider(
                         md = MockMessageDigestProvider(
                             listOf(pinBytes to pinBytesDigest),
@@ -344,7 +344,7 @@ internal class EnterViewModelTest {
                                 algParamsSpec to mockKeyPair(
                                     publicKey = publicKey,
                                     privateKey = privateKey,
-                                )
+                                ),
                             ),
                         ),
                         secretKeyFactory = MockSecretKeyFactoryProvider(
@@ -545,7 +545,7 @@ internal class EnterViewModelTest {
                                 algParamsSpec to mockKeyPair(
                                     publicKey = publicKey,
                                     privateKey = privateKey,
-                                )
+                                ),
                             ),
                         ),
                         secretKeyFactory = MockSecretKeyFactoryProvider(
@@ -580,7 +580,7 @@ internal class EnterViewModelTest {
                     )
                 },
                 devices = MockDeviceProvider(
-                    uuids = mapOf(device to deviceId)
+                    uuids = mapOf(device to deviceId),
                 ),
                 serializer = MockSerializer(
                     values = mapOf(

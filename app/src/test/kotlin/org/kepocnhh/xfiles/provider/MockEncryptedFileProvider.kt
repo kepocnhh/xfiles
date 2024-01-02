@@ -12,23 +12,23 @@ internal class MockEncryptedFileProvider(
     constructor(
         exists: Set<String>,
         inputs: Map<String, ByteArray>,
-    ): this(
+    ) : this(
         exists = exists.toMutableSet(),
         inputs = inputs.toMutableMap(),
     )
 
-    constructor(exists: Set<String>): this(
+    constructor(exists: Set<String>) : this(
         exists = exists.toMutableSet(),
     )
 
-    constructor(inputs: Map<String, ByteArray>): this(
+    constructor(inputs: Map<String, ByteArray>) : this(
         inputs = inputs.toMutableMap(),
     )
 
     constructor(
         inputs: Map<String, ByteArray>,
         refs: Map<String, AtomicReference<ByteArray>>,
-    ): this(
+    ) : this(
         inputs = inputs.toMutableMap(),
         refs = refs,
     )

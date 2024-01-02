@@ -7,7 +7,7 @@ internal class AsymmetricKey(
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is AsymmetricKey -> publicKeyDecrypted.contentEquals(other.publicKeyDecrypted) &&
-                    privateKeyEncrypted.contentEquals(other.privateKeyEncrypted)
+                privateKeyEncrypted.contentEquals(other.privateKeyEncrypted)
             else -> false
         }
     }

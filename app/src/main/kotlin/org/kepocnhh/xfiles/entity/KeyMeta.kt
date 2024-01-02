@@ -14,15 +14,15 @@ internal class KeyMeta(
             !is KeyMeta -> false
             else -> {
                 return salt.contentEquals(other.salt) &&
-                        ivDB.contentEquals(other.ivDB) &&
-                        ivPrivate.contentEquals(other.ivPrivate)
+                    ivDB.contentEquals(other.ivDB) &&
+                    ivPrivate.contentEquals(other.ivPrivate)
             }
         }
     }
 
     override fun hashCode(): Int {
         return salt.contentHashCode() +
-                ivDB.contentHashCode() +
-                ivPrivate.contentHashCode()
+            ivDB.contentHashCode() +
+            ivPrivate.contentHashCode()
     }
 }
