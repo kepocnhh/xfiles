@@ -157,6 +157,14 @@ internal class App : Application() {
         )
         val isTest = System.getProperty("isTest") == "true"
         if (isTest) return
+        val md5: MessageDigest = try {
+            MessageDigest.getInstance("MD5", "AndroidOpenSSL")
+        } catch (cause: Throwable) {
+            throw IllegalStateException(
+                "The ability to calculate a MD5 hash is necessary for the application to work!",
+                cause,
+            )
+        }
         _injection = Injection(
             loggers = FinalLoggerFactory,
             contexts = Contexts(
@@ -190,9 +198,7 @@ internal class App : Application() {
                 dataBaseSignature = "db.json.sig",
                 biometric = "biometric.enc",
             ),
-            devices = FinalDeviceProvider(
-                md = MessageDigest.getInstance("MD5", "AndroidOpenSSL"), // todo injection?
-            ),
+            devices = FinalDeviceProvider(md = md5),
             serializer = JsonSerializer(base64 = FinalBase64Provider),
             time = FinalTimeProvider,
         )
