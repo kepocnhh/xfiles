@@ -11,5 +11,5 @@ internal fun mockBytes(
     number: Int = BytesUtil.number.incrementAndGet(),
 ): ByteArray {
     check(number in 1..999_999)
-    return (prefix + String.format("%06d", number)).toByteArray()
+    return (prefix + ":" + String.format("%06d", number)).toByteArray()
 }

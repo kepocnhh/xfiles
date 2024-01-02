@@ -310,7 +310,11 @@ private fun DatabaseExists(onDelete: () -> Unit) {
             textAlign = TextAlign.Center,
         )
         BasicText(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .semantics {
+                    contentDescription = "EnterScreen:databaseExists"
+                }
+                .fillMaxWidth(),
             style = textStyle,
             text = App.Theme.strings.databaseExists,
         )
@@ -360,6 +364,10 @@ private fun EnterScreenInfo(
             visible = exists == false,
         ) {
             BasicText(
+                modifier = Modifier
+                    .semantics {
+                        contentDescription = "EnterScreen:noDatabase"
+                    },
                 style = TextStyle(
                     color = App.Theme.colors.foreground,
                     fontSize = 16.sp,

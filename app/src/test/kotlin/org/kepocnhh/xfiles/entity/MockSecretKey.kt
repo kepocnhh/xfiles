@@ -1,11 +1,12 @@
 package org.kepocnhh.xfiles.entity
 
+import org.kepocnhh.xfiles.mockBytes
 import javax.crypto.SecretKey
 
 internal class MockSecretKey(
-    private val encoded: ByteArray = "foo:encoded".toByteArray(),
+    private val encoded: ByteArray = "MockSecretKey:encoded".toByteArray(),
 ) : SecretKey {
-    constructor(issuer: String) : this(encoded = "$issuer:secret:key:encoded".toByteArray())
+    constructor(issuer: String) : this(encoded = mockBytes(issuer))
 
     override fun getAlgorithm(): String {
         TODO("Not yet implemented: getAlgorithm")

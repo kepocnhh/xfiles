@@ -8,10 +8,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import org.kepocnhh.xfiles.App
 import org.kepocnhh.xfiles.module.checks.ChecksScreen
@@ -66,15 +70,27 @@ private fun exitTransition(
     )
 }
 
+internal object RouterScreen {
+    @Composable
+    fun OnChecked(keyState: MutableState<SecretKey?>) {
+        val animatedState = rememberSaveable { mutableStateOf(false) }
+        OnChecked(
+            keyState = keyState,
+            animatedState = animatedState,
+        )
+    }
+}
+
 @Composable
-private fun OnChecked() {
-    val animatedState = rememberSaveable { mutableStateOf(false) }
+private fun OnChecked(
+    keyState: MutableState<SecretKey?>,
+    animatedState: MutableState<Boolean>,
+) {
     LaunchedEffect(animatedState.value) {
         if (!animatedState.value) {
             animatedState.value = true
         }
     }
-    val keyState = remember { mutableStateOf<SecretKey?>(null) }
     val initState = rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(keyState.value) {
         if (keyState.value != null && initState.value) {
@@ -133,6 +149,10 @@ private fun OnChecked() {
 internal fun RouterScreen(onBack: () -> Unit) {
     Box(
         modifier = Modifier
+            .semantics {
+                contentDescription = "RouterScreen"
+                isTraversalGroup = true
+            }
             .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
@@ -149,7 +169,8 @@ internal fun RouterScreen(onBack: () -> Unit) {
             )
         }
         if (checkedState.value) {
-            OnChecked()
+            val keyState = remember { mutableStateOf<SecretKey?>(null) }
+            RouterScreen.OnChecked(keyState = keyState)
         }
     }
 }
