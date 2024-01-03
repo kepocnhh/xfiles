@@ -34,7 +34,12 @@ import org.kepocnhh.xfiles.provider.security.MockUUIDGenerator
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress(
+    "StringLiteralDuplication",
+    "MultilineLambdaItParameter",
+)
 internal class UnlockedViewModelTest {
+    @Suppress("LongMethod")
     @Test
     fun requestValuesTest() {
         runTest(timeout = 2.seconds) {
@@ -107,6 +112,7 @@ internal class UnlockedViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun requestToCopyTest() {
         runTest(timeout = 2.seconds) {
@@ -169,6 +175,7 @@ internal class UnlockedViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun requestToShowTest() {
         runTest(timeout = 2.seconds) {
@@ -231,6 +238,7 @@ internal class UnlockedViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun addValueTest() {
         val issuer = "UnlockedViewModelTest:addValueTest"
@@ -362,6 +370,7 @@ internal class UnlockedViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun deleteValueTest() {
         runTest(timeout = 2.seconds) {

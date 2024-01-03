@@ -44,6 +44,12 @@ import java.security.Security
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.SecretKey
 
+@Suppress(
+    "StringLiteralDuplication",
+    "NonBooleanPropertyPrefixedWithIs",
+    "IgnoredReturnValue",
+    "MultilineLambdaItParameter",
+)
 @RunWith(RobolectricTestRunner::class)
 internal class RouterScreenTest {
     @get:Rule
@@ -153,6 +159,7 @@ internal class RouterScreenTest {
         rule.onNode(isTraversalGroup and isUnlockedScreen).assertDoesNotExist()
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun unlockedScreenEmptyTest() {
         val issuer = "RouterScreenTest:unlockedScreenTest"
@@ -224,6 +231,7 @@ internal class RouterScreenTest {
         rule.onNode(isTraversalGroup and isEnterScreen).assertDoesNotExist()
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun unlockedScreenTest() {
         val issuer = "RouterScreenTest:unlockedScreenTest"

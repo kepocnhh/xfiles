@@ -35,6 +35,7 @@ internal class MockEncryptedFileProvider(
         return exists.contains(pathname)
     }
 
+    @Suppress("IgnoredReturnValue")
     override fun delete(pathname: String) {
         exists.remove(pathname)
     }

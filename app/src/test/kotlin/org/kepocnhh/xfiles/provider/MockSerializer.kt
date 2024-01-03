@@ -5,6 +5,7 @@ import org.kepocnhh.xfiles.entity.BiometricMeta
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 
+@Suppress("StringLiteralDuplication")
 internal class MockSerializer(
     private val values: Map<Any, ByteArray> = emptyMap(),
 ) : Serializer {

@@ -2,6 +2,7 @@ package org.kepocnhh.xfiles.provider.security
 
 import java.security.SecureRandom
 
+@Suppress("LongParameterList")
 internal class MockSecurityProvider(
     private val cipher: CipherProvider = MockCipherProvider(),
     private val uuids: UUIDGenerator = MockUUIDGenerator(),
@@ -12,7 +13,8 @@ internal class MockSecurityProvider(
     private val md5: MessageDigestProvider = MockMessageDigestProvider(),
     private val base64: Base64Provider = MockBase64Provider(),
     private val keyPairGenerator: KeyPairGeneratorProvider = MockKeyPairGeneratorProvider(),
-    private val algorithmParamsGenerator: AlgorithmParameterGeneratorProvider = MockAlgorithmParameterGeneratorProvider(),
+    private val algorithmParamsGenerator: AlgorithmParameterGeneratorProvider =
+        MockAlgorithmParameterGeneratorProvider(),
     private val secretKeyFactory: SecretKeyFactoryProvider = MockSecretKeyFactoryProvider(),
 ) : SecurityProvider {
     override fun getMessageDigest(algorithm: HashAlgorithm): MessageDigestProvider {

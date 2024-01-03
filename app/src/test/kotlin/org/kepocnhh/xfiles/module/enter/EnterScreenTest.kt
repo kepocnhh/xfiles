@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("NonBooleanPropertyPrefixedWithIs")
 @RunWith(RobolectricTestRunner::class)
 internal class EnterScreenTest {
     @get:Rule
@@ -72,6 +73,7 @@ internal class EnterScreenTest {
         App.clearStores()
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun createNewTest() {
         val issuer = "EnterScreenTest:createNewTest"
@@ -160,8 +162,8 @@ internal class EnterScreenTest {
             devices = MockDeviceProvider(
                 uuids = mapOf(device to deviceId),
             ),
-            security = {
-                check(securityServices == it)
+            security = { ss ->
+                check(securityServices == ss)
                 MockSecurityProvider(
                     sha512 = MockMessageDigestProvider(
                         listOf(pinBytes to pinBytesDigest),
@@ -254,6 +256,7 @@ internal class EnterScreenTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun unlockTest() {
         val issuer = "EnterScreenTest:unlockTest"
@@ -346,8 +349,8 @@ internal class EnterScreenTest {
             devices = MockDeviceProvider(
                 uuids = mapOf(device to deviceId),
             ),
-            security = {
-                check(securityServices == it)
+            security = { ss ->
+                check(securityServices == ss)
                 MockSecurityProvider(
                     sha512 = MockMessageDigestProvider(
                         listOf(pinBytes to pinBytesDigest),

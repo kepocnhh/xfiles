@@ -4,16 +4,16 @@ import org.kepocnhh.xfiles.mockBytes
 import javax.crypto.SecretKey
 
 internal class MockSecretKey(
-    private val encoded: ByteArray = "MockSecretKey:encoded".toByteArray(),
+    private val encoded: ByteArray = mockBytes(prefix = "MockSecretKey:encoded"),
 ) : SecretKey {
     constructor(issuer: String) : this(encoded = mockBytes(issuer))
 
     override fun getAlgorithm(): String {
-        TODO("Not yet implemented: getAlgorithm")
+        error("Illegal state: getAlgorithm")
     }
 
     override fun getFormat(): String {
-        TODO("Not yet implemented: getFormat")
+        error("Illegal state: getFormat")
     }
 
     override fun getEncoded(): ByteArray {

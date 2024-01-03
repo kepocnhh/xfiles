@@ -25,6 +25,11 @@ import org.robolectric.RobolectricTestRunner
 import java.security.Security
 import java.util.concurrent.atomic.AtomicBoolean
 
+@Suppress(
+    "StringLiteralDuplication",
+    "NonBooleanPropertyPrefixedWithIs",
+    "IgnoredReturnValue",
+)
 @RunWith(RobolectricTestRunner::class)
 internal class ChecksScreenTest {
     @get:Rule
@@ -42,6 +47,7 @@ internal class ChecksScreenTest {
 
     @Test(timeout = 2_000)
     fun onCompleteTest() {
+        val issuer = "ChecksScreenTest:onCompleteTest"
         val provider = TestProvider(
             name = "AndroidOpenSSL",
             services = listOf(
@@ -61,7 +67,7 @@ internal class ChecksScreenTest {
                         completed.set(true)
                     },
                     onExit = {
-                        error("Illegal state!")
+                        error("$issuer: onExit: Illegal state!")
                     },
                 )
             }
@@ -73,48 +79,43 @@ internal class ChecksScreenTest {
 
     @Test(timeout = 2_000)
     fun errorTest() {
+        val issuer = "ChecksScreenTest:errorTest"
         val injection = mockInjection()
         App.setInjection(injection)
         rule.setContent {
             App.Theme.Composition(themeState = mockThemeState()) {
                 ChecksScreen(
                     onComplete = {
-                        error("Illegal state!")
+                        error("$issuer: onComplete: Illegal state!")
                     },
                     onExit = {
-                        error("Illegal state!")
+                        error("$issuer: onExit: Illegal state!")
                     },
                 )
             }
         }
-        val isError = hasContentDescription("ChecksScreen:error")
-        val hasErrorText = textMatcher("has error text") { text ->
-            text.isNotEmpty()
-        }
-        rule.waitOne(isError and hasErrorText)
+        rule.waitOne(isError and hasText)
     }
 
     @Test(timeout = 2_000)
     fun errorIdsTest() {
+        val issuer = "ChecksScreenTest:errorIdsTest"
         rule.setContent {
             App.Theme.Composition(themeState = mockThemeState()) {
                 ChecksScreen(
                     state = ChecksViewModel.State.OnError(ChecksViewModel.ChecksType.IDS, IllegalStateException()),
                     onExit = {
-                        error("Illegal state!")
+                        error("$issuer: onExit: Illegal state!")
                     },
                 )
             }
         }
-        val isError = hasContentDescription("ChecksScreen:error")
-        val hasErrorText = textMatcher("has error text") { text ->
-            text.isNotEmpty()
-        }
-        rule.waitOne(isError and hasErrorText)
+        rule.waitOne(isError and hasText)
     }
 
     @Test(timeout = 2_000)
     fun exitTest() {
+        val issuer = "ChecksScreenTest:exitTest"
         val injection = mockInjection()
         App.setInjection(injection)
         val exit = AtomicBoolean(false)
@@ -122,7 +123,7 @@ internal class ChecksScreenTest {
             App.Theme.Composition(themeState = mockThemeState()) {
                 ChecksScreen(
                     onComplete = {
-                        error("Illegal state!")
+                        error("$issuer: onComplete: Illegal state!")
                     },
                     onExit = {
                         exit.set(true)
@@ -130,17 +131,20 @@ internal class ChecksScreenTest {
                 )
             }
         }
-        val isError = hasContentDescription("ChecksScreen:error")
-        val hasErrorText = textMatcher("has error text") { text ->
-            text.isNotEmpty()
-        }
-        rule.waitOne(isError and hasErrorText)
+        rule.waitOne(isError and hasText)
         assertFalse(exit.get())
         val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
         val isExit = hasContentDescription("ChecksScreen:exit")
         rule.onNode(isButton and isExit).performClick()
         rule.waitUntil {
             exit.get()
+        }
+    }
+
+    companion object {
+        val isError = hasContentDescription("ChecksScreen:error")
+        val hasText = textMatcher("has text") { text ->
+            text.isNotEmpty()
         }
     }
 }

@@ -1,5 +1,6 @@
 package org.kepocnhh.xfiles.entity
 
+@Suppress("LongParameterList")
 internal fun mockSecurityServices(
     cipher: SecurityService = mockSecurityService(algorithm = "cipher"),
     symmetric: SecurityService = mockSecurityService(algorithm = "symmetric"),

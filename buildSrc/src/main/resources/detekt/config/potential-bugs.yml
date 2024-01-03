@@ -1,4 +1,4 @@
-# 2024/01/02
+# 2024/01/03
 
 potential-bugs:
   active: true
@@ -40,12 +40,18 @@ potential-bugs:
     restrictToConfig: false
     ignoreFunctionCall: [
       android.content.SharedPreferences.Editor.commit,
-      android.content.SharedPreferences.Editor.remove,
       android.content.SharedPreferences.Editor.putString,
+      android.content.SharedPreferences.Editor.remove,
       androidx.compose.animation.core.Animatable.animateTo,
+      androidx.compose.ui.test.assert,
+      androidx.compose.ui.test.assertIsDisplayed,
+      androidx.compose.ui.test.assertTextEquals,
+      androidx.compose.ui.test.performClick,
+      androidx.compose.ui.test.performTouchInput,
       androidx.compose.ui.text.AnnotatedString.Builder.append,
-      java.lang.StringBuilder.append,
+      androidx.test.espresso.ViewInteraction.perform,
       java.io.File.delete,
+      java.lang.StringBuilder.append,
       kotlin.TODO,
       kotlin.also,
       kotlin.checkNotNull,
@@ -59,6 +65,8 @@ potential-bugs:
       kotlinx.coroutines.launch,
       kotlinx.coroutines.withContext,
       org.json.JSONObject.put,
+      org.junit.Assert.assertThrows,
+      java.util.concurrent.atomic.AtomicReference.compareAndSet
     ]
   ImplicitDefaultLocale:
     active: true

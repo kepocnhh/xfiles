@@ -35,6 +35,7 @@ import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
+@Suppress("NonBooleanPropertyPrefixedWithIs")
 @RunWith(RobolectricTestRunner::class)
 internal class AddItemScreenTest {
     @get:Rule
@@ -62,6 +63,7 @@ internal class AddItemScreenTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun addTest() {
         val issuer = "AddItemScreenTest:addTest"

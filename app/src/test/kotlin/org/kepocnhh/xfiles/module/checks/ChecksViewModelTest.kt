@@ -23,6 +23,10 @@ import org.kepocnhh.xfiles.util.security.SecurityUtil
 import java.security.Security
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress(
+    "StringLiteralDuplication",
+    "IgnoredReturnValue",
+)
 internal class ChecksViewModelTest {
     @After
     fun after() {
@@ -72,8 +76,8 @@ internal class ChecksViewModelTest {
             val viewModel = ChecksViewModel(injection)
             viewModel
                 .state
-                .collectFirst {
-                    assertNull(it)
+                .collectFirst { state ->
+                    assertNull(state)
                     assertNull(injection.local.services)
                     assertNull(injection.local.device)
                     assertNull(injection.encrypted.local.appId)
@@ -81,8 +85,8 @@ internal class ChecksViewModelTest {
                 }
             viewModel
                 .broadcast
-                .collectFirst {
-                    assertEquals(ChecksViewModel.Broadcast.OnComplete, it)
+                .collectFirst { broadcast ->
+                    assertEquals(ChecksViewModel.Broadcast.OnComplete, broadcast)
                     assertNotNull(injection.local.services)
                     assertEquals(device, injection.local.device)
                     assertNotNull(injection.local.device)
@@ -134,8 +138,8 @@ internal class ChecksViewModelTest {
             val viewModel = ChecksViewModel(injection)
             viewModel
                 .state
-                .collectFirst {
-                    assertNull(it)
+                .collectFirst { state ->
+                    assertNull(state)
                     assertEquals(services, injection.local.services)
                     assertEquals(device, injection.local.device)
                     assertEquals(appId, injection.encrypted.local.appId)
@@ -143,8 +147,8 @@ internal class ChecksViewModelTest {
                 }
             viewModel
                 .broadcast
-                .collectFirst {
-                    assertEquals(ChecksViewModel.Broadcast.OnComplete, it)
+                .collectFirst { broadcast ->
+                    assertEquals(ChecksViewModel.Broadcast.OnComplete, broadcast)
                     assertEquals(services, injection.local.services)
                     assertEquals(device, injection.local.device)
                     assertEquals(appId, injection.encrypted.local.appId)

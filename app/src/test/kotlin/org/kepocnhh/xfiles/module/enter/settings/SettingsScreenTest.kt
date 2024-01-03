@@ -31,6 +31,10 @@ import org.kepocnhh.xfiles.waitOne
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.atomic.AtomicBoolean
 
+@Suppress(
+    "StringLiteralDuplication",
+    "NonBooleanPropertyPrefixedWithIs",
+)
 @RunWith(RobolectricTestRunner::class)
 internal class SettingsScreenTest {
     @get:Rule

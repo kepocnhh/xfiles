@@ -38,6 +38,7 @@ import org.kepocnhh.xfiles.entity.mockDataBase
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockSecurityServices
 import org.kepocnhh.xfiles.entity.mockUUID
+import org.kepocnhh.xfiles.mockBytes
 import org.kepocnhh.xfiles.module.app.mockEncrypted
 import org.kepocnhh.xfiles.module.app.mockInjection
 import org.kepocnhh.xfiles.module.app.mockThemeState
@@ -59,6 +60,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress(
+    "StringLiteralDuplication",
+    "NonBooleanPropertyPrefixedWithIs",
+    "LargeClass",
+    "IgnoredReturnValue",
+    "MultilineLambdaItParameter",
+)
 @RunWith(RobolectricTestRunner::class)
 internal class UnlockedScreenTest {
     @get:Rule
@@ -69,16 +77,17 @@ internal class UnlockedScreenTest {
         App.clearStores()
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun backTest() {
         val issuer = "UnlockedScreenTest:backTest"
         val locked = AtomicBoolean(false)
         val dataBase = mockDataBase()
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -135,16 +144,17 @@ internal class UnlockedScreenTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun onLockTest() {
         val issuer = "UnlockedScreenTest:onLockTest"
         val locked = AtomicBoolean(false)
         val dataBase = mockDataBase()
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -207,10 +217,10 @@ internal class UnlockedScreenTest {
     fun emptyTest() {
         val issuer = "UnlockedScreenTest:emptyTest"
         val dataBase = mockDataBase()
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
@@ -256,6 +266,7 @@ internal class UnlockedScreenTest {
         rule.waitOne(isEmpty)
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun filledTest() {
         val issuer = "UnlockedScreenTest:filledTest"
@@ -264,11 +275,11 @@ internal class UnlockedScreenTest {
                 mockUUID() to ("title:$number" to "secret:$number")
             },
         )
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         check(dataBase.secrets.size == 4)
         val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
@@ -324,6 +335,7 @@ internal class UnlockedScreenTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun showTest() {
         val issuer = "UnlockedScreenTest:showTest"
@@ -333,11 +345,11 @@ internal class UnlockedScreenTest {
         val dataBase = mockDataBase(
             secrets = mapOf(id to (title to secret)),
         )
-        val dataBaseDecrypted = "dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         check(dataBase.secrets.size == 1)
         val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
@@ -389,6 +401,7 @@ internal class UnlockedScreenTest {
         rule.waitOne(isSecret and hasText(secret))
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun deleteTest() {
         val issuer = "UnlockedScreenTest:deleteTest"
@@ -398,8 +411,8 @@ internal class UnlockedScreenTest {
         val initDataBase = mockDataBase(
             secrets = mapOf(id to (title to secret)),
         )
-        val initDataBaseDecrypted = "initDataBase:decrypted".toByteArray()
-        val initDataBaseEncrypted = "initDataBase:encrypted".toByteArray()
+        val initDataBaseDecrypted = mockBytes(issuer)
+        val initDataBaseEncrypted = mockBytes(issuer)
         check(initDataBase.secrets.size == 1)
         val dataBaseRef = AtomicReference(initDataBaseEncrypted)
         val updated = 128.seconds
@@ -408,17 +421,17 @@ internal class UnlockedScreenTest {
             secrets = emptyMap(),
         )
         check(editedDataBase.secrets.isEmpty())
-        val editedDataBaseDecrypted = "editedDataBase:decrypted".toByteArray()
-        val editedDataBaseEncrypted = "editedDataBase:encrypted".toByteArray()
-        val editedDataBaseSignature = "editedDataBase:signature".toByteArray()
+        val editedDataBaseDecrypted = mockBytes(issuer)
+        val editedDataBaseEncrypted = mockBytes(issuer)
+        val editedDataBaseSignature = mockBytes(issuer)
         check(initDataBase.updated.inWholeMilliseconds < editedDataBase.updated.inWholeMilliseconds)
         val symmetric = mockKeyMeta()
-        val symmetricDecrypted = "symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val asymmetric = mockAsymmetricKey(issuer = issuer)
-        val asymmetricDecrypted = "asymmetric:decrypted".toByteArray()
+        val asymmetricDecrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
-        val privateKey = MockPrivateKey("UnlockedScreenTest:deleteTest:privateKey".toByteArray())
-        val publicKey = MockPublicKey("UnlockedScreenTest:deleteTest:publicKey".toByteArray())
+        val privateKey = MockPrivateKey(issuer = issuer)
+        val publicKey = MockPublicKey(issuer = issuer)
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
             local = MockLocalDataProvider(services = mockSecurityServices()),
@@ -502,6 +515,7 @@ internal class UnlockedScreenTest {
         rule.onNode(isTitle and hasText(title)).assertDoesNotExist()
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun copyTest() {
         val issuer = "UnlockedScreenTest:copyTest"
@@ -511,11 +525,11 @@ internal class UnlockedScreenTest {
         val dataBase = mockDataBase(
             secrets = mapOf(id to (title to secret)),
         )
-        val dataBaseDecrypted = "$issuer:dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "$issuer:dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         check(dataBase.secrets.size == 1)
         val symmetric = mockKeyMeta(issuer = "$issuer:symmetric")
-        val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
@@ -559,7 +573,8 @@ internal class UnlockedScreenTest {
         }
         val isTitle = hasContentDescription("UnlockedScreen:item:$id:title")
         rule.waitOne(isTitle and hasText(title))
-        val clipboardManager = rule.activity.getSystemService(ClipboardManager::class.java) ?: error("No clipboard manager!")
+        val clipboardManager = rule.activity.getSystemService(ClipboardManager::class.java)
+            ?: error("No clipboard manager!")
         assertNull(clipboardManager.primaryClip?.getItemAt(0)?.text)
         val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
         val isCopy = hasContentDescription("UnlockedScreen:item:$id:copy")
@@ -571,6 +586,7 @@ internal class UnlockedScreenTest {
         assertEquals(secret, text)
     }
 
+    @Suppress("LongMethod")
     @Test(timeout = 2_000)
     fun disposeTest() {
         val issuer = "UnlockedScreenTest:disposeTest"
@@ -580,11 +596,11 @@ internal class UnlockedScreenTest {
         val dataBase = mockDataBase(
             secrets = mapOf(id to (title to secret)),
         )
-        val dataBaseDecrypted = "$issuer:dataBase:decrypted".toByteArray()
-        val dataBaseEncrypted = "$issuer:dataBase:encrypted".toByteArray()
+        val dataBaseDecrypted = mockBytes(issuer)
+        val dataBaseEncrypted = mockBytes(issuer)
         check(dataBase.secrets.size == 1)
         val symmetric = mockKeyMeta(issuer = "$issuer:symmetric")
-        val symmetricDecrypted = "$issuer:symmetric:decrypted".toByteArray()
+        val symmetricDecrypted = mockBytes(issuer)
         val pathNames = mockPathNames()
         val secretKey = MockSecretKey(issuer = issuer)
         val injection = mockInjection(
@@ -647,7 +663,8 @@ internal class UnlockedScreenTest {
         val isButton = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button)
         val isCopy = hasContentDescription("UnlockedScreen:item:$id:copy")
         rule.onNode(isButton and isCopy).performClick()
-        val clipboardManager = rule.activity.getSystemService(ClipboardManager::class.java) ?: error("No clipboard manager!")
+        val clipboardManager = rule.activity.getSystemService(ClipboardManager::class.java)
+            ?: error("No clipboard manager!")
         val primaryClip = clipboardManager.primaryClip ?: error("No primary clip!")
         assertEquals(1, primaryClip.itemCount)
         val item = primaryClip.getItemAt(0) ?: error("No item!")

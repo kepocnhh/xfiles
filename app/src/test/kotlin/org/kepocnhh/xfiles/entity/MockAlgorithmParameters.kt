@@ -1,13 +1,14 @@
 package org.kepocnhh.xfiles.entity
 
 import org.kepocnhh.xfiles.TestProvider
+import org.kepocnhh.xfiles.mockBytes
 import java.security.AlgorithmParameters
 import java.security.AlgorithmParametersSpi
 import java.security.Provider
 import java.security.spec.AlgorithmParameterSpec
 
 private class MockAlgorithmParametersSpi(
-    private val encoded: ByteArray = "MockAlgorithmParametersSpi:encoded".toByteArray(),
+    private val encoded: ByteArray = mockBytes(prefix = "MockAlgorithmParametersSpi:encoded"),
 ) : AlgorithmParametersSpi() {
     private var paramSpec: AlgorithmParameterSpec? = null
 
@@ -16,11 +17,11 @@ private class MockAlgorithmParametersSpi(
     }
 
     override fun engineInit(params: ByteArray?) {
-        TODO("Not yet implemented: engineInit")
+        error("Illegal state: engineInit")
     }
 
     override fun engineInit(params: ByteArray?, format: String?) {
-        TODO("Not yet implemented: engineInit")
+        error("Illegal state: engineInit")
     }
 
     override fun <T : AlgorithmParameterSpec?> engineGetParameterSpec(paramSpec: Class<T>?): T {
@@ -28,7 +29,7 @@ private class MockAlgorithmParametersSpi(
     }
 
     override fun engineGetEncoded(): ByteArray {
-        TODO("Not yet implemented: engineGetEncoded")
+        error("Illegal state: engineGetEncoded")
     }
 
     override fun engineGetEncoded(format: String?): ByteArray {
@@ -36,12 +37,12 @@ private class MockAlgorithmParametersSpi(
     }
 
     override fun engineToString(): String {
-        TODO("Not yet implemented: engineToString")
+        error("Illegal state: engineToString")
     }
 }
 
 internal class MockAlgorithmParameters(
-    encoded: ByteArray = "MockAlgorithmParameters:encoded".toByteArray(),
+    encoded: ByteArray = mockBytes(prefix = "MockAlgorithmParameters:encoded"),
     provider: Provider = TestProvider("MockAlgorithmParameters:provider"),
     algorithm: String = "MockAlgorithmParameters:algorithm",
 ) : AlgorithmParameters(
@@ -50,7 +51,7 @@ internal class MockAlgorithmParameters(
     algorithm,
 ) {
     constructor(issuer: String) : this(
-        encoded = "$issuer:mock:algorithm:parameters:encoded".toByteArray(),
+        encoded = mockBytes("$issuer:mock:algorithm:parameters:encoded"),
         provider = TestProvider("$issuer:mock:algorithm:parameters:provider"),
         algorithm = "$issuer:mock:algorithm:parameters:algorithm",
     )

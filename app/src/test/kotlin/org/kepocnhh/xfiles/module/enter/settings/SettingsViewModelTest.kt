@@ -21,6 +21,7 @@ import org.kepocnhh.xfiles.provider.mockContexts
 import org.kepocnhh.xfiles.provider.mockPathNames
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("StringLiteralDuplication")
 internal class SettingsViewModelTest {
     @Test
     fun requestCipherTest() {

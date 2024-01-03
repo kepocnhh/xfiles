@@ -9,11 +9,11 @@ internal class MockPublicKey(
     constructor(issuer: String) : this(encoded = mockBytes("$issuer:mock:public:key:encoded"))
 
     override fun getAlgorithm(): String {
-        TODO("Not yet implemented: getAlgorithm")
+        error("Illegal state: getAlgorithm")
     }
 
     override fun getFormat(): String {
-        TODO("Not yet implemented: getFormat")
+        error("Illegal state: getFormat")
     }
 
     override fun getEncoded(): ByteArray {

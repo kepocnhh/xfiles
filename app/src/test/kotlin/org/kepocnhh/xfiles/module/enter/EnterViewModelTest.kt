@@ -55,21 +55,12 @@ import org.kepocnhh.xfiles.waitUntil
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress(
+    "LargeClass",
+    "StringLiteralDuplication",
+    "MultilineLambdaItParameter",
+)
 internal class EnterViewModelTest {
-    companion object {
-        private fun mockState(
-            loading: Boolean = false,
-            exists: Boolean = false,
-            hasBiometric: Boolean = false,
-        ): EnterViewModel.State {
-            return EnterViewModel.State(
-                loading = loading,
-                exists = exists,
-                hasBiometric = hasBiometric,
-            )
-        }
-    }
-
     private suspend fun requestStateTest(expected: EnterViewModel.State) {
         val issuer = "EnterViewModelTest:requestStateTest:${expected.hashCode()}"
         val pathNames = mockPathNames(
@@ -164,9 +155,12 @@ internal class EnterViewModelTest {
                 block = {
                     viewModel
                         .broadcast
-                        .collectFirst {
-                            check(it is EnterViewModel.Broadcast.OnBiometric)
-                            assertTrue("Initial vectors are not equal!", expected.contentEquals(it.iv))
+                        .collectFirst { broadcast ->
+                            check(broadcast is EnterViewModel.Broadcast.OnBiometric)
+                            assertTrue(
+                                "Initial vectors are not equal!",
+                                expected.contentEquals(broadcast.iv),
+                            )
                         }
                 },
                 action = viewModel::requestBiometric,
@@ -233,6 +227,7 @@ internal class EnterViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun createNewFileTest() {
         runTest(timeout = 2.seconds) {
@@ -431,6 +426,7 @@ internal class EnterViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun createNewFileCipherTest() {
         runTest(timeout = 2.seconds) {
@@ -642,6 +638,7 @@ internal class EnterViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun unlockFileTest() {
         runTest(timeout = 2.seconds) {
@@ -813,6 +810,7 @@ internal class EnterViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun unlockFileErrorTest() {
         runTest(timeout = 2.seconds) {
@@ -1012,6 +1010,7 @@ internal class EnterViewModelTest {
         }
     }
 
+    @Suppress("LongMethod")
     @Test
     fun unlockFileCipherTest() {
         runTest(timeout = 2.seconds) {
@@ -1093,10 +1092,7 @@ internal class EnterViewModelTest {
                             pathNames.biometric to biometricMetaDecrypted,
                         ),
                     ),
-                    local = MockEncryptedLocalDataProvider(
-//                        appId = appId, // todo
-                        databaseId = databaseId,
-                    ),
+                    local = MockEncryptedLocalDataProvider(databaseId = databaseId),
                 ),
                 serializer = MockSerializer(
                     values = mapOf(
@@ -1176,6 +1172,20 @@ internal class EnterViewModelTest {
                 action = {
                     viewModel.unlockFile(decrypt = decrypt)
                 },
+            )
+        }
+    }
+
+    companion object {
+        private fun mockState(
+            loading: Boolean = false,
+            exists: Boolean = false,
+            hasBiometric: Boolean = false,
+        ): EnterViewModel.State {
+            return EnterViewModel.State(
+                loading = loading,
+                exists = exists,
+                hasBiometric = hasBiometric,
             )
         }
     }

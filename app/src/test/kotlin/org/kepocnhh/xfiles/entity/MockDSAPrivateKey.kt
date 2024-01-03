@@ -1,15 +1,16 @@
 package org.kepocnhh.xfiles.entity
 
+import org.kepocnhh.xfiles.mockBytes
 import java.math.BigInteger
 import java.security.interfaces.DSAParams
 import java.security.interfaces.DSAPrivateKey
 
 internal class MockDSAPrivateKey(
-    private val encoded: ByteArray = "MockDSAPrivateKey:encoded".toByteArray(),
+    private val encoded: ByteArray = mockBytes(prefix = "MockDSAPrivateKey:encoded"),
     private val params: DSAParams = MockDSAParameterSpec(),
 ) : DSAPrivateKey {
     constructor(issuer: String, params: DSAParams) : this(
-        encoded = "$issuer:mock:dsa:private:key:encoded".toByteArray(),
+        encoded = mockBytes("$issuer:mock:dsa:private:key:encoded"),
         params = params,
     )
 
@@ -18,11 +19,11 @@ internal class MockDSAPrivateKey(
     }
 
     override fun getAlgorithm(): String {
-        TODO("Not yet implemented: getAlgorithm")
+        error("Illegal state: getAlgorithm")
     }
 
     override fun getFormat(): String {
-        TODO("Not yet implemented: getFormat")
+        error("Illegal state: getFormat")
     }
 
     override fun getEncoded(): ByteArray {
@@ -30,6 +31,6 @@ internal class MockDSAPrivateKey(
     }
 
     override fun getX(): BigInteger {
-        TODO("Not yet implemented: getX")
+        error("Illegal state: getX")
     }
 }

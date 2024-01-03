@@ -227,18 +227,6 @@ fun getDetektConfigs(): Iterable<File> {
     }
 }
 
-fun getDetektUnitTestConfigs(): Iterable<File> {
-    return setOf(
-        "android/test",
-        "test",
-    ).map { config ->
-        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
-            .existing()
-            .file()
-            .filled()
-    }
-}
-
 fun checkReadme(variant: ComponentIdentity) {
     task(camelCase("check", variant.name, "Readme")) {
         doLast {
@@ -339,7 +327,7 @@ androidComponents.onVariants { variant ->
             checkCoverage(variant)
             checkCodeQuality(
                 variant = variant,
-                configs = getDetektConfigs() + getDetektUnitTestConfigs(),
+                configs = getDetektConfigs(),
                 sources = files("src/test/kotlin"),
                 postfix = "UnitTest",
             )
