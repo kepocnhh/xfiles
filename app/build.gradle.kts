@@ -33,16 +33,22 @@ plugins {
 }
 
 fun ComponentIdentity.getVersion(): String {
-    check(flavorName!!.isEmpty())
+    val flavors = productFlavors.map { (it, _) -> it }
+    check(flavors.isEmpty()) { "Flavors \"$flavorName\" are not supported!" }
+    val versionName = android.defaultConfig.versionName ?: error("No version name!")
+    check(versionName.isNotBlank())
+    val versionCode = android.defaultConfig.versionCode ?: error("No version code!")
+    check(versionCode > 0)
+    check(name.isNotBlank())
     return when (buildType) {
         "debug", "examine" -> kebabCase(
-            android.defaultConfig.versionName!!,
+            versionName,
             name,
-            android.defaultConfig.versionCode!!.toString(),
+            versionCode.toString(),
         )
         "release" -> kebabCase(
-            android.defaultConfig.versionName!!,
-            android.defaultConfig.versionCode!!.toString(),
+            versionName,
+            versionCode.toString(),
         )
         else -> error("Build type \"${buildType}\" is not supported!")
     }
