@@ -2,13 +2,13 @@ package org.kepocnhh.xfiles.entity
 
 @Suppress("LongParameterList")
 internal fun mockSecurityServices(
-    cipher: SecurityService = mockSecurityService(algorithm = "cipher"),
-    symmetric: SecurityService = mockSecurityService(algorithm = "symmetric"),
-    asymmetric: SecurityService = mockSecurityService(algorithm = "asymmetric"),
-    signature: SecurityService = mockSecurityService(algorithm = "signature"),
-    sha512: SecurityService = mockSecurityService(algorithm = "sha512"),
-    md5: SecurityService = mockSecurityService(algorithm = "md5"),
-    random: SecurityService = mockSecurityService(algorithm = "random"),
+    cipher: SecurityService = mockSecurityService(algorithm = "mock:cipher"),
+    symmetric: SecurityService = mockSecurityService(algorithm = "mock:symmetric"),
+    asymmetric: SecurityService = mockSecurityService(algorithm = "mock:asymmetric"),
+    signature: SecurityService = mockSecurityService(algorithm = "mock:signature"),
+    sha512: SecurityService = mockSecurityService(algorithm = "mock:sha512"),
+    md5: SecurityService = mockSecurityService(algorithm = "mock:md5"),
+    random: SecurityService = mockSecurityService(algorithm = "mock:random"),
 ): SecurityServices {
     return SecurityServices(
         cipher = cipher,

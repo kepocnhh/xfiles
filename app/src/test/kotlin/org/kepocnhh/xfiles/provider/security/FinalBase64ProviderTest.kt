@@ -1,10 +1,8 @@
-package org.kepocnhh.xfiles.provider
+package org.kepocnhh.xfiles.provider.security
 
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.kepocnhh.xfiles.provider.security.Base64Provider
-import org.kepocnhh.xfiles.provider.security.FinalBase64Provider
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)

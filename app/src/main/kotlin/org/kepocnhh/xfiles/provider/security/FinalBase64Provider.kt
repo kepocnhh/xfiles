@@ -7,7 +7,7 @@ internal object FinalBase64Provider : Base64Provider {
         return Base64.encodeToString(bytes, Base64.NO_WRAP)
     }
 
-    override fun decode(text: String): ByteArray {
-        return Base64.decode(text, Base64.DEFAULT)
+    override fun decode(encoded: String): ByteArray {
+        return Base64.decode(encoded, Base64.DEFAULT)
     }
 }

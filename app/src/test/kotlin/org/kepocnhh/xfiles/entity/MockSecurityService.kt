@@ -1,8 +1,8 @@
 package org.kepocnhh.xfiles.entity
 
 internal fun mockSecurityService(
-    provider: String = "foo",
-    algorithm: String = "bar",
+    provider: String = "mock:security:service:provider",
+    algorithm: String = "mock:security:service:algorithm",
 ): SecurityService {
     return SecurityService(
         provider = provider,
