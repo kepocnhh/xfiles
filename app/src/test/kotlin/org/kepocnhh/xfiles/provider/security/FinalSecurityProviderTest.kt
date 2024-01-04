@@ -10,7 +10,9 @@ import org.kepocnhh.xfiles.util.security.SecurityUtil
 import org.kepocnhh.xfiles.util.security.requireService
 import org.kepocnhh.xfiles.util.security.toSecurityService
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.math.BigInteger
+import java.security.SecureRandom
 
 @RunWith(RobolectricTestRunner::class)
 internal class FinalSecurityProviderTest {
@@ -57,5 +59,31 @@ internal class FinalSecurityProviderTest {
         val actual = String.format("%032x", BigInteger(1, digest))
         val expected = "48328a5165fa362902fa1abec0d0a7a6cb0a26b1520eb328e207c4d0012201fba5d36bcbc0c5831df1e02fd06f1e44e66a20437ebde67dae7ad9a55abbfe9ca1"
         Assert.assertEquals(expected, actual)
+    }
+
+    @Config(sdk = [25])
+    @Test(timeout = 2_000)
+    fun secureRandomTest() {
+        val services: SecurityServices = mockSecurityServices(
+            random = SecurityUtil
+                .requireProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .requireService(type = "SecureRandom", algorithm = "DEFAULT")
+                .toSecurityService(),
+        )
+        val provider: SecurityProvider = FinalSecurityProvider(services = services)
+        val random: SecureRandom = provider.getSecureRandom()
+        Assert.assertTrue(random.nextInt(1024) in 0 until 1024)
+        Assert.assertTrue(random.nextDouble() in 0.0..1.0)
+    }
+
+    @Config(sdk = [26])
+    @Test(timeout = 2_000)
+    fun secureRandomTest26() {
+        val issuer = "FinalSecurityProviderTest:secureRandomTest26"
+        val services: SecurityServices = mockSecurityServices(issuer = issuer)
+        val provider: SecurityProvider = FinalSecurityProvider(services = services)
+        val random: SecureRandom = provider.getSecureRandom()
+        Assert.assertTrue(random.nextInt(1024) in 0 until 1024)
+        Assert.assertTrue(random.nextDouble() in 0.0..1.0)
     }
 }
