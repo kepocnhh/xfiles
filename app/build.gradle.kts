@@ -151,6 +151,7 @@ fun checkCoverage(variant: ComponentIdentity) {
             .dir(variant.name)
         val dirs = fileTree(root) {
             val rootPackage = android.namespace!!.replace('.', '/')
+            include("**/$rootPackage/provider/**")
             val path = "**/$rootPackage/module/**"
             setOf("Screen", "ViewModel").forEach { name ->
                 include(

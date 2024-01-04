@@ -1,3 +1,5 @@
+@file:Suppress("ForbiddenImport")
+
 package org.kepocnhh.xfiles.provider
 
 import org.json.JSONObject
