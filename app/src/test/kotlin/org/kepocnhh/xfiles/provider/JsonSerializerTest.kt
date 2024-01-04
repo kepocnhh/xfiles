@@ -5,7 +5,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
-import org.kepocnhh.xfiles.entity.mockDataBase
+import org.kepocnhh.xfiles.entity.mockAsymmetricKey
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.provider.security.Base64Provider
@@ -135,6 +135,50 @@ internal class JsonSerializerTest {
             updated = 128.seconds,
             secrets = secrets,
         )
+        assertEquals(expected, actual)
+    }
+
+    @Test(timeout = 2_000)
+    fun serializeAsymmetricKeyTest() {
+        val issuer = "JsonSerializerTest:serializeAsymmetricKeyTest"
+        val value = mockAsymmetricKey(issuer = issuer)
+        val base64: Base64Provider = MockBase64Provider(
+            values = mapOf(
+                "foo" to value.publicKeyDecrypted,
+                "bar" to value.privateKeyEncrypted,
+            ),
+        )
+        val serializer: Serializer = JsonSerializer(base64 = base64)
+        val bytes = serializer.serialize(value = value)
+        val expected = """
+            {
+            "publicKeyDecrypted":"foo",
+            "privateKeyEncrypted":"bar"
+            }
+        """.trimIndent()
+            .replace(" ", "")
+            .replace("\n", "")
+        assertEquals(expected, String(bytes))
+    }
+
+    @Test(timeout = 2_000)
+    fun toAsymmetricKeyTest() {
+        val issuer = "JsonSerializerTest:toAsymmetricKeyTest"
+        val expected = mockAsymmetricKey(issuer = issuer)
+        val base64: Base64Provider = MockBase64Provider(
+            values = mapOf(
+                "foo" to expected.publicKeyDecrypted,
+                "bar" to expected.privateKeyEncrypted,
+            ),
+        )
+        val serializer: Serializer = JsonSerializer(base64 = base64)
+        val json = """
+            {
+            "publicKeyDecrypted":"foo",
+            "privateKeyEncrypted":"bar"
+            }
+        """
+        val actual = serializer.toAsymmetricKey(json.toByteArray())
         assertEquals(expected, actual)
     }
 }
