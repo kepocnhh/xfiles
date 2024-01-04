@@ -4,7 +4,7 @@ internal class MockBase64Provider(
     private val values: Map<String, ByteArray> = emptyMap(),
 ) : Base64Provider {
     constructor(decoded: Set<String>) : this(
-        values = decoded.associate { "$it:base64" to it.toByteArray() }
+        values = decoded.associate { "$it:base64" to it.toByteArray() },
     )
 
     override fun encode(bytes: ByteArray): String {
