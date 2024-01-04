@@ -21,14 +21,6 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 
-private class MessageDigestProviderImpl(
-    private val delegate: MessageDigest,
-) : MessageDigestProvider {
-    override fun digest(bytes: ByteArray): ByteArray {
-        return delegate.digest(bytes)
-    }
-}
-
 private class CipherProviderImpl(
     private val delegate: Cipher,
 ) : CipherProvider {
@@ -119,7 +111,7 @@ internal class FinalSecurityProvider(
             HashAlgorithm.MD5 -> services.md5
             HashAlgorithm.SHA512 -> services.sha512
         }
-        return MessageDigestProviderImpl(MessageDigest.getInstance(service.algorithm, service.provider))
+        return FinalMessageDigestProvider(MessageDigest.getInstance(service.algorithm, service.provider))
     }
 
     override fun getCipher(): CipherProvider {

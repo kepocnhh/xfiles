@@ -45,7 +45,9 @@ import org.kepocnhh.xfiles.provider.PathNames
 import org.kepocnhh.xfiles.provider.data.FinalEncryptedLocalDataProvider
 import org.kepocnhh.xfiles.provider.data.FinalLocalDataProvider
 import org.kepocnhh.xfiles.provider.security.FinalBase64Provider
+import org.kepocnhh.xfiles.provider.security.FinalMessageDigestProvider
 import org.kepocnhh.xfiles.provider.security.FinalSecurityProvider
+import org.kepocnhh.xfiles.provider.security.MessageDigestProvider
 import org.kepocnhh.xfiles.util.compose.ColorIndication
 import org.kepocnhh.xfiles.util.compose.toPaddings
 import org.kepocnhh.xfiles.util.lifecycle.AbstractViewModel
@@ -157,8 +159,10 @@ internal class App : Application() {
         )
         val isTest = System.getProperty("isTest") == "true"
         if (isTest) return
-        val md5: MessageDigest = try {
-            MessageDigest.getInstance("MD5", "AndroidOpenSSL")
+        val md5: MessageDigestProvider = try {
+            FinalMessageDigestProvider(
+                delegate = MessageDigest.getInstance("MD5", "AndroidOpenSSL"),
+            )
         } catch (cause: Throwable) {
             throw IllegalStateException(
                 "The ability to calculate a MD5 hash is necessary for the application to work!",
@@ -198,7 +202,7 @@ internal class App : Application() {
                 dataBaseSignature = "db.json.sig",
                 biometric = "biometric.enc",
             ),
-            devices = FinalDeviceProvider(md = md5),
+            devices = FinalDeviceProvider(md5 = md5),
             serializer = JsonSerializer(base64 = FinalBase64Provider),
             time = FinalTimeProvider,
         )

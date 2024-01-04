@@ -22,6 +22,6 @@ internal fun mockDevice(issuer: String): Device {
         brand = "$issuer:brand",
         model = "$issuer:model",
         name = "$issuer:name",
-        supportedABIs = setOf("$issuer:supportedABIs"),
+        supportedABIs = (1..4).map { "$issuer:supportedABI:$it" }.toSet(),
     )
 }

@@ -2,12 +2,12 @@ package org.kepocnhh.xfiles.provider
 
 import android.os.Build
 import org.kepocnhh.xfiles.entity.Device
+import org.kepocnhh.xfiles.provider.security.MessageDigestProvider
 import java.nio.ByteBuffer
-import java.security.MessageDigest
 import java.util.UUID
 
 internal class FinalDeviceProvider(
-    private val md: MessageDigest,
+    private val md5: MessageDigestProvider,
 ) : DeviceProvider {
     override fun getCurrentDevice(): Device {
         return Device(
@@ -29,7 +29,7 @@ internal class FinalDeviceProvider(
         ).entries.joinToString(separator = ",") { (key, value) ->
             "$key=$value"
         }
-        val digest = md.digest(input.toByteArray())
+        val digest = md5.digest(input.toByteArray())
         check(digest.size == 16)
         val buffer = ByteBuffer.wrap(digest)
         return UUID(buffer.long, buffer.long)
