@@ -23,6 +23,18 @@ internal fun mockKeyMeta(
 }
 
 internal fun mockKeyMeta(
+    salt: String,
+    ivDB: String,
+    ivPrivate: String,
+): KeyMeta {
+    return mockKeyMeta(
+        salt = salt.toByteArray(),
+        ivDB = ivDB.toByteArray(),
+        ivPrivate = ivPrivate.toByteArray(),
+    )
+}
+
+internal fun mockKeyMeta(
     saltSize: Int,
     ivDBSize: Int,
     ivPrivateSize: Int,
