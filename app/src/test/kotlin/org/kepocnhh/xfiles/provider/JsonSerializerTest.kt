@@ -4,13 +4,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.kepocnhh.xfiles.entity.DataBase
-import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.entity.mockAsymmetricKey
 import org.kepocnhh.xfiles.entity.mockBiometricMeta
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.provider.security.Base64Provider
-import org.kepocnhh.xfiles.provider.security.FinalBase64Provider
 import org.kepocnhh.xfiles.provider.security.MockBase64Provider
 import org.robolectric.RobolectricTestRunner
 import kotlin.time.Duration
@@ -20,19 +18,22 @@ import kotlin.time.Duration.Companion.seconds
 internal class JsonSerializerTest {
     @Test(timeout = 2_000)
     fun serializeKeyMetaTest() {
-        val base64: Base64Provider = FinalBase64Provider
-        val serializer: Serializer = JsonSerializer(base64 = base64)
-        val value = KeyMeta(
-            salt = "foo:salt".toByteArray(),
-            ivDB = "bar:ivDB".toByteArray(),
-            ivPrivate = "baz:ivPrivate".toByteArray(),
+        val issuer = "JsonSerializerTest:serializeKeyMetaTest"
+        val value = mockKeyMeta(issuer = issuer)
+        val base64: Base64Provider = MockBase64Provider(
+            values = mapOf(
+                "foo" to value.salt,
+                "bar" to value.ivDB,
+                "baz" to value.ivPrivate,
+            ),
         )
+        val serializer: Serializer = JsonSerializer(base64 = base64)
         val bytes = serializer.serialize(value = value)
         val expected = """
             {
-                "salt": "Zm9vOnNhbHQ=",
-                "ivDB": "YmFyOml2REI=",
-                "ivPrivate": "YmF6Oml2UHJpdmF0ZQ=="
+                "salt": "foo",
+                "ivDB": "bar",
+                "ivPrivate": "baz"
             }
         """.trimIndent()
             .replace(" ", "")
@@ -178,7 +179,7 @@ internal class JsonSerializerTest {
             "publicKeyDecrypted":"foo",
             "privateKeyEncrypted":"bar"
             }
-        """
+        """.trimIndent()
         val actual = serializer.toAsymmetricKey(json.toByteArray())
         assertEquals(expected, actual)
     }
@@ -222,7 +223,7 @@ internal class JsonSerializerTest {
             "passwordEncrypted":"foo",
             "iv":"bar"
             }
-        """
+        """.trimIndent()
         val actual = serializer.toBiometricMeta(json.toByteArray())
         assertEquals(expected, actual)
     }

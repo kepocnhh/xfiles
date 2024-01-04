@@ -13,6 +13,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.math.BigInteger
 import java.security.SecureRandom
+import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 internal class FinalSecurityProviderTest {
@@ -41,10 +42,11 @@ internal class FinalSecurityProviderTest {
         )
         val provider: SecurityProvider = FinalSecurityProvider(services = services)
         val digest = provider.getMessageDigest(HashAlgorithm.MD5).digest(issuer.toByteArray())
-        val actual = String.format("%032x", BigInteger(1, digest))
+        val actual = String.format(Locale.US, "%032x", BigInteger(1, digest))
         Assert.assertEquals("947504882f12496b2d428c21f1961adc", actual)
     }
 
+    @Suppress("MaxLineLength")
     @Test(timeout = 2_000)
     fun sha512Test() {
         val issuer = "FinalSecurityProviderTest:sha512Test"
@@ -56,7 +58,7 @@ internal class FinalSecurityProviderTest {
         )
         val provider: SecurityProvider = FinalSecurityProvider(services = services)
         val digest = provider.getMessageDigest(HashAlgorithm.SHA512).digest(issuer.toByteArray())
-        val actual = String.format("%032x", BigInteger(1, digest))
+        val actual = String.format(Locale.US, "%032x", BigInteger(1, digest))
         val expected = "48328a5165fa362902fa1abec0d0a7a6cb0a26b1520eb328e207c4d0012201fba5d36bcbc0c5831df1e02fd06f1e44e66a20437ebde67dae7ad9a55abbfe9ca1"
         Assert.assertEquals(expected, actual)
     }
