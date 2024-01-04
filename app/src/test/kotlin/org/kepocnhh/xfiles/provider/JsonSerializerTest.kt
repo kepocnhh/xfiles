@@ -6,6 +6,7 @@ import org.junit.runner.RunWith
 import org.kepocnhh.xfiles.entity.DataBase
 import org.kepocnhh.xfiles.entity.KeyMeta
 import org.kepocnhh.xfiles.entity.mockAsymmetricKey
+import org.kepocnhh.xfiles.entity.mockBiometricMeta
 import org.kepocnhh.xfiles.entity.mockKeyMeta
 import org.kepocnhh.xfiles.entity.mockUUID
 import org.kepocnhh.xfiles.provider.security.Base64Provider
@@ -179,6 +180,50 @@ internal class JsonSerializerTest {
             }
         """
         val actual = serializer.toAsymmetricKey(json.toByteArray())
+        assertEquals(expected, actual)
+    }
+
+    @Test(timeout = 2_000)
+    fun serializeBiometricMetaTest() {
+        val issuer = "JsonSerializerTest:serializeBiometricMetaTest"
+        val value = mockBiometricMeta(issuer = issuer)
+        val base64: Base64Provider = MockBase64Provider(
+            values = mapOf(
+                "foo" to value.passwordEncrypted,
+                "bar" to value.iv,
+            ),
+        )
+        val serializer: Serializer = JsonSerializer(base64 = base64)
+        val bytes = serializer.serialize(value = value)
+        val expected = """
+            {
+            "passwordEncrypted":"foo",
+            "iv":"bar"
+            }
+        """.trimIndent()
+            .replace(" ", "")
+            .replace("\n", "")
+        assertEquals(expected, String(bytes))
+    }
+
+    @Test(timeout = 2_000)
+    fun toBiometricMetaTest() {
+        val issuer = "JsonSerializerTest:toBiometricMetaTest"
+        val expected = mockBiometricMeta(issuer = issuer)
+        val base64: Base64Provider = MockBase64Provider(
+            values = mapOf(
+                "foo" to expected.passwordEncrypted,
+                "bar" to expected.iv,
+            ),
+        )
+        val serializer: Serializer = JsonSerializer(base64 = base64)
+        val json = """
+            {
+            "passwordEncrypted":"foo",
+            "iv":"bar"
+            }
+        """
+        val actual = serializer.toBiometricMeta(json.toByteArray())
         assertEquals(expected, actual)
     }
 }
