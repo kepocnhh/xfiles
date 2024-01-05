@@ -8,6 +8,7 @@
     <application
         android:name=".App"
         android:theme="@style/App.Theme"
+        android:icon="@drawable/ic_launcher"
         android:label="${appName}_${buildType}">
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait"
