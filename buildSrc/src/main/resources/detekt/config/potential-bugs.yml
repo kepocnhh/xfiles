@@ -1,0 +1,116 @@
+# 2024/01/03
+
+potential-bugs:
+  active: true
+  AvoidReferentialEquality:
+    active: true
+    forbiddenTypePatterns: ['*']
+  CastToNullableType:
+    active: true
+  Deprecation:
+    active: true
+  DontDowncastCollectionTypes:
+    active: true
+  DoubleMutabilityForCollection:
+    active: true
+    mutableTypes: [
+      'kotlin.collections.MutableList',
+      'kotlin.collections.MutableMap',
+      'kotlin.collections.MutableSet',
+      'java.util.ArrayList',
+      'java.util.LinkedHashSet',
+      'java.util.HashSet',
+      'java.util.LinkedHashMap',
+      'java.util.HashMap'
+    ]
+  ElseCaseInsteadOfExhaustiveWhen:
+    active: false
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+  EqualsWithHashCodeExist:
+    active: true
+  ExitOutsideMain:
+    active: true
+  ExplicitGarbageCollectionCall:
+    active: true
+  HasPlatformType:
+    active: true
+  IgnoredReturnValue:
+    active: true
+    restrictToConfig: false
+    ignoreFunctionCall: [
+      android.content.SharedPreferences.Editor.commit,
+      android.content.SharedPreferences.Editor.putString,
+      android.content.SharedPreferences.Editor.remove,
+      androidx.compose.animation.core.Animatable.animateTo,
+      androidx.compose.ui.test.assert,
+      androidx.compose.ui.test.assertIsDisplayed,
+      androidx.compose.ui.test.assertTextEquals,
+      androidx.compose.ui.test.performClick,
+      androidx.compose.ui.test.performTouchInput,
+      androidx.compose.ui.text.AnnotatedString.Builder.append,
+      androidx.test.espresso.ViewInteraction.perform,
+      java.io.File.delete,
+      java.lang.StringBuilder.append,
+      kotlin.TODO,
+      kotlin.also,
+      kotlin.checkNotNull,
+      kotlin.collections.MutableList.add,
+      kotlin.collections.MutableMap.remove,
+      kotlin.collections.MutableSet.add,
+      kotlin.collections.MutableSet.addAll,
+      kotlin.collections.removeAll,
+      kotlin.error,
+      kotlinx.coroutines.flow.SharedFlow.collect,
+      kotlinx.coroutines.launch,
+      kotlinx.coroutines.withContext,
+      org.json.JSONObject.put,
+      org.junit.Assert.assertThrows,
+      java.util.concurrent.atomic.AtomicReference.compareAndSet
+    ]
+  ImplicitDefaultLocale:
+    active: true
+  ImplicitUnitReturnType:
+    active: true
+  InvalidRange:
+    active: true
+  IteratorHasNextCallsNextMethod:
+    active: true
+  IteratorNotThrowingNoSuchElementException:
+    active: true
+  LateinitUsage:
+    active: true
+    ignoreAnnotated: []
+    ignoreOnClassesPattern: ''
+  MapGetWithNotNullAssertionOperator:
+    active: true
+  MissingPackageDeclaration:
+    active: true
+  NullCheckOnMutableProperty:
+    active: true
+  NullableToStringCall:
+    active: true
+  PropertyUsedBeforeDeclaration:
+    active: true
+  UnconditionalJumpStatementInLoop:
+    active: true
+  UnnecessaryNotNullCheck:
+    active: true
+  UnnecessaryNotNullOperator:
+    active: true
+  UnnecessarySafeCall:
+    active: true
+  UnreachableCatchBlock:
+    active: true
+  UnreachableCode:
+    active: true
+  UnsafeCallOnNullableType:
+    active: true
+  UnsafeCast:
+    active: true
+  UnusedUnaryOperator:
+    active: true
+  UselessPostfixExpression:
+    active: true # todo https://github.com/detekt/detekt/issues/4617
+  WrongEqualsTypeParameter:
+    active: true
