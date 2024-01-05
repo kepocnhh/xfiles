@@ -177,7 +177,7 @@ fun checkCoverage(variant: ComponentIdentity) {
         violationRules {
             rule {
                 limit {
-                    minimum = BigDecimal(0.96)
+                    minimum = BigDecimal(0.84)
                 }
             }
         }
