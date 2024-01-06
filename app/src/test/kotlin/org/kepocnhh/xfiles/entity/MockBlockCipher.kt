@@ -8,7 +8,7 @@ internal class MockBlockCipher(
     private val blockSize: Int = 16,
 ) : BlockCipher {
     override fun init(forEncryption: Boolean, params: CipherParameters?) {
-        TODO("Not yet implemented: init")
+        error("Illegal state!")
     }
 
     override fun getAlgorithmName(): String {
@@ -20,7 +20,7 @@ internal class MockBlockCipher(
     }
 
     override fun processBlock(input: ByteArray?, inOff: Int, output: ByteArray?, outOff: Int): Int {
-        TODO("Not yet implemented: processBlock")
+        error("Illegal state!")
     }
 
     override fun reset() {

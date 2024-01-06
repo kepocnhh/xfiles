@@ -4,6 +4,7 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.Signature
 
+@Suppress("StringLiteralDuplication")
 internal class MockSignature(
     algorithm: String = "MockSignature:algorithm",
     private val values: List<DataSet>,
@@ -28,7 +29,7 @@ internal class MockSignature(
     }
 
     override fun engineUpdate(b: Byte) {
-        TODO("Not yet implemented: engineUpdate")
+        error("Illegal state!")
     }
 
     override fun engineUpdate(b: ByteArray?, off: Int, len: Int) {
@@ -70,10 +71,10 @@ internal class MockSignature(
     }
 
     override fun engineSetParameter(param: String?, value: Any?) {
-        TODO("Not yet implemented: engineSetParameter")
+        error("Illegal state!")
     }
 
     override fun engineGetParameter(param: String?): Any {
-        TODO("Not yet implemented: engineGetParameter")
+        error("Illegal state!")
     }
 }

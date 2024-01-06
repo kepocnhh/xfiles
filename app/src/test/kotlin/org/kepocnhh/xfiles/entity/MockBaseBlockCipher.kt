@@ -8,7 +8,7 @@ import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 
-internal class MockBaseBlockCipher(
+internal class MockBaseBlockCipher @Suppress("LongParameterList") constructor(
     private val values: List<DataSet> = emptyList(),
     private var iv: ByteArray? = null,
     engine: BlockCipher = MockBlockCipher(),
@@ -36,6 +36,7 @@ internal class MockBaseBlockCipher(
         }
     }
 
+    @Suppress("CyclomaticComplexMethod")
     override fun engineDoFinal(input: ByteArray?, inputOffset: Int, inputLen: Int): ByteArray {
         val opmode = opmode ?: error("No operation mode!")
         val key = key ?: error("No key!")

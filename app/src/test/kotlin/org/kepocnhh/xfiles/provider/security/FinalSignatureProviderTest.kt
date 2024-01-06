@@ -37,6 +37,7 @@ internal class FinalSignatureProviderTest {
         }
     }
 
+    @Suppress("BooleanPropertyNaming")
     @Test
     fun verifyTest() {
         runTest(timeout = 2.seconds) {
@@ -63,6 +64,7 @@ internal class FinalSignatureProviderTest {
         }
     }
 
+    @Suppress("BooleanPropertyNaming")
     @Test
     fun verifyErrorTest() {
         runTest(timeout = 2.seconds) {
