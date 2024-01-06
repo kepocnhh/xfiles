@@ -19,13 +19,22 @@ internal class CipherEncryptionTest {
         val encrypted = mockBytes(issuer)
         val decrypted = mockBytes(issuer)
         check(!encrypted.contentEquals(decrypted))
+        val iv = mockBytes(issuer)
+        val key = MockSecretKey(issuer = issuer)
         val cipher = MockCipher(
             cipherSpi = MockBaseBlockCipher(
-                values = listOf(encrypted to decrypted),
+                values = listOf(
+                    MockBaseBlockCipher.DataSet(
+                        key = key,
+                        encrypted = encrypted,
+                        decrypted = decrypted,
+                        iv = iv,
+                    ),
+                ),
+                iv = iv,
             ),
         )
-        val iv = mockBytes(issuer)
-        cipher.init(Cipher.ENCRYPT_MODE, MockSecretKey(), IvParameterSpec(iv))
+        cipher.init(Cipher.ENCRYPT_MODE, key)
         val encrypt: Encrypt = CipherEncrypt(cipher)
         val actual = encrypt.doFinal(decrypted)
         Assert.assertTrue(actual.encrypted.isNotEmpty())
@@ -41,12 +50,21 @@ internal class CipherEncryptionTest {
         val encrypted = mockBytes(issuer)
         val decrypted = mockBytes(issuer)
         check(!encrypted.contentEquals(decrypted))
+        val iv = mockBytes(issuer)
+        val key = MockSecretKey(issuer = issuer)
         val cipher = MockCipher(
             cipherSpi = MockBaseBlockCipher(
-                values = listOf(encrypted to decrypted),
+                values = listOf(
+                    MockBaseBlockCipher.DataSet(
+                        key = key,
+                        encrypted = encrypted,
+                        decrypted = decrypted,
+                        iv = iv,
+                    ),
+                ),
             ),
         )
-        cipher.init(Cipher.DECRYPT_MODE, MockSecretKey())
+        cipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(iv))
         val decrypt: Decrypt = CipherDecrypt(cipher)
         val actual = decrypt.doFinal(encrypted)
         Assert.assertTrue(actual.isNotEmpty())

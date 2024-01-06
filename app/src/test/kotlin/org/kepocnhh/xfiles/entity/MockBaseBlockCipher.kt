@@ -9,16 +9,23 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 
 internal class MockBaseBlockCipher(
-    private val values: List<Pair<ByteArray, ByteArray>> = emptyList(),
+    private val values: List<DataSet> = emptyList(),
+    private var iv: ByteArray? = null,
     engine: BlockCipher = MockBlockCipher(),
     scheme: Int = 2,
     digest: Int = 4,
     keySizeInBits: Int = 256,
     ivLength: Int = 16,
 ) : BaseBlockCipher(engine, scheme, digest, keySizeInBits, ivLength) {
+    class DataSet(
+        val encrypted: ByteArray,
+        val decrypted: ByteArray,
+        val key: Key,
+        val iv: ByteArray,
+    )
+
     private var opmode: Int? = null
     private var key: Key? = null
-    private var iv: ByteArray? = null
 
     override fun engineInit(opmode: Int, key: Key?, params: AlgorithmParameterSpec?, random: SecureRandom?) {
         check(opmode == Cipher.ENCRYPT_MODE || opmode == Cipher.DECRYPT_MODE)
@@ -31,19 +38,22 @@ internal class MockBaseBlockCipher(
 
     override fun engineDoFinal(input: ByteArray?, inputOffset: Int, inputLen: Int): ByteArray {
         val opmode = opmode ?: error("No operation mode!")
-        if (key == null) error("No key!")
+        val key = key ?: error("No key!")
         if (input == null) error("No input!")
         if (input.isEmpty()) error("No input!")
         when (opmode) {
             Cipher.DECRYPT_MODE -> {
-                for ((encrypted, decrypted) in values) {
-                    if (input.contentEquals(encrypted)) return decrypted
+                for (it in values) {
+                    if (!it.key.encoded.contentEquals(key.encoded)) continue
+                    if (!it.iv.contentEquals(engineGetIV())) continue
+                    if (input.contentEquals(it.encrypted)) return it.decrypted
                 }
                 error("No decrypted!")
             }
             Cipher.ENCRYPT_MODE -> {
-                for ((encrypted, decrypted) in values) {
-                    if (input.contentEquals(decrypted)) return encrypted
+                for (it in values) {
+                    if (!it.key.encoded.contentEquals(key.encoded)) continue
+                    if (input.contentEquals(it.decrypted)) return it.encrypted
                 }
                 error("No encrypted!")
             }
