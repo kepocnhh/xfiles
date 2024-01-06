@@ -8,7 +8,9 @@ import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 
-internal class MockBaseBlockCipher @Suppress("LongParameterList") constructor(
+internal class MockBaseBlockCipher
+@Suppress("LongParameterList")
+constructor(
     private val values: List<DataSet> = emptyList(),
     private var iv: ByteArray? = null,
     engine: BlockCipher = MockBlockCipher(),
