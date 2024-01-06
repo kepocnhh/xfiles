@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 import org.kepocnhh.xfiles.entity.MockPrivateKey
+import org.kepocnhh.xfiles.entity.MockPublicKey
 import org.kepocnhh.xfiles.entity.MockSignature
 import org.kepocnhh.xfiles.mockBytes
 import java.security.Signature
@@ -16,11 +17,11 @@ internal class FinalSignatureProviderTest {
             val issuer = "${this::class.java.name}:signTest"
             val privateKey = MockPrivateKey(issuer = issuer)
             val decrypted = mockBytes(issuer)
-            val sign = mockBytes(issuer)
+            val sig = mockBytes(issuer)
             val signature: Signature = MockSignature(
                 values = listOf(
                     MockSignature.DataSet(
-                        sign = sign,
+                        sig = sig,
                         decrypted = decrypted,
                         privateKey = privateKey,
                     ),
@@ -32,7 +33,7 @@ internal class FinalSignatureProviderTest {
                 random = MockSecureRandom(),
                 decrypted = decrypted,
             )
-            Assert.assertTrue(actual.contentEquals(sign))
+            Assert.assertTrue(actual.contentEquals(sig))
         }
     }
 
@@ -40,7 +41,53 @@ internal class FinalSignatureProviderTest {
     fun verifyTest() {
         runTest(timeout = 2.seconds) {
             val issuer = "${this::class.java.name}:verifyTest"
-            TODO(issuer)
+            val decrypted = mockBytes(issuer)
+            val sig = mockBytes(issuer)
+            val publicKey = MockPublicKey(issuer = issuer)
+            val signature: Signature = MockSignature(
+                values = listOf(
+                    MockSignature.DataSet(
+                        sig = sig,
+                        decrypted = decrypted,
+                        publicKey = publicKey,
+                    ),
+                ),
+            )
+            val provider: SignatureProvider = FinalSignatureProvider(signature)
+            val result = provider.verify(
+                key = publicKey,
+                decrypted = decrypted,
+                sig = sig,
+            )
+            Assert.assertTrue(result)
+        }
+    }
+
+    @Test
+    fun verifyErrorTest() {
+        runTest(timeout = 2.seconds) {
+            val issuer = "${this::class.java.name}:verifyErrorTest"
+            val decrypted = mockBytes(issuer)
+            val sig = mockBytes(issuer)
+            val publicKey = MockPublicKey(issuer = issuer)
+            val signature: Signature = MockSignature(
+                values = listOf(
+                    MockSignature.DataSet(
+                        sig = sig,
+                        decrypted = decrypted,
+                        publicKey = publicKey,
+                    ),
+                ),
+            )
+            val provider: SignatureProvider = FinalSignatureProvider(signature)
+            val wrongSig = mockBytes(issuer)
+            check(!sig.contentEquals(wrongSig))
+            val result = provider.verify(
+                key = publicKey,
+                decrypted = decrypted,
+                sig = wrongSig,
+            )
+            Assert.assertFalse(result)
         }
     }
 }

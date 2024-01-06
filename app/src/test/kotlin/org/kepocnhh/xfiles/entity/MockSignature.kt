@@ -9,16 +9,18 @@ internal class MockSignature(
     private val values: List<DataSet>,
 ) : Signature(algorithm) {
     class DataSet(
-        val sign: ByteArray,
+        val sig: ByteArray,
         val decrypted: ByteArray,
-        val privateKey: PrivateKey,
+        val privateKey: PrivateKey = MockPrivateKey(issuer = "MockSignature:DataSet:private:key"),
+        val publicKey: PublicKey = MockPublicKey(issuer = "MockSignature:DataSet:public:key"),
     )
 
     private var privateKey: PrivateKey? = null
+    private var publicKey: PublicKey? = null
     private var decrypted: ByteArray? = null
 
     override fun engineInitVerify(publicKey: PublicKey?) {
-        TODO("Not yet implemented: engineInitVerify")
+        this.publicKey = publicKey
     }
 
     override fun engineInitSign(privateKey: PrivateKey?) {
@@ -41,13 +43,30 @@ internal class MockSignature(
         if (privateKey.encoded.isEmpty()) error("Empty private key!")
         for (it in values) {
             if (!it.privateKey.encoded.contentEquals(privateKey.encoded)) continue
-            if (it.decrypted.contentEquals(decrypted)) return it.sign
+            if (it.decrypted.contentEquals(decrypted)) return it.sig
         }
         error("No sign!")
     }
 
     override fun engineVerify(sigBytes: ByteArray?): Boolean {
-        TODO("Not yet implemented: engineVerify")
+        if (sigBytes == null) error("No sig bytes!")
+        if (sigBytes.isEmpty()) error("Empty sig bytes!")
+        val decrypted = decrypted ?: error("No decrypted!")
+        if (decrypted.isEmpty()) error("Empty decrypted!")
+        val publicKey = publicKey ?: error("No public key!")
+        if (publicKey.encoded.isEmpty()) error("Empty public key!")
+        val filtered = values
+            .filter { it.publicKey.encoded.contentEquals(publicKey.encoded) }
+            .also {
+                if (it.isEmpty()) error("Can not find public key!")
+            }
+            .filter { it.decrypted.contentEquals(decrypted) }
+            .also {
+                if (it.isEmpty()) error("Can not find decrypted!")
+            }
+        if (filtered.size != 1) error("Filtered ${filtered.size}!")
+        val dataSet = filtered.single()
+        return dataSet.sig.contentEquals(sigBytes)
     }
 
     override fun engineSetParameter(param: String?, value: Any?) {
