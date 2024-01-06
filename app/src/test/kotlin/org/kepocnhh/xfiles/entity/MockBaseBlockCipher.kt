@@ -6,6 +6,7 @@ import java.security.Key
 import java.security.SecureRandom
 import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
 
 internal class MockBaseBlockCipher(
     private val values: List<Pair<ByteArray, ByteArray>> = emptyList(),
@@ -17,11 +18,15 @@ internal class MockBaseBlockCipher(
 ) : BaseBlockCipher(engine, scheme, digest, keySizeInBits, ivLength) {
     private var opmode: Int? = null
     private var key: Key? = null
+    private var iv: ByteArray? = null
 
     override fun engineInit(opmode: Int, key: Key?, params: AlgorithmParameterSpec?, random: SecureRandom?) {
         check(opmode == Cipher.ENCRYPT_MODE || opmode == Cipher.DECRYPT_MODE)
         this.opmode = opmode
         this.key = key
+        if (params is IvParameterSpec) {
+            iv = params.iv
+        }
     }
 
     override fun engineDoFinal(input: ByteArray?, inputOffset: Int, inputLen: Int): ByteArray {
@@ -36,8 +41,17 @@ internal class MockBaseBlockCipher(
                 }
                 error("No decrypted!")
             }
-            Cipher.ENCRYPT_MODE -> TODO("ENCRYPT_MODE")
-            else -> error("Operation mode $opmode!")
+            Cipher.ENCRYPT_MODE -> {
+                for ((encrypted, decrypted) in values) {
+                    if (input.contentEquals(decrypted)) return encrypted
+                }
+                error("No encrypted!")
+            }
+            else -> error("Operation mode \"$opmode\" is not supported!")
         }
+    }
+
+    override fun engineGetIV(): ByteArray {
+        return iv ?: error("No IV!")
     }
 }

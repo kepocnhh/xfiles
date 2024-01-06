@@ -7,8 +7,8 @@ internal class CipherEncrypt(
 ) : Encrypt {
     override fun doFinal(decrypted: ByteArray): Encrypt.Data {
         return Encrypt.Data(
-            encrypted = cipher.doFinal(),
-            iv = cipher.iv,
+            encrypted = cipher.doFinal(decrypted),
+            iv = cipher.iv ?: error("No IV!"),
         )
     }
 }
