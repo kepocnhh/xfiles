@@ -41,4 +41,35 @@ internal class FinalCipherProviderTest {
             Assert.assertTrue(actual.contentEquals(decrypted))
         }
     }
+
+    @Test
+    fun encryptTest() {
+        runTest(timeout = 2.seconds) {
+            val issuer = "${this::class.java.name}:encryptTest"
+            val encrypted = mockBytes(issuer)
+            val decrypted = mockBytes(issuer)
+            check(!encrypted.contentEquals(decrypted))
+            val iv = mockBytes(issuer)
+            val key = MockSecretKey(issuer = issuer)
+            val cipher = MockCipher(
+                cipherSpi = MockBaseBlockCipher(
+                    values = listOf(
+                        MockBaseBlockCipher.DataSet(
+                            key = key,
+                            encrypted = encrypted,
+                            decrypted = decrypted,
+                            iv = iv,
+                        ),
+                    ),
+                ),
+            )
+            val provider: CipherProvider = FinalCipherProvider(cipher)
+            val actual = provider.encrypt(
+                decrypted = decrypted,
+                key = key,
+                params = IvParameterSpec(iv),
+            )
+            Assert.assertTrue(actual.contentEquals(encrypted))
+        }
+    }
 }

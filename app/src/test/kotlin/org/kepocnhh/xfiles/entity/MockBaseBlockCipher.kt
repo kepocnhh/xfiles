@@ -53,6 +53,7 @@ internal class MockBaseBlockCipher(
             Cipher.ENCRYPT_MODE -> {
                 for (it in values) {
                     if (!it.key.encoded.contentEquals(key.encoded)) continue
+                    if (!it.iv.contentEquals(engineGetIV())) continue
                     if (input.contentEquals(it.decrypted)) return it.encrypted
                 }
                 error("No encrypted!")
