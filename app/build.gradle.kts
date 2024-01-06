@@ -75,8 +75,8 @@ android {
         applicationId = namespace
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = "1.0.0"
-        versionCode = 37
+        versionName = "1.1.0"
+        versionCode = 39
         manifestPlaceholders["appName"] = "@string/app_name"
     }
 
@@ -177,7 +177,7 @@ fun checkCoverage(variant: ComponentIdentity) {
         violationRules {
             rule {
                 limit {
-                    minimum = BigDecimal(0.84)
+                    minimum = BigDecimal(0.85)
                 }
             }
         }
